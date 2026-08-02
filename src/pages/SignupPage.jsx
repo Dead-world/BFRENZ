@@ -7,20 +7,34 @@ export default function SignupPage() {
   const [error, setError] = useState("");
 
   async function handleSignup(e) {
-    e.preventDefault();
+  e.preventDefault();
 
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
-    });
+  const { data, error } = await supabase.auth.signUp({
+    email,
+    password,
+  });
 
-    if (error) {
-      setError(error.message);
-      return;
-    }
-
-    window.location.href = "/dashboard";
+  if (error) {
+    setError(error.message);
+    return;
   }
+
+  const user = data.user;
+
+  // Create profile row
+  await supabase.from("profiles").insert({
+    id: user.id,
+    username: email.split("@")[0],   // or ask for username
+    avatar_url: null,
+    status: "offline",
+    last_seen: new Date().toISOString(),
+    about_me: "",
+    theme: null
+  });
+
+  window.location.href = "/dashboard";
+}
+
 
   return (
     <div className="min-h-screen bg-background text-text flex items-center justify-center px-6">
