@@ -6,9 +6,12 @@ export default function LandingPage() {
   return (
     <div className="min-h-screen bg-background text-text flex flex-col">
 
-      {/* TOP BAR — MySpace style */}
+      {/* TOP BAR */}
       <header className="w-full bg-surface border-b border-accent px-6 py-4 flex items-center justify-between">
-        <img src="/ProfileDigLogo.png" alt="ProfileDig Logo" className="h-14" />
+        <div className="flex flex-col">
+          <img src="/ProfileDigLogo.png" alt="ProfileDig Logo" className="h-14" />
+          <span className="text-subtle text-xs -mt-1">Your Identity, Your Space</span>
+        </div>
 
         <div className="flex gap-4">
           <button
@@ -26,7 +29,16 @@ export default function LandingPage() {
         </div>
       </header>
 
-      {/* MAIN CONTENT — MySpace layout */}
+      {/* MOBILE NAV */}
+      <nav className="md:hidden bg-surface border-b border-accent px-4 py-3 flex gap-4 overflow-x-auto text-sm">
+        <span onClick={() => navigate("/")} className="cursor-pointer">Home</span>
+        <span onClick={() => navigate("/profile/1")} className="cursor-pointer">Profiles</span>
+        <span onClick={() => navigate("/friends")} className="cursor-pointer">Friends</span>
+        <span onClick={() => navigate("/messages")} className="cursor-pointer">Messages</span>
+        <span onClick={() => navigate("/settings")} className="cursor-pointer">Settings</span>
+      </nav>
+
+      {/* MAIN CONTENT */}
       <main className="flex flex-1 w-full">
 
         {/* LEFT SIDEBAR */}
@@ -34,16 +46,16 @@ export default function LandingPage() {
           <h2 className="text-xl font-bold text-primary mb-4">Navigation</h2>
 
           <ul className="space-y-3 text-subtle">
-            <li className="hover:text-primary cursor-pointer">Home</li>
-            <li className="hover:text-primary cursor-pointer">Profiles</li>
-            <li className="hover:text-primary cursor-pointer">Top Friends</li>
-            <li className="hover:text-primary cursor-pointer">Messages</li>
-            <li className="hover:text-primary cursor-pointer">Settings</li>
+            <li onClick={() => navigate("/")} className="hover:text-primary cursor-pointer">Home</li>
+            <li onClick={() => navigate("/profile/1")} className="hover:text-primary cursor-pointer">Profiles</li>
+            <li onClick={() => navigate("/friends")} className="hover:text-primary cursor-pointer">Top Friends</li>
+            <li onClick={() => navigate("/messages")} className="hover:text-primary cursor-pointer">Messages</li>
+            <li onClick={() => navigate("/settings")} className="hover:text-primary cursor-pointer">Settings</li>
           </ul>
         </aside>
 
         {/* CENTER CONTENT */}
-        <section className="flex-1 p-10 text-center">
+        <section className="flex-1 p-10 text-center animate-fadeIn">
           <h1 className="text-5xl font-extrabold text-primary mb-6">
             Welcome to ProfileDig
           </h1>
@@ -55,7 +67,7 @@ export default function LandingPage() {
 
           <button
             onClick={() => navigate("/signup")}
-            className="px-8 py-4 bg-primary hover:bg-accent rounded-lg text-text font-bold text-xl transition"
+            className="px-8 py-4 bg-primary hover:bg-accent hover:shadow-lg hover:shadow-primary/40 rounded-lg text-text font-bold text-xl transition"
           >
             Create Your Profile
           </button>
