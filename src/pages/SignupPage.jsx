@@ -23,14 +23,12 @@ export default function SignupPage() {
 
   // Create profile row
   await supabase.from("profiles").insert({
-    id: user.id,
-    username: email.split("@")[0],   // or ask for username
-    avatar_url: null,
-    status: "offline",
-    last_seen: new Date().toISOString(),
-    about_me: "",
-    theme: null
-  });
+  User_id: user.id,
+  username: email.split("@")[0],
+  status: "offline",
+  last_seen: new Date().toISOString()
+});
+
 
   window.location.href = "/dashboard";
 }

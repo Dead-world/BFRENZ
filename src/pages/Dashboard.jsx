@@ -22,7 +22,7 @@ export default function Dashboard() {
       const { data: profileData } = await supabase
         .from("profiles")
         .select("*")
-        .eq("id", user.id)
+        .eq("User_id", user.id)
         .single();
 
       setProfile(profileData);
