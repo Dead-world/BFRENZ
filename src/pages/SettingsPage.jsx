@@ -1,228 +1,227 @@
+// src/pages/SettingsPage.jsx
 import { useEffect, useState } from "react";
 import { supabase } from "../supabaseClient";
-import { useAuth } from "../context/AuthContext";
-import { useNavigate } from "react-router-dom";
 
 export default function SettingsPage() {
-  const { user } = useAuth();
-  const navigate = useNavigate();
-
+  const [user, setUser] = useState(null);
   const [profile, setProfile] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
 
-  // Editable fields
-  const [username, setUsername] = useState("");
-  const [aboutMe, setAboutMe] = useState("");
-  const [interests, setInterests] = useState("");
-  const [avatarUrl, setAvatarUrl] = useState("");
-  const [songUrl, setSongUrl] = useState("");
-  const [songTitle, setSongTitle] = useState("");
-
-  // Theme fields
-  const [theme, setTheme] = useState({
-    primary: "#FF6B00",
-    accent: "#E65100",
-    background: "#0D0D0D",
-    text: "#FFFFFF",
-  });
-
+  // Load logged-in user
   useEffect(() => {
+    async function loadUser() {
+      const { data } = await supabase.auth.getUser();
+      setUser(data.user);
+    }
+    loadUser();
+  }, []);
+
+  // Load profile data
+  useEffect(() => {
+    if (!user) return;
+
     async function loadProfile() {
-      const { data, error } = await supabase
+      const { data } = await supabase
         .from("profiles")
         .select("*")
         .eq("User_id", user.id)
         .single();
 
-      if (error) console.error(error);
-
       setProfile(data);
-      setUsername(data.username);
-      setAboutMe(data.about_me || "");
-      setInterests(data.interests || "");
-      setAvatarUrl(data.avatar_url || "");
-      setSongUrl(data.song_url || "");
-      setSongTitle(data.song_title || "");
-      setTheme(data.theme || theme);
-
-      setLoading(false);
     }
 
     loadProfile();
   }, [user]);
 
-  async function saveProfile() {
+  // Save profile changes
+  async function saveChanges(e) {
+    e.preventDefault();
+    setSaving(true);
+
+    const form = new FormData(e.target);
+
+    const updates = {
+      username: form.get("username"),
+      status: form.get("status"),
+      status_message: form.get("status_message"),
+      about_me: form.get("about_me"),
+      meet: form.get("meet"),
+      general_interests: form.get("general_interests"),
+      music_interests: form.get("music_interests"),
+    };
+
     const { error } = await supabase
       .from("profiles")
-      .update({
-        username,
-        about_me: aboutMe,
-        interests,
-        avatar_url: avatarUrl,
-        song_url: songUrl,
-        song_title: songTitle,
-        theme,
-      })
-      .eq("id", user.id);
+      .update(updates)
+      .eq("User_id", user.id);
+
+    setSaving(false);
 
     if (error) {
-      console.error(error);
-      alert("Failed to save profile");
+      alert("Error saving settings: " + error.message);
+    } else {
+      alert("Profile updated!");
+    }
+  }
+
+  // Upload avatar
+  async function uploadAvatar(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const fileName = `${user.id}-${Date.now()}`;
+
+    const { error: uploadError } = await supabase.storage
+      .from("avatars")
+      .upload(fileName, file);
+
+    if (uploadError) {
+      alert("Avatar upload failed.");
       return;
     }
 
-    alert("Profile updated successfully");
+    const { data: urlData } = supabase.storage
+      .from("avatars")
+      .getPublicUrl(fileName);
+
+    await supabase
+      .from("profiles")
+      .update({ avatar_url: urlData.publicUrl })
+      .eq("User_id", user.id);
+
+    alert("Avatar updated!");
+    window.location.reload();
   }
 
-  if (loading) {
+  if (!profile) {
     return (
-      <div className="min-h-screen bg-background text-text flex items-center justify-center">
-        <p className="text-primary text-xl font-bold">Loading settings...</p>
+      <div className="min-h-screen bg-black text-white flex items-center justify-center">
+        <p className="text-orange-500 text-xl font-bold">Loading settings...</p>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-background text-text flex flex-col">
-
+    <div className="min-h-screen bg-black text-white font-sans">
       {/* HEADER */}
-      <header className="w-full bg-surface border-b border-accent px-6 py-4 flex items-center justify-between">
-        <h1 className="text-3xl font-bold text-primary">Settings</h1>
+      <header className="bg-orange-600 text-white py-3 px-6 flex justify-between items-center">
+        <h1 className="text-3xl font-bold">ProfileDig</h1>
+        <nav className="space-x-4">
+          <a href="/" className="hover:underline">Home</a>
+          <a href="/browse" className="hover:underline">Browse</a>
+          <a href="/friends" className="hover:underline">Friends</a>
+          <a href="/messages" className="hover:underline">Messages</a>
+          <a href="/settings" className="hover:underline">Settings</a>
+        </nav>
       </header>
 
-      {/* MAIN */}
-      <main className="flex flex-1 w-full">
+      {/* SETTINGS FORM */}
+      <main className="max-w-3xl mx-auto p-6">
+        <div className="bg-white text-black rounded p-6">
+          <h2 className="text-2xl font-bold text-orange-600 mb-4">Edit Profile</h2>
 
-        {/* SIDEBAR */}
-        <aside className="w-64 bg-surface border-r border-accent p-6 hidden md:block">
-          <h2 className="text-xl font-bold text-primary mb-4">Navigation</h2>
-
-          <ul className="space-y-3 text-subtle">
-            <li onClick={() => navigate("/profile/" + user.id)} className="hover:text-primary cursor-pointer">My Profile</li>
-            <li onClick={() => navigate("/friends")} className="hover:text-primary cursor-pointer">Friends</li>
-            <li onClick={() => navigate("/messages")} className="hover:text-primary cursor-pointer">Messages</li>
-            <li onClick={() => navigate("/")} className="hover:text-primary cursor-pointer">Home</li>
-          </ul>
-        </aside>
-
-        {/* CONTENT */}
-        <section className="flex-1 p-10 space-y-10">
-
-          {/* PROFILE INFO */}
-          <div className="bg-surface border border-accent rounded-xl p-6">
-            <h2 className="text-2xl font-bold text-primary mb-4">Profile Information</h2>
-
-            <div className="space-y-4">
-
-              <div>
-                <label className="block text-sm font-semibold mb-1">Username</label>
-                <input
-                  type="text"
-                  className="w-full bg-background border border-accent rounded px-3 py-2 text-text"
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-semibold mb-1">Avatar URL</label>
-                <input
-                  type="text"
-                  className="w-full bg-background border border-accent rounded px-3 py-2 text-text"
-                  value={avatarUrl}
-                  onChange={(e) => setAvatarUrl(e.target.value)}
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-semibold mb-1">About Me</label>
-                <textarea
-                  className="w-full bg-background border border-accent rounded px-3 py-2 text-text"
-                  rows="4"
-                  value={aboutMe}
-                  onChange={(e) => setAboutMe(e.target.value)}
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-semibold mb-1">Interests</label>
-                <textarea
-                  className="w-full bg-background border border-accent rounded px-3 py-2 text-text"
-                  rows="4"
-                  value={interests}
-                  onChange={(e) => setInterests(e.target.value)}
-                />
-              </div>
-
+          <form onSubmit={saveChanges} className="space-y-6">
+            {/* USERNAME */}
+            <div>
+              <label className="font-semibold">Username</label>
+              <input
+                name="username"
+                defaultValue={profile.username}
+                className="w-full px-3 py-2 rounded bg-gray-200 text-black"
+              />
             </div>
-          </div>
 
-          {/* PROFILE SONG */}
-          <div className="bg-surface border border-accent rounded-xl p-6">
-            <h2 className="text-2xl font-bold text-primary mb-4">Profile Song</h2>
-
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-semibold mb-1">Song Title</label>
-                <input
-                  type="text"
-                  className="w-full bg-background border border-accent rounded px-3 py-2 text-text"
-                  value={songTitle}
-                  onChange={(e) => setSongTitle(e.target.value)}
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-semibold mb-1">Song URL (MP3)</label>
-                <input
-                  type="text"
-                  className="w-full bg-background border border-accent rounded px-3 py-2 text-text"
-                  value={songUrl}
-                  onChange={(e) => setSongUrl(e.target.value)}
-                />
-              </div>
+            {/* STATUS / MOOD */}
+            <div>
+              <label className="font-semibold">Mood / Status</label>
+              <input
+                name="status"
+                defaultValue={profile.status}
+                className="w-full px-3 py-2 rounded bg-gray-200 text-black"
+              />
             </div>
-          </div>
 
-          {/* THEME EDITOR */}
-          <div className="bg-surface border border-accent rounded-xl p-6">
-            <h2 className="text-2xl font-bold text-primary mb-4">Theme Editor</h2>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-
-              {Object.keys(theme).map((key) => (
-                <div key={key}>
-                  <label className="block text-sm font-semibold mb-1 capitalize">
-                    {key} Color
-                  </label>
-                  <input
-                    type="color"
-                    className="w-full h-12 border border-accent rounded"
-                    value={theme[key]}
-                    onChange={(e) =>
-                      setTheme({ ...theme, [key]: e.target.value })
-                    }
-                  />
-                </div>
-              ))}
-
+            {/* STATUS MESSAGE */}
+            <div>
+              <label className="font-semibold">Status Message</label>
+              <input
+                name="status_message"
+                defaultValue={profile.status_message}
+                className="w-full px-3 py-2 rounded bg-gray-200 text-black"
+              />
             </div>
+
+            {/* ABOUT ME */}
+            <div>
+              <label className="font-semibold">About Me</label>
+              <textarea
+                name="about_me"
+                defaultValue={profile.about_me}
+                className="w-full px-3 py-2 rounded bg-gray-200 text-black h-24"
+              />
+            </div>
+
+            {/* WHO I'D LIKE TO MEET */}
+            <div>
+              <label className="font-semibold">Who I'd Like to Meet</label>
+              <textarea
+                name="meet"
+                defaultValue={profile.meet}
+                className="w-full px-3 py-2 rounded bg-gray-200 text-black h-24"
+              />
+            </div>
+
+            {/* GENERAL INTERESTS */}
+            <div>
+              <label className="font-semibold">General Interests</label>
+              <textarea
+                name="general_interests"
+                defaultValue={profile.general_interests}
+                className="w-full px-3 py-2 rounded bg-gray-200 text-black h-24"
+              />
+            </div>
+
+            {/* MUSIC INTERESTS */}
+            <div>
+              <label className="font-semibold">Music Interests</label>
+              <textarea
+                name="music_interests"
+                defaultValue={profile.music_interests}
+                className="w-full px-3 py-2 rounded bg-gray-200 text-black h-24"
+              />
+            </div>
+
+            {/* SAVE BUTTON */}
+            <button
+              disabled={saving}
+              className="bg-orange-600 text-white px-6 py-2 rounded hover:bg-orange-700"
+            >
+              {saving ? "Saving..." : "Save Changes"}
+            </button>
+          </form>
+
+          {/* AVATAR UPLOAD */}
+          <div className="mt-10">
+            <h3 className="text-xl font-bold text-orange-600 mb-2">Avatar</h3>
+
+            <img
+              src={profile.avatar_url || "/default-avatar.png"}
+              className="w-32 h-32 rounded border-2 border-orange-600 mb-3"
+            />
+
+            <input
+              type="file"
+              accept="image/*"
+              onChange={uploadAvatar}
+              className="text-black"
+            />
           </div>
-
-          {/* SAVE BUTTON */}
-          <button
-            onClick={saveProfile}
-            className="px-6 py-3 bg-primary hover:bg-accent rounded text-text font-bold text-lg"
-          >
-            Save Changes
-          </button>
-
-        </section>
+        </div>
       </main>
 
       {/* FOOTER */}
-      <footer className="w-full bg-surface border-t border-accent py-4 text-center text-subtle text-sm">
-        © {new Date().getFullYear()} ProfileDig — Settings
+      <footer className="bg-orange-600 text-black text-center py-3 mt-6">
+        © {new Date().getFullYear()} ProfileDig — Customize Your World
       </footer>
     </div>
   );

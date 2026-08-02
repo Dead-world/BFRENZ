@@ -1,18 +1,135 @@
 // src/pages/ProfilePage.jsx
-import React from "react";
+import { useEffect, useState } from "react";
+import { supabase } from "../supabaseClient";
+import { useParams } from "react-router-dom";
+
 
 export default function ProfilePage() {
+  const { id } = useParams(); // profile being viewed
+  const [profile, setProfile] = useState(null);
+  const [blogs, setBlogs] = useState([]);
+  const [comments, setComments] = useState([]);
+  const [user, setUser] = useState(null);
+
+  // Load logged-in user
+  useEffect(() => {
+    async function loadUser() {
+      const { data } = await supabase.auth.getUser();
+      setUser(data.user);
+    }
+    loadUser();
+  }, []);
+
+  // Load profile data
+  useEffect(() => {
+    if (!id) return;
+
+    async function loadProfile() {
+      const { data } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("User_id", id)
+        .single();
+
+      setProfile(data);
+    }
+
+    loadProfile();
+  }, [id]);
+
+  // Load blog entries
+  useEffect(() => {
+    if (!id) return;
+
+    async function loadBlogs() {
+      const { data } = await supabase
+        .from("blogs")
+        .select("id, title, created_at")
+        .eq("author_id", id)
+        .order("created_at", { ascending: false })
+        .limit(5);
+
+      setBlogs(data || []);
+    }
+
+    loadBlogs();
+  }, [id]);
+
+  // Load comments + real-time subscription
+  useEffect(() => {
+    if (!id) return;
+
+    async function loadComments() {
+      const { data } = await supabase
+        .from("comments")
+        .select("id, content, author_id, created_at")
+        .eq("profile_id", id)
+        .order("created_at", { ascending: true });
+
+      setComments(data || []);
+    }
+
+    loadComments();
+
+    const channel = supabase
+      .channel("comments")
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "comments" },
+        (payload) => {
+          if (payload.new.profile_id === id) {
+            setComments((prev) => [...prev, payload.new]);
+          }
+        }
+      )
+      .subscribe();
+
+    return () => supabase.removeChannel(channel);
+  }, [id]);
+
+  // Add friend
+  async function addFriend() {
+    if (!user) return;
+
+    await supabase.from("friends").insert({
+      user_id: user.id,
+      friend_id: id,
+      status: "pending",
+    });
+
+    alert("Friend request sent!");
+  }
+
+  // Add comment
+  async function addComment(text) {
+    if (!user) return;
+
+    await supabase.from("comments").insert({
+      profile_id: id,
+      author_id: user.id,
+      content: text,
+    });
+  }
+
+  if (!profile) {
+    return (
+      <div className="min-h-screen bg-black text-white flex items-center justify-center">
+        <p className="text-orange-500 text-xl font-bold">Loading profile...</p>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-black text-white font-sans">
       {/* HEADER */}
       <header className="bg-orange-600 text-white py-3 px-6 flex justify-between items-center">
         <h1 className="text-3xl font-bold">ProfileDig</h1>
         <nav className="space-x-4">
-          <a href="#" className="hover:underline">Home</a>
-          <a href="#" className="hover:underline">Browse</a>
-          <a href="#" className="hover:underline">Friends</a>
-          <a href="#" className="hover:underline">Messages</a>
-          <a href="#" className="hover:underline">Settings</a>
+          <a href="/" className="hover:underline">Home</a>
+          <a href="/browse" className="hover:underline">Browse</a>
+          <a href="/friends" className="hover:underline">Friends</a>
+          <a href="/messages" className="hover:underline">Messages</a>
+          <a href="/settings" className="hover:underline">Settings</a>
         </nav>
       </header>
 
@@ -23,55 +140,45 @@ export default function ProfilePage() {
           {/* PROFILE CARD */}
           <div className="bg-white text-black rounded p-4">
             <img
-              src="/default-avatar.png"
+              src={profile.avatar_url || "/default-avatar.png"}
               alt="Profile"
               className="w-full h-48 object-cover rounded mb-3"
             />
-            <h2 className="text-xl font-bold">Jacob</h2>
-            <p className="text-sm">Male, 26 years old</p>
-            <p className="text-sm">Chesterfield, MI</p>
-            <p className="text-sm mt-2">Mood: focused 🔥</p>
-            <p className="text-xs mt-1">Last Login: 08/02/2026</p>
+            <h2 className="text-xl font-bold">{profile.username}</h2>
+            <p className="text-sm">{profile.gender || "Unknown"}, {profile.age || "N/A"} years old</p>
+            <p className="text-sm">{profile.location || "Unknown"}</p>
+            <p className="text-sm mt-2">Mood: {profile.status || "offline"}</p>
+            <p className="text-xs mt-1">Last Seen: {profile.last_seen || "Unknown"}</p>
           </div>
 
           {/* CONTACT OPTIONS */}
           <div className="bg-orange-500 text-black rounded p-4 space-y-2">
-            <h3 className="font-bold text-lg mb-2">Contact Jacob</h3>
-            {[
-              "Send Message",
-              "Add to Friends",
-              "Instant Message",
-              "Add to Group",
-              "Forward to Friend",
-              "Add to Favorites",
-              "Block User",
-              "Rank User",
-            ].map((action) => (
-              <button
-                key={action}
-                className="w-full bg-white text-black font-semibold py-1 rounded hover:bg-orange-600 hover:text-white transition"
-              >
-                {action}
-              </button>
-            ))}
-          </div>
+            <h3 className="font-bold text-lg mb-2">Contact {profile.username}</h3>
 
-          {/* MUSIC PLAYER */}
-          <div className="bg-white text-black rounded p-4">
-            <h3 className="font-bold text-lg mb-2">Now Playing</h3>
-            <div className="bg-gray-200 h-20 flex items-center justify-center rounded">
-              🎵 Electric Surfin Go Go
-            </div>
+            <button
+              onClick={addFriend}
+              className="w-full bg-white text-black font-semibold py-1 rounded hover:bg-orange-600 hover:text-white transition"
+            >
+              Add to Friends
+            </button>
+
+            <button className="w-full bg-white text-black font-semibold py-1 rounded hover:bg-orange-600 hover:text-white transition">
+              Send Message
+            </button>
+
+            <button className="w-full bg-white text-black font-semibold py-1 rounded hover:bg-orange-600 hover:text-white transition">
+              Block User
+            </button>
           </div>
 
           {/* INTERESTS */}
           <div className="bg-orange-500 text-black rounded p-4">
-            <h3 className="font-bold text-lg mb-2">Jacob's Interests</h3>
+            <h3 className="font-bold text-lg mb-2">{profile.username}'s Interests</h3>
             <p className="text-sm">
-              <strong>General:</strong> Web dev, game design, Unreal Engine, React, Tailwind, Supabase
+              <strong>General:</strong> {profile.general_interests || "None listed"}
             </p>
             <p className="text-sm mt-2">
-              <strong>Music:</strong> Dark trap, synthwave, eerie instrumentals
+              <strong>Music:</strong> {profile.music_interests || "None listed"}
             </p>
           </div>
         </aside>
@@ -80,43 +187,61 @@ export default function ProfilePage() {
         <section className="md:col-span-2 space-y-6">
           {/* STATUS */}
           <div className="bg-white text-black rounded p-4">
-            <h2 className="text-xl font-bold mb-2">Jacob testing out the new ProfileDig status</h2>
+            <h2 className="text-xl font-bold mb-2">{profile.status_message || "No status yet"}</h2>
           </div>
 
           {/* BLOG ENTRIES */}
           <div className="bg-orange-500 text-black rounded p-4">
-            <h3 className="font-bold text-lg mb-2">Jacob's Latest Blog Entry</h3>
+            <h3 className="font-bold text-lg mb-2">{profile.username}'s Latest Blog Entries</h3>
             <ul className="space-y-1 text-sm">
-              <li>ProfileDig updates! <span className="text-white">(view more)</span></li>
-              <li>new homepage look <span className="text-white">(view more)</span></li>
-              <li>what’s going on with friend counts? <span className="text-white">(view more)</span></li>
-              <li>extended network <span className="text-white">(view more)</span></li>
-              <li>am I online? <span className="text-white">(view more)</span></li>
+              {blogs.length === 0 && <li>No blog entries yet.</li>}
+              {blogs.map((b) => (
+                <li key={b.id}>
+                  {b.title} <span className="text-white">(view more)</span>
+                </li>
+              ))}
             </ul>
           </div>
 
           {/* BLURBS */}
           <div className="bg-white text-black rounded p-4">
-            <h3 className="font-bold text-lg mb-2 text-orange-600">Jacob's Blurbs</h3>
+            <h3 className="font-bold text-lg mb-2 text-orange-600">{profile.username}'s Blurbs</h3>
             <p className="text-sm mb-3">
-              <strong>About me:</strong> I'm Jacob, founder of BrainDeadLabz and creator of ProfileDig. I love building web and game systems that feel alive.
+              <strong>About me:</strong> {profile.about_me || "No bio yet."}
             </p>
             <p className="text-sm mb-3">
-              <strong>Who I'd like to meet:</strong> Developers, artists, and creators who push boundaries and make cool stuff.
+              <strong>Who I'd like to meet:</strong> {profile.meet || "Anyone cool."}
             </p>
           </div>
 
-          {/* COMMENT SECTION */}
-          <div className="bg-orange-600 text-black rounded p-4 flex justify-between items-center">
-            <button className="bg-white text-black font-semibold px-4 py-2 rounded hover:bg-black hover:text-white transition">
-              Comment
-            </button>
-            <button className="bg-white text-black font-semibold px-4 py-2 rounded hover:bg-black hover:text-white transition">
-              Add to Profile
-            </button>
-            <button className="bg-white text-black font-semibold px-4 py-2 rounded hover:bg-black hover:text-white transition">
-              More from User
-            </button>
+          {/* COMMENTS */}
+          <div className="bg-white text-black rounded p-4">
+            <h3 className="font-bold text-lg mb-2 text-orange-600">Comments</h3>
+
+            {comments.map((c) => (
+              <p key={c.id} className="text-sm border-b border-gray-300 py-1">
+                {c.content}
+              </p>
+            ))}
+
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                const text = e.target.comment.value;
+                if (text.trim().length > 0) addComment(text);
+                e.target.reset();
+              }}
+              className="mt-3"
+            >
+              <input
+                name="comment"
+                placeholder="Write a comment..."
+                className="w-full px-3 py-2 rounded bg-gray-200 text-black"
+              />
+              <button className="mt-2 bg-orange-600 text-white px-4 py-2 rounded hover:bg-orange-700">
+                Post Comment
+              </button>
+            </form>
           </div>
         </section>
       </main>

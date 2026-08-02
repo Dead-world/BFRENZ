@@ -1,16 +1,14 @@
-import { useEffect, useState } from "react";
+// src/pages/MessagesPage.jsx
+import { useEffect, useState, useRef } from "react";
 import { supabase } from "../supabaseClient";
-import { useNavigate } from "react-router-dom";
+import { useParams } from "react-router-dom";
 
 export default function MessagesPage() {
-  const navigate = useNavigate();
-  const [inbox, setInbox] = useState([]);
-  const [sent, setSent] = useState([]);
-  const [selected, setSelected] = useState(null);
-  const [messageText, setMessageText] = useState("");
-  const [loading, setLoading] = useState(true);
-
+  const { id } = useParams(); // chatting with this user
   const [user, setUser] = useState(null);
+  const [otherUser, setOtherUser] = useState(null);
+  const [messages, setMessages] = useState([]);
+  const messageEndRef = useRef(null);
 
   // Load logged-in user
   useEffect(() => {
@@ -21,227 +19,171 @@ export default function MessagesPage() {
     loadUser();
   }, []);
 
+  // Load the user you're chatting with
+  useEffect(() => {
+    async function loadOtherUser() {
+      const { data } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("User_id", id)
+        .single();
+
+      setOtherUser(data);
+    }
+    loadOtherUser();
+  }, [id]);
+
+  // Load message history
   useEffect(() => {
     if (!user) return;
 
     async function loadMessages() {
-      setLoading(true);
-
-      // Inbox (messages sent TO me)
-      const { data: inboxData } = await supabase
+      const { data } = await supabase
         .from("messages")
-        .select(`
-          *,
-          profiles!messages_sender_id_fkey (
-            username,
-            avatar_url,
-            status,
-            last_seen
-          )
-        `)
-        .eq("receiver_id", user.id)
-        .order("created_at", { ascending: false });
+        .select("*")
+        .or(`sender_id.eq.${user.id},receiver_id.eq.${user.id}`)
+        .order("created_at", { ascending: true });
 
-      // Sent messages (messages sent BY me)
-      const { data: sentData } = await supabase
-        .from("messages")
-        .select(`
-          *,
-          profiles!messages_receiver_id_fkey (
-            username,
-            avatar_url,
-            status,
-            last_seen
-          )
-        `)
-        .eq("sender_id", user.id)
-        .order("created_at", { ascending: false });
+      // Filter only messages between these two users
+      const filtered = data.filter(
+        (m) =>
+          (m.sender_id === user.id && m.receiver_id === id) ||
+          (m.sender_id === id && m.receiver_id === user.id)
+      );
 
-      setInbox(inboxData || []);
-      setSent(sentData || []);
-      setLoading(false);
+      setMessages(filtered);
     }
 
     loadMessages();
-  }, [user]);
+  }, [user, id]);
 
-  async function sendReply() {
-    if (!selected || !messageText.trim()) return;
+  // Real-time subscription
+  useEffect(() => {
+    if (!user) return;
+
+    const channel = supabase
+      .channel("messages")
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "messages" },
+        (payload) => {
+          const m = payload.new;
+
+          // Only messages between these two users
+          if (
+            (m.sender_id === user.id && m.receiver_id === id) ||
+            (m.sender_id === id && m.receiver_id === user.id)
+          ) {
+            setMessages((prev) => [...prev, m]);
+          }
+        }
+      )
+      .subscribe();
+
+    return () => supabase.removeChannel(channel);
+  }, [user, id]);
+
+  // Auto-scroll
+  useEffect(() => {
+    messageEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
+
+  // Send message
+  async function sendMessage(text) {
+    if (!user || !text.trim()) return;
 
     await supabase.from("messages").insert({
       sender_id: user.id,
-      receiver_id: selected.sender_id,
-      content: messageText,
+      receiver_id: id,
+      content: text,
     });
-
-    setMessageText("");
   }
 
-  if (loading || !user) {
+  if (!otherUser) {
     return (
-      <div className="min-h-screen bg-background text-text flex items-center justify-center">
-        <p className="text-primary text-xl font-bold">Loading messages...</p>
+      <div className="min-h-screen bg-black text-white flex items-center justify-center">
+        <p className="text-orange-500 text-xl font-bold">Loading chat...</p>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-background text-text flex flex-col">
-
+    <div className="min-h-screen bg-black text-white font-sans">
       {/* HEADER */}
-      <header className="w-full bg-surface border-b border-accent px-6 py-4 flex items-center justify-between">
-        <h1 className="text-3xl font-bold text-primary">Messages</h1>
+      <header className="bg-orange-600 text-white py-3 px-6 flex justify-between items-center">
+        <h1 className="text-3xl font-bold">ProfileDig</h1>
+        <nav className="space-x-4">
+          <a href="/" className="hover:underline">Home</a>
+          <a href="/browse" className="hover:underline">Browse</a>
+          <a href="/friends" className="hover:underline">Friends</a>
+          <a href="/messages" className="hover:underline">Messages</a>
+          <a href="/settings" className="hover:underline">Settings</a>
+        </nav>
       </header>
 
-      {/* MAIN */}
-      <main className="flex flex-1 w-full">
+      {/* CHAT HEADER */}
+      <div className="bg-white text-black p-4 border-b border-orange-600">
+        <div className="flex items-center gap-4">
+          <img
+            src={otherUser.avatar_url || "/default-avatar.png"}
+            className="w-16 h-16 rounded border-2 border-orange-600"
+          />
+          <div>
+            <h2 className="text-xl font-bold">{otherUser.username}</h2>
+            <p className="text-sm text-gray-700">Chatting on ProfileDig</p>
+          </div>
+        </div>
+      </div>
 
-        {/* SIDEBAR */}
-        <aside className="w-64 bg-surface border-r border-accent p-6 hidden md:block">
-          <h2 className="text-xl font-bold text-primary mb-4">Navigation</h2>
-
-          <ul className="space-y-3 text-subtle">
-            <li onClick={() => navigate("/")} className="hover:text-primary cursor-pointer">Home</li>
-            <li onClick={() => navigate("/profile/" + user.id)} className="hover:text-primary cursor-pointer">My Profile</li>
-            <li onClick={() => navigate("/friends")} className="hover:text-primary cursor-pointer">Friends</li>
-            <li onClick={() => navigate("/settings")} className="hover:text-primary cursor-pointer">Settings</li>
-          </ul>
-        </aside>
-
-        {/* CONTENT */}
-        <section className="flex-1 p-10 grid grid-cols-1 lg:grid-cols-3 gap-10">
-
-          {/* INBOX */}
-          <div className="bg-surface border border-accent rounded-xl p-6">
-            <h2 className="text-2xl font-bold text-primary mb-4">Inbox</h2>
-
-            <div className="space-y-4">
-              {inbox.length === 0 && (
-                <p className="text-subtle">No messages yet.</p>
-              )}
-
-              {inbox.map((msg) => (
-                <div
-                  key={msg.id}
-                  onClick={() => setSelected(msg)}
-                  className="flex items-center gap-4 bg-background border border-accent p-4 rounded-lg cursor-pointer hover:border-primary"
-                >
-                  <img
-                    src={msg.profiles.avatar_url || "/default-avatar.png"}
-                    className="w-14 h-14 rounded-lg border-2 border-primary"
-                  />
-
-                  <div>
-                    <p className="font-bold text-primary">{msg.profiles.username}</p>
-
-                    {/* ONLINE / OFFLINE BADGE */}
-                    {msg.profiles.status === "online" ? (
-                      <span className="text-green-400 font-bold text-xs">● Online</span>
-                    ) : (
-                      <span className="text-subtle text-xs">● Offline</span>
-                    )}
-
-                    <p className="text-subtle text-sm truncate">{msg.content}</p>
-                    <p className="text-subtle text-xs">{new Date(msg.created_at).toLocaleString()}</p>
-                  </div>
-                </div>
-              ))}
+      {/* CHAT WINDOW */}
+      <div className="p-6 max-h-[70vh] overflow-y-auto bg-black">
+        {messages.map((m) => (
+          <div
+            key={m.id}
+            className={`mb-4 flex ${
+              m.sender_id === user.id ? "justify-end" : "justify-start"
+            }`}
+          >
+            <div
+              className={`px-4 py-2 rounded max-w-xs ${
+                m.sender_id === user.id
+                  ? "bg-orange-600 text-white"
+                  : "bg-white text-black"
+              }`}
+            >
+              {m.content}
             </div>
           </div>
+        ))}
 
-          {/* SENT */}
-          <div className="bg-surface border border-accent rounded-xl p-6">
-            <h2 className="text-2xl font-bold text-primary mb-4">Sent</h2>
+        <div ref={messageEndRef}></div>
+      </div>
 
-            <div className="space-y-4">
-              {sent.length === 0 && (
-                <p className="text-subtle">You haven't sent any messages.</p>
-              )}
-
-              {sent.map((msg) => (
-                <div
-                  key={msg.id}
-                  onClick={() => setSelected(msg)}
-                  className="flex items-center gap-4 bg-background border border-accent p-4 rounded-lg cursor-pointer hover:border-primary"
-                >
-                  <img
-                    src={msg.profiles.avatar_url || "/default-avatar.png"}
-                    className="w-14 h-14 rounded-lg border-2 border-primary"
-                  />
-
-                  <div>
-                    <p className="font-bold text-primary">{msg.profiles.username}</p>
-
-                    {/* ONLINE / OFFLINE BADGE */}
-                    {msg.profiles.status === "online" ? (
-                      <span className="text-green-400 font-bold text-xs">● Online</span>
-                    ) : (
-                      <span className="text-subtle text-xs">● Offline</span>
-                    )}
-
-                    <p className="text-subtle text-sm truncate">{msg.content}</p>
-                    <p className="text-subtle text-xs">{new Date(msg.created_at).toLocaleString()}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* MESSAGE VIEWER */}
-          <div className="bg-surface border border-accent rounded-xl p-6 lg:col-span-1">
-            <h2 className="text-2xl font-bold text-primary mb-4">Conversation</h2>
-
-            {!selected ? (
-              <p className="text-subtle">Select a message to view the conversation.</p>
-            ) : (
-              <>
-                <div className="flex items-center gap-4 mb-4">
-                  <img
-                    src={selected.profiles.avatar_url || "/default-avatar.png"}
-                    className="w-16 h-16 rounded-lg border-2 border-primary"
-                  />
-                  <div>
-                    <p className="font-bold text-primary">{selected.profiles.username}</p>
-
-                    {/* ONLINE / OFFLINE BADGE */}
-                    {selected.profiles.status === "online" ? (
-                      <span className="text-green-400 font-bold text-sm">● Online</span>
-                    ) : (
-                      <span className="text-subtle text-sm">● Offline</span>
-                    )}
-
-                    <p className="text-subtle text-sm">Conversation started</p>
-                  </div>
-                </div>
-
-                <div className="bg-background border border-accent rounded-lg p-4 mb-4 h-64 overflow-y-auto">
-                  <p className="text-text whitespace-pre-line">{selected.content}</p>
-                </div>
-
-                {/* Reply box */}
-                <textarea
-                  value={messageText}
-                  onChange={(e) => setMessageText(e.target.value)}
-                  className="w-full bg-background border border-accent rounded-lg p-3 text-text mb-4"
-                  placeholder="Write a reply..."
-                />
-
-                <button
-                  onClick={sendReply}
-                  className="px-4 py-2 bg-primary hover:bg-accent rounded text-text font-semibold"
-                >
-                  Send Reply
-                </button>
-              </>
-            )}
-          </div>
-
-        </section>
-      </main>
+      {/* MESSAGE INPUT */}
+      <div className="bg-white p-4 border-t border-orange-600">
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            const text = e.target.message.value;
+            sendMessage(text);
+            e.target.reset();
+          }}
+          className="flex gap-3"
+        >
+          <input
+            name="message"
+            placeholder="Type a message..."
+            className="flex-1 px-3 py-2 rounded bg-gray-200 text-black"
+          />
+          <button className="bg-orange-600 text-white px-6 py-2 rounded hover:bg-orange-700">
+            Send
+          </button>
+        </form>
+      </div>
 
       {/* FOOTER */}
-      <footer className="w-full bg-surface border-t border-accent py-4 text-center text-subtle text-sm">
-        © {new Date().getFullYear()} ProfileDig — Messages
+      <footer className="bg-orange-600 text-black text-center py-3 mt-6">
+        © {new Date().getFullYear()} ProfileDig — Real‑Time Chat
       </footer>
     </div>
   );
