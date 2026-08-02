@@ -49,6 +49,7 @@ export default function SettingsPage() {
       meet: form.get("meet"),
       general_interests: form.get("general_interests"),
       music_interests: form.get("music_interests"),
+      custom_html: form.get("custom_html"), // ⭐ NEW FIELD
     };
 
     const { error } = await supabase
@@ -94,7 +95,7 @@ export default function SettingsPage() {
     window.location.reload();
   }
 
-  // ⭐ FIX: Add logout function
+  // Logout
   async function handleLogout() {
     await supabase.auth.signOut();
     setUser(null);
@@ -162,14 +163,13 @@ export default function SettingsPage() {
         </div>
       </header>
 
-
-
       {/* SETTINGS FORM */}
       <main className="max-w-3xl mx-auto p-6">
         <div className="bg-white text-black rounded p-6">
           <h2 className="text-2xl font-bold text-orange-600 mb-4">Edit Profile</h2>
 
           <form onSubmit={saveChanges} className="space-y-6">
+
             {/* USERNAME */}
             <div>
               <label className="font-semibold">Username</label>
@@ -180,7 +180,7 @@ export default function SettingsPage() {
               />
             </div>
 
-            {/* STATUS / MOOD */}
+            {/* STATUS */}
             <div>
               <label className="font-semibold">Mood / Status</label>
               <input
@@ -238,6 +238,23 @@ export default function SettingsPage() {
                 defaultValue={profile.music_interests}
                 className="w-full px-3 py-2 rounded bg-gray-200 text-black h-24"
               />
+            </div>
+
+            {/* ⭐ CUSTOM HTML / CSS EDITOR */}
+            <div>
+              <label className="font-semibold text-orange-600 text-lg">
+                Custom Profile Code (HTML / CSS)
+              </label>
+
+              <textarea
+                name="custom_html"
+                defaultValue={profile.custom_html || ""}
+                className="w-full px-3 py-2 rounded bg-gray-200 text-black h-48 font-mono"
+                placeholder="<style>body { background: url('glitter.gif'); }</style>"
+              />
+              <p className="text-xs text-gray-600 mt-1">
+                Paste any HTML or CSS here — just like old MySpace.
+              </p>
             </div>
 
             {/* SAVE BUTTON */}
