@@ -1,90 +1,89 @@
-import { useNavigate } from "react-router-dom";
+// src/pages/LandingPage.jsx
+import React from "react";
 
 export default function LandingPage() {
-  const navigate = useNavigate();
-
   return (
-    <div className="min-h-screen bg-background text-text flex flex-col">
-
-      {/* TOP BAR */}
-      <header className="w-full bg-surface border-b border-accent px-6 py-4 flex items-center justify-between">
-        <div className="flex flex-col">
-          <img src="/ProfileDigLogo.png" alt="ProfileDig Logo" className="h-14" />
-          <span className="text-subtle text-xs -mt-1">Your Identity, Your Space</span>
-        </div>
-
-        <div className="flex gap-4">
-          <button
-            onClick={() => navigate("/login")}
-            className="px-4 py-2 bg-primary hover:bg-accent rounded text-text font-semibold"
-          >
-            Login
-          </button>
-          <button
-            onClick={() => navigate("/signup")}
-            className="px-4 py-2 border border-primary hover:bg-primary hover:text-text rounded font-semibold text-primary"
-          >
-            Sign Up
-          </button>
-        </div>
+    <div className="min-h-screen bg-black text-white font-sans">
+      {/* HEADER */}
+      <header className="bg-orange-600 text-white py-4 px-6 flex justify-between items-center">
+        <h1 className="text-3xl font-bold">ProfileDig</h1>
+        <nav className="space-x-4">
+          <a href="#" className="hover:underline">Home</a>
+          <a href="#" className="hover:underline">Browse</a>
+          <a href="#" className="hover:underline">Music</a>
+          <a href="#" className="hover:underline">Videos</a>
+          <a href="#" className="hover:underline">Blogs</a>
+        </nav>
       </header>
 
-      {/* MOBILE NAV */}
-      <nav className="md:hidden bg-surface border-b border-accent px-4 py-3 flex gap-4 overflow-x-auto text-sm">
-        <span onClick={() => navigate("/")} className="cursor-pointer">Home</span>
-        <span onClick={() => navigate("/profile/1")} className="cursor-pointer">Profiles</span>
-        <span onClick={() => navigate("/friends")} className="cursor-pointer">Friends</span>
-        <span onClick={() => navigate("/messages")} className="cursor-pointer">Messages</span>
-        <span onClick={() => navigate("/settings")} className="cursor-pointer">Settings</span>
-      </nav>
+      {/* MAIN GRID */}
+      <main className="grid grid-cols-1 md:grid-cols-3 gap-6 p-6">
+        {/* LEFT COLUMN */}
+        <section className="space-y-4">
+          <h2 className="bg-orange-500 text-black font-bold px-3 py-2 rounded">Cool New Videos</h2>
+          <div className="grid grid-cols-2 gap-3">
+            {["Funny Ticket Short", "Be Safe This Holiday", "93 Head Spins", "Get Familiar - Skate"].map((title) => (
+              <div key={title} className="bg-white text-black rounded p-2">
+                <div className="h-24 bg-gray-300 rounded mb-2"></div>
+                <p className="text-sm font-semibold">{title}</p>
+              </div>
+            ))}
+          </div>
+        </section>
 
-      {/* MAIN CONTENT */}
-      <main className="flex flex-1 w-full">
+        {/* CENTER COLUMN */}
+        <section className="space-y-6">
+          <div className="bg-orange-500 text-black p-4 rounded">
+            <h2 className="text-xl font-bold mb-2">ProfileDig Movies</h2>
+            <ul className="text-sm space-y-1">
+              <li>🎬 Find Movie Showtimes</li>
+              <li>📰 Read Movie News</li>
+              <li>🎟️ Get Movie Tickets</li>
+            </ul>
+          </div>
 
-        {/* LEFT SIDEBAR */}
-        <aside className="w-64 bg-surface border-r border-accent p-6 hidden md:block">
-          <h2 className="text-xl font-bold text-primary mb-4">Navigation</h2>
-
-          <ul className="space-y-3 text-subtle">
-            <li onClick={() => navigate("/")} className="hover:text-primary cursor-pointer">Home</li>
-            <li onClick={() => navigate("/profile/1")} className="hover:text-primary cursor-pointer">Profiles</li>
-            <li onClick={() => navigate("/friends")} className="hover:text-primary cursor-pointer">Top Friends</li>
-            <li onClick={() => navigate("/messages")} className="hover:text-primary cursor-pointer">Messages</li>
-            <li onClick={() => navigate("/settings")} className="hover:text-primary cursor-pointer">Settings</li>
-          </ul>
-        </aside>
-
-        {/* CENTER CONTENT */}
-        <section className="flex-1 p-10 text-center animate-fadeIn">
-          <h1 className="text-5xl font-extrabold text-primary mb-6">
-            Welcome to ProfileDig
-          </h1>
-
-          <p className="text-subtle max-w-2xl mx-auto mb-10 text-lg">
-            The modern identity hub inspired by the golden era of social profiles.
-            Customize your presence, connect with others, and define your digital identity.
-          </p>
-
-          <button
-            onClick={() => navigate("/signup")}
-            className="px-8 py-4 bg-primary hover:bg-accent hover:shadow-lg hover:shadow-primary/40 rounded-lg text-text font-bold text-xl transition"
-          >
-            Create Your Profile
-          </button>
-
-          {/* Retro MySpace-style content box */}
-          <div className="mt-16 mx-auto max-w-3xl bg-surface border border-accent rounded-xl p-8 text-left">
-            <h2 className="text-2xl font-bold text-primary mb-4">Featured Profiles</h2>
-            <p className="text-subtle">
-              Coming soon — a throwback to classic MySpace “Top Friends,” but modernized.
+          <div className="bg-white text-black p-4 rounded">
+            <h2 className="text-xl font-bold mb-2 text-orange-600">ProfileDig Music</h2>
+            <p className="text-sm">
+              Featured Artist: <strong>Clipse</strong> — Hip Hop / Rap<br />
+              <span className="text-gray-700">Virginia Beach, VA</span>
             </p>
           </div>
         </section>
+
+        {/* RIGHT COLUMN */}
+        <aside className="space-y-6">
+          <div className="bg-white text-black p-4 rounded">
+            <h2 className="text-xl font-bold text-orange-600 mb-2">Member Login</h2>
+            <form className="space-y-2">
+              <input type="email" placeholder="E-Mail" className="w-full border border-gray-400 rounded px-2 py-1" />
+              <input type="password" placeholder="Password" className="w-full border border-gray-400 rounded px-2 py-1" />
+              <div className="flex items-center justify-between">
+                <label className="text-sm">
+                  <input type="checkbox" className="mr-1" /> Remember Me
+                </label>
+                <button className="bg-orange-600 text-white px-3 py-1 rounded hover:bg-orange-700">Login</button>
+              </div>
+            </form>
+          </div>
+
+          <div className="bg-orange-500 text-black p-4 rounded">
+            <h2 className="text-xl font-bold mb-2">Cool New People</h2>
+            <div className="grid grid-cols-3 gap-2">
+              {["Joe", "Embi", "Jason"].map((name) => (
+                <div key={name} className="bg-white text-black rounded p-2 text-center">
+                  <div className="h-16 bg-gray-300 rounded mb-1"></div>
+                  <p className="text-sm font-semibold">{name}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </aside>
       </main>
 
       {/* FOOTER */}
-      <footer className="w-full bg-surface border-t border-accent py-4 text-center text-subtle text-sm">
-        © {new Date().getFullYear()} ProfileDig — Your Identity, Your Space.
+      <footer className="bg-orange-600 text-black text-center py-3 mt-6">
+        © {new Date().getFullYear()} ProfileDig — A Place for Friends
       </footer>
     </div>
   );

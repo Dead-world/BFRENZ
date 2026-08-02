@@ -1,291 +1,129 @@
-import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
-import { supabase } from "../supabaseClient";
-import { useAuth } from "../context/AuthContext";
-import TopFriends from "../components/TopFriends";
-import MusicPlayer from "../components/MusicPlayer";
+// src/pages/ProfilePage.jsx
+import React from "react";
 
 export default function ProfilePage() {
-  const { id } = useParams(); // /profile/:id
-  const { user } = useAuth();
-
-  const [profile, setProfile] = useState(null);
-  const [friends, setFriends] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [friendStatus, setFriendStatus] = useState("none"); 
-  // none | pending | incoming | friends
-
-  useEffect(() => {
-    async function loadProfile() {
-      setLoading(true);
-
-      // Fetch profile data
-      // Fetch profile data
-  const { data: userData, error } = await supabase
-        .from("profiles")
-        .select("*")
-        .eq("User_id", id)
-        .single();
-
-
-      if (error) console.error(error);
-      setProfile(userData);
-
-      // Fetch friendship status
-      const { data: friendData } = await supabase
-        .from("friends")
-        .select("*")
-        .or(
-          `and(user_id.eq.${user.id},friend_id.eq.${id}),and(user_id.eq.${id},friend_id.eq.${user.id})`
-        );
-
-      if (friendData.length > 0) {
-        const row = friendData[0];
-
-        if (row.status === "accepted") {
-          setFriendStatus("friends");
-        } else if (row.user_id === user.id && row.status === "pending") {
-          setFriendStatus("pending"); // you sent request
-        } else if (row.friend_id === user.id && row.status === "pending") {
-          setFriendStatus("incoming"); // they sent request
-        }
-      }
-
-      // Fetch top friends list
-      const { data: topFriends } = await supabase
-        .from("friends")
-        .select("friend_id")
-        .eq("user_id", id)
-        .eq("status", "accepted");
-
-      setFriends(topFriends || []);
-      setLoading(false);
-    }
-
-    loadProfile();
-  }, [id, user.id]);
-
-  // -----------------------------
-  // FRIEND REQUEST ACTIONS
-  // -----------------------------
-
-  async function sendFriendRequest() {
-    // Prevent duplicates
-    const { data: existing } = await supabase
-      .from("friends")
-      .select("*")
-      .or(
-        `and(user_id.eq.${user.id},friend_id.eq.${id}),and(user_id.eq.${id},friend_id.eq.${user.id})`
-      );
-
-    if (existing.length > 0) {
-      alert("Friendship already exists or is pending.");
-      return;
-    }
-
-    await supabase.from("friends").insert({
-      user_id: user.id,
-      friend_id: id,
-      status: "pending",
-    });
-
-    setFriendStatus("pending");
-    alert("Friend request sent!");
-  }
-
-  async function acceptFriendRequest() {
-    await supabase
-      .from("friends")
-      .update({ status: "accepted" })
-      .or(
-        `and(user_id.eq.${id},friend_id.eq.${user.id}),and(user_id.eq.${user.id},friend_id.eq.${id})`
-      );
-
-    setFriendStatus("friends");
-    alert("Friend request accepted!");
-  }
-
-  async function declineFriendRequest() {
-    await supabase
-      .from("friends")
-      .delete()
-      .or(
-        `and(user_id.eq.${id},friend_id.eq.${user.id}),and(user_id.eq.${user.id},friend_id.eq.${id})`
-      );
-
-    setFriendStatus("none");
-    alert("Friend request declined.");
-  }
-
-  async function removeFriend() {
-    await supabase
-      .from("friends")
-      .delete()
-      .or(
-        `and(user_id.eq.${id},friend_id.eq.${user.id}),and(user_id.eq.${user.id},friend_id.eq.${id})`
-      );
-
-    setFriendStatus("none");
-    alert("Friend removed.");
-  }
-
-  // -----------------------------
-  // LOADING / NOT FOUND
-  // -----------------------------
-
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-background text-text flex items-center justify-center">
-        <p className="text-primary text-xl font-bold">Loading profile...</p>
-      </div>
-    );
-  }
-
-  if (!profile) {
-    return (
-      <div className="min-h-screen bg-background text-text flex items-center justify-center">
-        <p className="text-primary text-xl font-bold">Profile not found.</p>
-      </div>
-    );
-  }
-
-  // -----------------------------
-  // PAGE UI
-  // -----------------------------
-
   return (
-    <div
-      className="min-h-screen text-text flex flex-col"
-      style={{
-        "--color-primary": profile.theme?.primary || "#FF6B00",
-        "--color-accent": profile.theme?.accent || "#E65100",
-        "--color-background": profile.theme?.background || "#0D0D0D",
-        "--color-text": profile.theme?.text || "#FFFFFF",
-      }}
-    >
+    <div className="min-h-screen bg-black text-white font-sans">
       {/* HEADER */}
-      <header className="w-full bg-surface border-b border-accent px-6 py-4 flex items-center justify-between">
-        <h1 className="text-3xl font-bold text-primary">{profile.username}</h1>
+      <header className="bg-orange-600 text-white py-3 px-6 flex justify-between items-center">
+        <h1 className="text-3xl font-bold">ProfileDig</h1>
+        <nav className="space-x-4">
+          <a href="#" className="hover:underline">Home</a>
+          <a href="#" className="hover:underline">Browse</a>
+          <a href="#" className="hover:underline">Friends</a>
+          <a href="#" className="hover:underline">Messages</a>
+          <a href="#" className="hover:underline">Settings</a>
+        </nav>
       </header>
 
-      {/* MAIN CONTENT */}
-      <main className="flex flex-1 w-full">
-
+      {/* MAIN GRID */}
+      <main className="grid grid-cols-1 md:grid-cols-3 gap-6 p-6">
         {/* LEFT SIDEBAR */}
-        <aside className="w-72 bg-surface border-r border-accent p-6 hidden md:block">
-          <img
-            src={profile.avatar_url || "/default-avatar.png"}
-            alt="Avatar"
-            className="w-40 h-40 rounded-xl border-4 border-primary mx-auto mb-4"
-          />
-
-          <h2 className="text-xl font-bold text-primary text-center">
-            {profile.username}
-          </h2>
-
-          {/* ONLINE / OFFLINE STATUS */}
-          <p className="text-center mt-2">
-            {profile.status === "online" ? (
-              <span className="text-green-400 font-bold">● Online</span>
-            ) : (
-              <span className="text-subtle">
-                ● Offline
-                <br />
-                <span className="text-xs">
-                  Last seen: {new Date(profile.last_seen).toLocaleString()}
-                </span>
-              </span>
-            )}
-          </p>
-
-          {/* FRIEND REQUEST BUTTONS */}
-          {user.id !== id && (
-            <div className="mt-6 text-center space-y-3">
-
-              {friendStatus === "none" && (
-                <button
-                  onClick={sendFriendRequest}
-                  className="px-4 py-2 bg-primary hover:bg-accent rounded text-text font-semibold"
-                >
-                  Add Friend
-                </button>
-              )}
-
-              {friendStatus === "pending" && (
-                <p className="text-subtle">Friend request sent.</p>
-              )}
-
-              {friendStatus === "incoming" && (
-                <>
-                  <button
-                    onClick={acceptFriendRequest}
-                    className="px-4 py-2 bg-primary hover:bg-accent rounded text-text font-semibold"
-                  >
-                    Accept Request
-                  </button>
-
-                  <button
-                    onClick={declineFriendRequest}
-                    className="px-4 py-2 border border-primary hover:bg-primary hover:text-text rounded font-semibold text-primary"
-                  >
-                    Decline
-                  </button>
-                </>
-              )}
-
-              {friendStatus === "friends" && (
-                <button
-                  onClick={removeFriend}
-                  className="px-4 py-2 border border-primary hover:bg-primary hover:text-text rounded font-semibold text-primary"
-                >
-                  Remove Friend
-                </button>
-              )}
-
-            </div>
-          )}
-
-          {/* PROFILE SONG */}
-          <div className="mt-6">
-            <h3 className="text-lg font-bold text-primary mb-2">Profile Song</h3>
-            {profile.song_url ? (
-              <p className="text-subtle">{profile.song_title}</p>
-            ) : (
-              <p className="text-subtle">No song selected</p>
-            )}
+        <aside className="space-y-4">
+          {/* PROFILE CARD */}
+          <div className="bg-white text-black rounded p-4">
+            <img
+              src="/default-avatar.png"
+              alt="Profile"
+              className="w-full h-48 object-cover rounded mb-3"
+            />
+            <h2 className="text-xl font-bold">Jacob</h2>
+            <p className="text-sm">Male, 26 years old</p>
+            <p className="text-sm">Chesterfield, MI</p>
+            <p className="text-sm mt-2">Mood: focused 🔥</p>
+            <p className="text-xs mt-1">Last Login: 08/02/2026</p>
           </div>
-        </aside>
 
-        {/* CENTER CONTENT */}
-        <section className="flex-1 p-10 space-y-10">
+          {/* CONTACT OPTIONS */}
+          <div className="bg-orange-500 text-black rounded p-4 space-y-2">
+            <h3 className="font-bold text-lg mb-2">Contact Jacob</h3>
+            {[
+              "Send Message",
+              "Add to Friends",
+              "Instant Message",
+              "Add to Group",
+              "Forward to Friend",
+              "Add to Favorites",
+              "Block User",
+              "Rank User",
+            ].map((action) => (
+              <button
+                key={action}
+                className="w-full bg-white text-black font-semibold py-1 rounded hover:bg-orange-600 hover:text-white transition"
+              >
+                {action}
+              </button>
+            ))}
+          </div>
 
-          {/* ABOUT ME */}
-          <div className="bg-surface border border-accent rounded-xl p-6">
-            <h2 className="text-2xl font-bold text-primary mb-4">About Me</h2>
-            <p className="text-subtle whitespace-pre-line">
-              {profile.about_me || "This user hasn't written anything yet."}
-            </p>
+          {/* MUSIC PLAYER */}
+          <div className="bg-white text-black rounded p-4">
+            <h3 className="font-bold text-lg mb-2">Now Playing</h3>
+            <div className="bg-gray-200 h-20 flex items-center justify-center rounded">
+              🎵 Electric Surfin Go Go
+            </div>
           </div>
 
           {/* INTERESTS */}
-          <div className="bg-surface border border-accent rounded-xl p-6">
-            <h2 className="text-2xl font-bold text-primary mb-4">Interests</h2>
-            <p className="text-subtle whitespace-pre-line">
-              {profile.interests || "No interests listed."}
+          <div className="bg-orange-500 text-black rounded p-4">
+            <h3 className="font-bold text-lg mb-2">Jacob's Interests</h3>
+            <p className="text-sm">
+              <strong>General:</strong> Web dev, game design, Unreal Engine, React, Tailwind, Supabase
+            </p>
+            <p className="text-sm mt-2">
+              <strong>Music:</strong> Dark trap, synthwave, eerie instrumentals
+            </p>
+          </div>
+        </aside>
+
+        {/* RIGHT COLUMN */}
+        <section className="md:col-span-2 space-y-6">
+          {/* STATUS */}
+          <div className="bg-white text-black rounded p-4">
+            <h2 className="text-xl font-bold mb-2">Jacob testing out the new ProfileDig status</h2>
+          </div>
+
+          {/* BLOG ENTRIES */}
+          <div className="bg-orange-500 text-black rounded p-4">
+            <h3 className="font-bold text-lg mb-2">Jacob's Latest Blog Entry</h3>
+            <ul className="space-y-1 text-sm">
+              <li>ProfileDig updates! <span className="text-white">(view more)</span></li>
+              <li>new homepage look <span className="text-white">(view more)</span></li>
+              <li>what’s going on with friend counts? <span className="text-white">(view more)</span></li>
+              <li>extended network <span className="text-white">(view more)</span></li>
+              <li>am I online? <span className="text-white">(view more)</span></li>
+            </ul>
+          </div>
+
+          {/* BLURBS */}
+          <div className="bg-white text-black rounded p-4">
+            <h3 className="font-bold text-lg mb-2 text-orange-600">Jacob's Blurbs</h3>
+            <p className="text-sm mb-3">
+              <strong>About me:</strong> I'm Jacob, founder of BrainDeadLabz and creator of ProfileDig. I love building web and game systems that feel alive.
+            </p>
+            <p className="text-sm mb-3">
+              <strong>Who I'd like to meet:</strong> Developers, artists, and creators who push boundaries and make cool stuff.
             </p>
           </div>
 
-          {/* TOP FRIENDS */}
-          <TopFriends friends={friends} />
+          {/* COMMENT SECTION */}
+          <div className="bg-orange-600 text-black rounded p-4 flex justify-between items-center">
+            <button className="bg-white text-black font-semibold px-4 py-2 rounded hover:bg-black hover:text-white transition">
+              Comment
+            </button>
+            <button className="bg-white text-black font-semibold px-4 py-2 rounded hover:bg-black hover:text-white transition">
+              Add to Profile
+            </button>
+            <button className="bg-white text-black font-semibold px-4 py-2 rounded hover:bg-black hover:text-white transition">
+              More from User
+            </button>
+          </div>
         </section>
       </main>
 
-      {/* MUSIC PLAYER */}
-      <MusicPlayer songUrl={profile.song_url} />
-
       {/* FOOTER */}
-      <footer className="w-full bg-surface border-t border-accent py-4 text-center text-subtle text-sm">
-        © {new Date().getFullYear()} ProfileDig — Profile Page
+      <footer className="bg-orange-600 text-black text-center py-3 mt-6">
+        © {new Date().getFullYear()} ProfileDig — A Place for Creators
       </footer>
     </div>
   );
