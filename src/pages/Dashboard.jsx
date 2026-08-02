@@ -3,6 +3,7 @@ import { supabase } from "../supabaseClient";
 import { useAuth } from "../context/AuthContext";
 import { useNavigate } from "react-router-dom";
 import Notifications from "../components/Notifications";
+
 export default function Dashboard() {
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -70,223 +71,179 @@ export default function Dashboard() {
     loadDashboard();
   }, [user]);
 
-  // ⭐ FIX: Add logout function (Dashboard uses navigate)
+  // Logout
   async function handleLogout() {
     await supabase.auth.signOut();
     navigate("/");
   }
 
+  // ⭐ Proper loading screen
   if (loading || !profile) {
     return (
-      <div className="min-h-screen bg-background text-text flex items-center justify-center">
-        <p className="text-primary text-xl font-bold">Loading dashboard...</p>
+      <div className="min-h-screen bg-[#f0f0f0] text-black flex items-center justify-center">
+        <p className="text-orange-600 text-xl font-bold">Loading your dashboard...</p>
       </div>
     );
   }
 
+  // ⭐ MAIN DASHBOARD RENDER
   return (
-    <div
-      className="min-h-screen bg-background text-text flex flex-col"
-      style={{
-        "--color-primary": profile.theme?.primary || "#FF6B00",
-        "--color-accent": profile.theme?.accent || "#E65100",
-        "--color-background": profile.theme?.background || "#0D0D0D",
-        "--color-text": profile.theme?.text || "#FFFFFF",
-      }}
-    >
+    <div className="min-h-screen bg-[#f0f0f0] text-black flex flex-col">
 
-      {/* HEADER */}
-      <header className="bg-orange-600 text-white py-4 px-6 flex justify-between items-center">
-        <div className="flex items-center gap-4">
-          <h1 className="text-3xl font-bold">ProfileDig</h1>
+      {/* HEADER — MySpace Style */}
+      <header className="bg-orange-600 text-white py-4 px-4 flex flex-wrap justify-between items-center gap-4 shadow-lg">
+        <div className="flex items-center gap-3">
+          <h1 className="text-2xl md:text-3xl font-bold">ProfileDig</h1>
 
           {user && (
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2">
               <img
                 src={user.user_metadata?.avatar_url || "/default-avatar.png"}
                 alt="Profile"
-                className="w-10 h-10 rounded-full border border-white object-cover"
+                className="w-8 h-8 md:w-10 md:h-10 rounded-full border border-white object-cover"
               />
-
-              <span className="font-semibold">
+              <span className="font-semibold text-sm md:text-base">
                 Welcome, {user.user_metadata?.username || "Member"}
               </span>
             </div>
           )}
         </div>
 
-        <div className="flex items-center gap-6">
-          <nav className="space-x-4 flex items-center">
+        <div className="flex flex-wrap items-center gap-4 w-full md:w-auto">
+          <nav className="flex flex-wrap gap-3 text-sm md:text-base">
             <a href="/" className="hover:underline">Home</a>
             <a href="/browse" className="hover:underline">Browse</a>
             <a href="/music" className="hover:underline">Music</a>
             <a href="/videos" className="hover:underline">Videos</a>
             <a href="/blogs" className="hover:underline">Blogs</a>
-
-            {user && (
-              <>
-                <a href="/dashboard" className="hover:underline font-bold">Dashboard</a>
-                <a href={`/profile/${user.id}`} className="hover:underline">Profile</a>
-                <a href="/settings" className="hover:underline">Settings</a>
-              </>
-            )}
+            <a href="/dashboard" className="hover:underline font-bold">Dashboard</a>
+            <a href={`/profile/${user.id}`} className="hover:underline">Profile</a>
+            <a href="/settings" className="hover:underline">Settings</a>
           </nav>
 
           <Notifications />
 
-          {user && (
-            <button
-              onClick={handleLogout}
-              className="bg-white text-black px-3 py-1 rounded hover:bg-orange-500 hover:text-white transition"
-            >
-              Logout
-            </button>
-          )}
+          <button
+            onClick={handleLogout}
+            className="bg-white text-black px-3 py-1 rounded hover:bg-orange-500 hover:text-white transition text-sm md:text-base"
+          >
+            Logout
+          </button>
         </div>
       </header>
 
-      {/* MAIN */}
-      <main className="flex flex-1 w-full">
+      {/* MAIN CONTENT — MySpace Layout */}
+      <main className="flex flex-col md:flex-row gap-6 p-4">
 
-        {/* SIDEBAR */}
-        <aside className="w-64 bg-surface border-r border-accent p-6 hidden md:block">
-          <h2 className="text-xl font-bold text-primary mb-4">Quick Links</h2>
+        {/* LEFT COLUMN — Classic MySpace Profile Box */}
+        <div className="w-full md:w-1/3 bg-white border border-gray-300 rounded-lg p-4 shadow-md">
 
-          <ul className="space-y-3 text-subtle">
-            <li onClick={() => navigate("/profile/" + user.id)} className="hover:text-primary cursor-pointer">My Profile</li>
-            <li onClick={() => navigate("/friends")} className="hover:text-primary cursor-pointer">Friends</li>
-            <li onClick={() => navigate("/messages")} className="hover:text-primary cursor-pointer">Messages</li>
-            <li onClick={() => navigate("/settings")} className="hover:text-primary cursor-pointer">Settings</li>
-          </ul>
-        </aside>
+          <img
+            src={profile.avatar_url || "/default-avatar.png"}
+            className="w-full rounded-lg border-2 border-orange-600 mb-4"
+          />
 
-        {/* CONTENT */}
-        <section className="flex-1 p-10 space-y-10">
+          <h2 className="text-2xl font-bold text-orange-600">{profile.username}</h2>
 
-          {/* PROFILE PREVIEW */}
-          <div className="bg-surface border border-accent rounded-xl p-6 flex items-center gap-6">
-            <img
-              src={profile.avatar_url || "/default-avatar.png"}
-              className="w-24 h-24 rounded-xl border-4 border-primary"
-            />
+          <p className="text-sm text-gray-700 mt-1">
+            <strong>Status:</strong> {profile.status || "Online"}
+          </p>
 
-            <div>
-              <h2 className="text-2xl font-bold text-primary">{profile.username}</h2>
+          <p className="text-sm text-gray-700 mt-1">
+            <strong>Mood:</strong> {profile.status_message || "Feeling good!"}
+          </p>
 
-              {/* ONLINE / OFFLINE BADGE */}
-              {profile.status === "online" ? (
-                <span className="text-green-400 font-bold text-sm">● Online</span>
-              ) : (
-                <span className="text-subtle text-sm">
-                  ● Offline
-                  <br />
-                  <span className="text-xs">
-                    Last seen: {new Date(profile.last_seen).toLocaleString()}
-                  </span>
-                </span>
-              )}
-
-              <p className="text-subtle mt-2">{profile.about_me || "No bio yet."}</p>
-            </div>
-
-            <button
-              onClick={() => navigate("/profile/" + user.id)}
-              className="ml-auto px-4 py-2 bg-primary hover:bg-accent rounded text-text font-semibold"
-            >
-              View Profile
-            </button>
+          <div className="mt-4">
+            <h3 className="text-lg font-bold text-orange-600 border-b border-gray-300 pb-1">
+              About Me
+            </h3>
+            <p className="text-sm text-gray-800 mt-2 whitespace-pre-line">
+              {profile.about_me || "This user hasn't written anything yet."}
+            </p>
           </div>
 
-          {/* RECENT MESSAGES */}
-          <div className="bg-surface border border-accent rounded-xl p-6">
-            <h2 className="text-2xl font-bold text-primary mb-4">Recent Messages</h2>
+          <div className="mt-4">
+            <h3 className="text-lg font-bold text-orange-600 border-b border-gray-300 pb-1">
+              Interests
+            </h3>
+            <p className="text-sm text-gray-800 mt-2">
+              <strong>General:</strong> {profile.general_interests || "None"}
+            </p>
+            <p className="text-sm text-gray-800 mt-1">
+              <strong>Music:</strong> {profile.music_interests || "None"}
+            </p>
+          </div>
+        </div>
+
+        {/* RIGHT COLUMN — Friends + Messages */}
+        
+        {/* TOP 8 FRIENDS — MySpace Style */}
+<div className="bg-white border border-gray-300 rounded-lg p-4 shadow-md">
+  <h3 className="text-xl font-bold text-orange-600 mb-3">Top 8 Friends</h3>
+
+  {top8.length === 0 ? (
+    <p className="text-gray-600 text-sm">You haven't added any friends yet.</p>
+  ) : (
+    <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+      {top8.map((f) => (
+        <div key={f.friend_id} className="text-center">
+          <img
+            src={f.profiles.avatar_url || "/default-avatar.png"}
+            className="w-full h-24 object-cover rounded border-2 border-orange-600"
+          />
+          <p className="text-sm mt-1">{f.profiles.username}</p>
+        </div>
+      ))}
+    </div>
+  )}
+</div>
+
+
+          {/* Recent Messages */}
+          <div className="bg-white border border-gray-300 rounded-lg p-4 shadow-md">
+            <h3 className="text-xl font-bold text-orange-600 mb-3">Recent Messages</h3>
 
             {recentMessages.length === 0 ? (
-              <p className="text-subtle">No messages yet.</p>
+              <p className="text-gray-600 text-sm">No messages yet.</p>
             ) : (
-              <div className="space-y-4">
+              <div className="flex flex-col gap-3">
                 {recentMessages.map((msg) => (
-                  <div
-                    key={msg.id}
-                    className="flex items-center gap-4 bg-background border border-accent p-4 rounded-lg"
-                  >
-                    <img
-                      src={msg.profiles.avatar_url || "/default-avatar.png"}
-                      className="w-14 h-14 rounded-lg border-2 border-primary"
-                    />
-
-                    <div className="flex-1">
-                      <p className="font-bold text-primary">{msg.profiles.username}</p>
-
-                      {/* ONLINE / OFFLINE BADGE */}
-                      {msg.profiles.status === "online" ? (
-                        <span className="text-green-400 font-bold text-xs">● Online</span>
-                      ) : (
-                        <span className="text-subtle text-xs">● Offline</span>
-                      )}
-
-                      <p className="text-subtle text-sm truncate">{msg.content}</p>
-                    </div>
-
-                    <button
-                      onClick={() => navigate("/messages")}
-                      className="px-3 py-2 bg-primary hover:bg-accent rounded text-text font-semibold"
-                    >
-                      Open
-                    </button>
+                  <div key={msg.id} className="border-b border-gray-200 pb-2">
+                    <p className="text-sm text-gray-800">
+                      <strong>{msg.profiles.username}</strong>: {msg.content}
+                    </p>
                   </div>
                 ))}
               </div>
             )}
           </div>
 
-          {/* RECENT FRIENDS */}
-          <div className="bg-surface border border-accent rounded-xl p-6">
-            <h2 className="text-2xl font-bold text-primary mb-4">Recent Friends</h2>
+          {/* Friends */}
+          <div className="bg-white border border-gray-300 rounded-lg p-4 shadow-md">
+            <h3 className="text-xl font-bold text-orange-600 mb-3">Friends</h3>
 
             {recentFriends.length === 0 ? (
-              <p className="text-subtle">No friends added yet.</p>
+              <p className="text-gray-600 text-sm">No friends added yet.</p>
             ) : (
-              <div className="space-y-4">
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
                 {recentFriends.map((f) => (
-                  <div
-                    key={f.friend_id}
-                    className="flex items-center gap-4 bg-background border border-accent p-4 rounded-lg"
-                  >
+                  <div key={f.friend_id} className="text-center">
                     <img
                       src={f.profiles.avatar_url || "/default-avatar.png"}
-                      className="w-14 h-14 rounded-lg border-2 border-primary"
+                      className="w-full h-24 object-cover rounded border-2 border-orange-600"
                     />
-
-                    <div className="flex-1">
-                      <p className="font-bold text-primary">{f.profiles.username}</p>
-
-                      {/* ONLINE / OFFLINE BADGE */}
-                      {f.profiles.status === "online" ? (
-                        <span className="text-green-400 font-bold text-sm">● Online</span>
-                      ) : (
-                        <span className="text-subtle text-sm">● Offline</span>
-                      )}
-                    </div>
-
-                    <button
-                      onClick={() => navigate("/profile/" + f.friend_id)}
-                      className="px-3 py-2 bg-primary hover:bg-accent rounded text-text font-semibold"
-                    >
-                      View
-                    </button>
+                    <p className="text-sm mt-1">{f.profiles.username}</p>
                   </div>
                 ))}
               </div>
             )}
           </div>
 
-        </section>
+        </div>
       </main>
 
-      {/* FOOTER */}
-      <footer className="w-full bg-surface border-t border-accent py-4 text-center text-subtle text-sm">
-        © {new Date().getFullYear()} ProfileDig — Dashboard
+      <footer className="bg-orange-600 text-black text-center py-4 text-sm mt-auto">
+        © {new Date().getFullYear()} ProfileDig — A Place for Friends
       </footer>
     </div>
   );
