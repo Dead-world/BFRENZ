@@ -87,20 +87,56 @@ export default function FriendsPage() {
     <div className="min-h-screen bg-black text-white font-sans">
       {/* HEADER */}
 <header className="bg-orange-600 text-white py-4 px-6 flex justify-between items-center">
-  <h1 className="text-3xl font-bold">ProfileDig</h1>
-
   <div className="flex items-center gap-4">
-    <nav className="space-x-4">
+    <h1 className="text-3xl font-bold">ProfileDig</h1>
+
+    {user && (
+      <div className="flex items-center gap-3">
+        {/* Profile Picture */}
+        <img
+          src={user.user_metadata?.avatar_url || "/default-avatar.png"}
+          alt="Profile"
+          className="w-10 h-10 rounded-full border border-white object-cover"
+        />
+
+        {/* Welcome Text */}
+        <span className="font-semibold">
+          Welcome, {user.user_metadata?.username || "Member"}
+        </span>
+      </div>
+    )}
+  </div>
+
+  <div className="flex items-center gap-6">
+    <nav className="space-x-4 flex items-center">
       <a href="/" className="hover:underline">Home</a>
       <a href="/browse" className="hover:underline">Browse</a>
       <a href="/music" className="hover:underline">Music</a>
       <a href="/videos" className="hover:underline">Videos</a>
       <a href="/blogs" className="hover:underline">Blogs</a>
+
+      {user && (
+        <>
+          <a href="/dashboard" className="hover:underline font-bold">Dashboard</a>
+          <a href={`/profile/${user.id}`} className="hover:underline">Profile</a>
+          <a href="/settings" className="hover:underline">Settings</a>
+        </>
+      )}
     </nav>
 
     <Notifications />
+
+    {user && (
+      <button
+        onClick={handleLogout}
+        className="bg-white text-black px-3 py-1 rounded hover:bg-orange-500 hover:text-white transition"
+      >
+        Logout
+      </button>
+    )}
   </div>
 </header>
+
 
       <main className="max-w-5xl mx-auto p-6 space-y-10">
         {/* INCOMING REQUESTS */}
