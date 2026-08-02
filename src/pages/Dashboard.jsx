@@ -3,8 +3,6 @@ import { supabase } from "../supabaseClient";
 import { useAuth } from "../context/AuthContext";
 import { useNavigate } from "react-router-dom";
 import Notifications from "../components/Notifications";
-
-
 export default function Dashboard() {
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -29,7 +27,7 @@ export default function Dashboard() {
 
       setProfile(profileData);
 
-      // Load recent messages (include status + last_seen)
+      // Load recent messages
       const { data: messagesData } = await supabase
         .from("messages")
         .select(`
@@ -47,7 +45,7 @@ export default function Dashboard() {
 
       setRecentMessages(messagesData || []);
 
-      // Load recent friends (include status + last_seen)
+      // Load recent friends
       const { data: friendsData } = await supabase
         .from("friends")
         .select(`
@@ -72,6 +70,12 @@ export default function Dashboard() {
     loadDashboard();
   }, [user]);
 
+  // ⭐ FIX: Add logout function (Dashboard uses navigate)
+  async function handleLogout() {
+    await supabase.auth.signOut();
+    navigate("/");
+  }
+
   if (loading || !profile) {
     return (
       <div className="min-h-screen bg-background text-text flex items-center justify-center">
@@ -92,58 +96,54 @@ export default function Dashboard() {
     >
 
       {/* HEADER */}
-<header className="bg-orange-600 text-white py-4 px-6 flex justify-between items-center">
-  <div className="flex items-center gap-4">
-    <h1 className="text-3xl font-bold">ProfileDig</h1>
+      <header className="bg-orange-600 text-white py-4 px-6 flex justify-between items-center">
+        <div className="flex items-center gap-4">
+          <h1 className="text-3xl font-bold">ProfileDig</h1>
 
-    {user && (
-      <div className="flex items-center gap-3">
-        {/* Profile Picture */}
-        <img
-          src={user.user_metadata?.avatar_url || "/default-avatar.png"}
-          alt="Profile"
-          className="w-10 h-10 rounded-full border border-white object-cover"
-        />
+          {user && (
+            <div className="flex items-center gap-3">
+              <img
+                src={user.user_metadata?.avatar_url || "/default-avatar.png"}
+                alt="Profile"
+                className="w-10 h-10 rounded-full border border-white object-cover"
+              />
 
-        {/* Welcome Text */}
-        <span className="font-semibold">
-          Welcome, {user.user_metadata?.username || "Member"}
-        </span>
-      </div>
-    )}
-  </div>
+              <span className="font-semibold">
+                Welcome, {user.user_metadata?.username || "Member"}
+              </span>
+            </div>
+          )}
+        </div>
 
-  <div className="flex items-center gap-6">
-    <nav className="space-x-4 flex items-center">
-      <a href="/" className="hover:underline">Home</a>
-      <a href="/browse" className="hover:underline">Browse</a>
-      <a href="/music" className="hover:underline">Music</a>
-      <a href="/videos" className="hover:underline">Videos</a>
-      <a href="/blogs" className="hover:underline">Blogs</a>
+        <div className="flex items-center gap-6">
+          <nav className="space-x-4 flex items-center">
+            <a href="/" className="hover:underline">Home</a>
+            <a href="/browse" className="hover:underline">Browse</a>
+            <a href="/music" className="hover:underline">Music</a>
+            <a href="/videos" className="hover:underline">Videos</a>
+            <a href="/blogs" className="hover:underline">Blogs</a>
 
-      {user && (
-        <>
-          <a href="/dashboard" className="hover:underline font-bold">Dashboard</a>
-          <a href={`/profile/${user.id}`} className="hover:underline">Profile</a>
-          <a href="/settings" className="hover:underline">Settings</a>
-        </>
-      )}
-    </nav>
+            {user && (
+              <>
+                <a href="/dashboard" className="hover:underline font-bold">Dashboard</a>
+                <a href={`/profile/${user.id}`} className="hover:underline">Profile</a>
+                <a href="/settings" className="hover:underline">Settings</a>
+              </>
+            )}
+          </nav>
 
-    <Notifications />
+          <Notifications />
 
-  {user && (
-  <button
-    onClick={handleLogout}
-    className="bg-white text-black px-3 py-1 rounded hover:bg-orange-500 hover:text-white transition"
-  >
-    Logout
-  </button>
-)}
-
-  </div>
-</header>
-
+          {user && (
+            <button
+              onClick={handleLogout}
+              className="bg-white text-black px-3 py-1 rounded hover:bg-orange-500 hover:text-white transition"
+            >
+              Logout
+            </button>
+          )}
+        </div>
+      </header>
 
       {/* MAIN */}
       <main className="flex flex-1 w-full">

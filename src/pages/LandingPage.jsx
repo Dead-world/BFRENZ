@@ -25,7 +25,7 @@ export default function LandingPage() {
     const email = e.target.email.value;
     const password = e.target.password.value;
 
-    const { data, error: loginError } = await supabase.auth.signInWithPassword({
+    const { error: loginError } = await supabase.auth.signInWithPassword({
       email,
       password,
     });
@@ -40,6 +40,7 @@ export default function LandingPage() {
     window.location.href = "/dashboard";
   }
 
+  // ⭐ FIX: Logout function must exist inside component
   async function handleLogout() {
     await supabase.auth.signOut();
     setUser(null);
@@ -58,14 +59,12 @@ export default function LandingPage() {
 
           {user && (
             <div className="flex items-center gap-3">
-              {/* Avatar */}
               <img
                 src={user.user_metadata?.avatar_url || "/default-avatar.png"}
                 alt="Profile"
                 className="w-10 h-10 rounded-full border border-white object-cover"
               />
 
-              {/* Welcome */}
               <span className="font-semibold">
                 Welcome, {user.user_metadata?.username || "Member"}
               </span>
@@ -93,15 +92,14 @@ export default function LandingPage() {
 
           <Notifications />
 
-       {user && (
-  <button
-    onClick={handleLogout}
-    className="bg-white text-black px-3 py-1 rounded hover:bg-orange-500 hover:text-white transition"
-  >
-    Logout
-  </button>
-)}
-
+          {user && (
+            <button
+              onClick={handleLogout}
+              className="bg-white text-black px-3 py-1 rounded hover:bg-orange-500 hover:text-white transition"
+            >
+              Logout
+            </button>
+          )}
         </div>
       </header>
 

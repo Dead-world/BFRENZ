@@ -3,7 +3,6 @@ import { useEffect, useState } from "react";
 import { supabase } from "../supabaseClient";
 import Notifications from "../components/Notifications";
 
-
 export default function FriendsPage() {
   const [user, setUser] = useState(null);
   const [incoming, setIncoming] = useState([]);
@@ -38,7 +37,7 @@ export default function FriendsPage() {
         .eq("user_id", user.id)
         .eq("status", "pending");
 
-      // Accepted friends (both directions)
+      // Accepted friends
       const { data: accepted } = await supabase
         .from("friends")
         .select("id, user_id, friend_id, status, created_at, profiles!friends_friend_id_fkey(username, avatar_url)")
@@ -55,11 +54,7 @@ export default function FriendsPage() {
 
   // Accept friend request
   async function acceptRequest(id) {
-    await supabase
-      .from("friends")
-      .update({ status: "accepted" })
-      .eq("id", id);
-
+    await supabase.from("friends").update({ status: "accepted" }).eq("id", id);
     window.location.reload();
   }
 
@@ -75,6 +70,13 @@ export default function FriendsPage() {
     window.location.reload();
   }
 
+  // ⭐ FIX: Add logout function
+  async function handleLogout() {
+    await supabase.auth.signOut();
+    setUser(null);
+    window.location.href = "/";
+  }
+
   if (!user) {
     return (
       <div className="min-h-screen bg-black text-white flex items-center justify-center">
@@ -85,58 +87,57 @@ export default function FriendsPage() {
 
   return (
     <div className="min-h-screen bg-black text-white font-sans">
+
       {/* HEADER */}
-<header className="bg-orange-600 text-white py-4 px-6 flex justify-between items-center">
-  <div className="flex items-center gap-4">
-    <h1 className="text-3xl font-bold">ProfileDig</h1>
+      <header className="bg-orange-600 text-white py-4 px-6 flex justify-between items-center">
+        <div className="flex items-center gap-4">
+          <h1 className="text-3xl font-bold">ProfileDig</h1>
 
-    {user && (
-      <div className="flex items-center gap-3">
-        {/* Profile Picture */}
-        <img
-          src={user.user_metadata?.avatar_url || "/default-avatar.png"}
-          alt="Profile"
-          className="w-10 h-10 rounded-full border border-white object-cover"
-        />
+          {user && (
+            <div className="flex items-center gap-3">
+              <img
+                src={user.user_metadata?.avatar_url || "/default-avatar.png"}
+                alt="Profile"
+                className="w-10 h-10 rounded-full border border-white object-cover"
+              />
 
-        {/* Welcome Text */}
-        <span className="font-semibold">
-          Welcome, {user.user_metadata?.username || "Member"}
-        </span>
-      </div>
-    )}
-  </div>
+              <span className="font-semibold">
+                Welcome, {user.user_metadata?.username || "Member"}
+              </span>
+            </div>
+          )}
+        </div>
 
-  <div className="flex items-center gap-6">
-    <nav className="space-x-4 flex items-center">
-      <a href="/" className="hover:underline">Home</a>
-      <a href="/browse" className="hover:underline">Browse</a>
-      <a href="/music" className="hover:underline">Music</a>
-      <a href="/videos" className="hover:underline">Videos</a>
-      <a href="/blogs" className="hover:underline">Blogs</a>
+        <div className="flex items-center gap-6">
+          <nav className="space-x-4 flex items-center">
+            <a href="/" className="hover:underline">Home</a>
+            <a href="/browse" className="hover:underline">Browse</a>
+            <a href="/music" className="hover:underline">Music</a>
+            <a href="/videos" className="hover:underline">Videos</a>
+            <a href="/blogs" className="hover:underline">Blogs</a>
 
-      {user && (
-        <>
-          <a href="/dashboard" className="hover:underline font-bold">Dashboard</a>
-          <a href={`/profile/${user.id}`} className="hover:underline">Profile</a>
-          <a href="/settings" className="hover:underline">Settings</a>
-        </>
-      )}
-    </nav>
+            {user && (
+              <>
+                <a href="/dashboard" className="hover:underline font-bold">Dashboard</a>
+                <a href={`/profile/${user.id}`} className="hover:underline">Profile</a>
+                <a href="/settings" className="hover:underline">Settings</a>
+              </>
+            )}
+          </nav>
 
-    <Notifications />
-{user && (
-  <button
-    onClick={handleLogout}
-    className="bg-white text-black px-3 py-1 rounded hover:bg-orange-500 hover:text-white transition"
-  >
-    Logout
-  </button>
-)}
+          <Notifications />
 
+          {user && (
+            <button
+              onClick={handleLogout}
+              className="bg-white text-black px-3 py-1 rounded hover:bg-orange-500 hover:text-white transition"
+            >
+              Logout
+            </button>
+          )}
+        </div>
+      </header>
 
-  </div>
-</header>
 
 
       <main className="max-w-5xl mx-auto p-6 space-y-10">
