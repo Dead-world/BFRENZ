@@ -2,6 +2,8 @@
 import { useEffect, useState, useRef } from "react";
 import { supabase } from "../supabaseClient";
 import { useParams } from "react-router-dom";
+import Notifications from "../components/Notifications";
+
 
 export default function MessagesPage() {
   const { id } = useParams(); // chatting with this user
@@ -110,16 +112,22 @@ export default function MessagesPage() {
   return (
     <div className="min-h-screen bg-black text-white font-sans">
       {/* HEADER */}
-      <header className="bg-orange-600 text-white py-3 px-6 flex justify-between items-center">
-        <h1 className="text-3xl font-bold">ProfileDig</h1>
-        <nav className="space-x-4">
-          <a href="/" className="hover:underline">Home</a>
-          <a href="/browse" className="hover:underline">Browse</a>
-          <a href="/friends" className="hover:underline">Friends</a>
-          <a href="/messages" className="hover:underline">Messages</a>
-          <a href="/settings" className="hover:underline">Settings</a>
-        </nav>
-      </header>
+ <header className="bg-orange-600 text-white py-4 px-6 flex justify-between items-center">
+  <h1 className="text-3xl font-bold">ProfileDig</h1>
+
+  <div className="flex items-center gap-4">
+    <nav className="space-x-4">
+      <a href="/" className="hover:underline">Home</a>
+      <a href="/browse" className="hover:underline">Browse</a>
+      <a href="/music" className="hover:underline">Music</a>
+      <a href="/videos" className="hover:underline">Videos</a>
+      <a href="/blogs" className="hover:underline">Blogs</a>
+    </nav>
+
+    <Notifications />
+  </div>
+</header>
+
 
       {/* CHAT HEADER */}
       <div className="bg-white text-black p-4 border-b border-orange-600">

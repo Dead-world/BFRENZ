@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 import { supabase } from "../supabaseClient";
 import { useAuth } from "../context/AuthContext";
 import { useNavigate } from "react-router-dom";
+import Notifications from "../components/Notifications";
+
 
 export default function Dashboard() {
   const { user } = useAuth();
@@ -90,15 +92,21 @@ export default function Dashboard() {
     >
 
       {/* HEADER */}
-      <header className="w-full bg-surface border-b border-accent px-6 py-4 flex items-center justify-between">
-        <h1 className="text-3xl font-bold text-primary">Dashboard</h1>
-        <button
-          onClick={() => supabase.auth.signOut()}
-          className="px-4 py-2 border border-primary hover:bg-primary hover:text-text rounded font-semibold text-primary"
-        >
-          Logout
-        </button>
-      </header>
+     <header className="bg-orange-600 text-white py-4 px-6 flex justify-between items-center">
+  <h1 className="text-3xl font-bold">ProfileDig</h1>
+
+  <div className="flex items-center gap-4">
+    <nav className="space-x-4">
+      <a href="/" className="hover:underline">Home</a>
+      <a href="/browse" className="hover:underline">Browse</a>
+      <a href="/music" className="hover:underline">Music</a>
+      <a href="/videos" className="hover:underline">Videos</a>
+      <a href="/blogs" className="hover:underline">Blogs</a>
+    </nav>
+
+    <Notifications />
+  </div>
+</header>
 
       {/* MAIN */}
       <main className="flex flex-1 w-full">

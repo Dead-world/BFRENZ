@@ -1,5 +1,7 @@
 import { useState } from "react";
 import { supabase } from "../supabaseClient";
+import Notifications from "../components/Notifications";
+
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");

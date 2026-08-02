@@ -1,6 +1,8 @@
 // src/pages/FriendsPage.jsx
 import { useEffect, useState } from "react";
 import { supabase } from "../supabaseClient";
+import Notifications from "../components/Notifications";
+
 
 export default function FriendsPage() {
   const [user, setUser] = useState(null);
@@ -84,16 +86,21 @@ export default function FriendsPage() {
   return (
     <div className="min-h-screen bg-black text-white font-sans">
       {/* HEADER */}
-      <header className="bg-orange-600 text-white py-3 px-6 flex justify-between items-center">
-        <h1 className="text-3xl font-bold">ProfileDig</h1>
-        <nav className="space-x-4">
-          <a href="/" className="hover:underline">Home</a>
-          <a href="/browse" className="hover:underline">Browse</a>
-          <a href="/friends" className="hover:underline">Friends</a>
-          <a href="/messages" className="hover:underline">Messages</a>
-          <a href="/settings" className="hover:underline">Settings</a>
-        </nav>
-      </header>
+<header className="bg-orange-600 text-white py-4 px-6 flex justify-between items-center">
+  <h1 className="text-3xl font-bold">ProfileDig</h1>
+
+  <div className="flex items-center gap-4">
+    <nav className="space-x-4">
+      <a href="/" className="hover:underline">Home</a>
+      <a href="/browse" className="hover:underline">Browse</a>
+      <a href="/music" className="hover:underline">Music</a>
+      <a href="/videos" className="hover:underline">Videos</a>
+      <a href="/blogs" className="hover:underline">Blogs</a>
+    </nav>
+
+    <Notifications />
+  </div>
+</header>
 
       <main className="max-w-5xl mx-auto p-6 space-y-10">
         {/* INCOMING REQUESTS */}
