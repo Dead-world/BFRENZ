@@ -49,7 +49,8 @@ export default function SettingsPage() {
       meet: form.get("meet"),
       general_interests: form.get("general_interests"),
       music_interests: form.get("music_interests"),
-      custom_html: form.get("custom_html"), // ⭐ NEW FIELD
+      custom_html: form.get("custom_html"),
+      profile_song: form.get("profile_song"), // ⭐ NEW FIELD
     };
 
     const { error } = await supabase
@@ -93,6 +94,34 @@ export default function SettingsPage() {
 
     alert("Avatar updated!");
     window.location.reload();
+  }
+
+  // Upload MP3 song
+  async function uploadSong(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const fileName = `${user.id}-song-${Date.now()}.mp3`;
+
+    const { error } = await supabase.storage
+      .from("songs")
+      .upload(fileName, file);
+
+    if (error) {
+      alert("Song upload failed.");
+      return;
+    }
+
+    const { data: urlData } = supabase.storage
+      .from("songs")
+      .getPublicUrl(fileName);
+
+    await supabase
+      .from("profiles")
+      .update({ profile_song: urlData.publicUrl })
+      .eq("User_id", user.id);
+
+    alert("Profile song updated!");
   }
 
   // Logout
@@ -240,7 +269,7 @@ export default function SettingsPage() {
               />
             </div>
 
-            {/* ⭐ CUSTOM HTML / CSS EDITOR */}
+            {/* CUSTOM HTML */}
             <div>
               <label className="font-semibold text-orange-600 text-lg">
                 Custom Profile Code (HTML / CSS)
@@ -252,8 +281,23 @@ export default function SettingsPage() {
                 className="w-full px-3 py-2 rounded bg-gray-200 text-black h-48 font-mono"
                 placeholder="<style>body { background: url('glitter.gif'); }</style>"
               />
+            </div>
+
+            {/* ⭐ PROFILE SONG URL */}
+            <div>
+              <label className="font-semibold text-orange-600 text-lg">
+                Profile Song (YouTube, SoundCloud, MP3)
+              </label>
+
+              <input
+                name="profile_song"
+                defaultValue={profile.profile_song || ""}
+                className="w-full px-3 py-2 rounded bg-gray-200 text-black"
+                placeholder="Paste a YouTube link, SoundCloud link, or MP3 URL"
+              />
+
               <p className="text-xs text-gray-600 mt-1">
-                Paste any HTML or CSS here — just like old MySpace.
+                Example: https://www.youtube.com/watch?v=dQw4w9WgXcQ
               </p>
             </div>
 
@@ -265,6 +309,18 @@ export default function SettingsPage() {
               {saving ? "Saving..." : "Save Changes"}
             </button>
           </form>
+
+          {/* MP3 UPLOAD */}
+          <div className="mt-10">
+            <h3 className="text-xl font-bold text-orange-600 mb-2">Upload MP3 Song</h3>
+
+            <input
+              type="file"
+              accept="audio/mp3"
+              onChange={uploadSong}
+              className="text-black"
+            />
+          </div>
 
           {/* AVATAR UPLOAD */}
           <div className="mt-10">
