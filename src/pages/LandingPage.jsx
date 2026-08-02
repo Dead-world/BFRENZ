@@ -48,7 +48,9 @@ export default function LandingPage() {
   }
 
   return (
-    <div className="min-h-screen bg-black text-white font-sans">
+    // FIX: make entire page a flex column so main can grow
+    <div className="min-h-screen flex flex-col bg-black text-white font-sans">
+      
       {/* HEADER */}
       <header className="bg-orange-600 text-white py-4 px-6 flex justify-between items-center">
         <h1 className="text-3xl font-bold">ProfileDig</h1>
@@ -76,7 +78,9 @@ export default function LandingPage() {
       </header>
 
       {/* MAIN GRID */}
-      <main className="grid grid-cols-1 md:grid-cols-3 gap-6 p-6">
+      {/* FIX: flex-grow makes main fill remaining space */}
+      <main className="grid grid-cols-1 md:grid-cols-3 gap-6 p-6 flex-grow">
+        
         {/* LEFT COLUMN */}
         <section className="space-y-4">
           <h2 className="bg-orange-500 text-black font-bold px-3 py-2 rounded">Cool New Videos</h2>
@@ -170,7 +174,8 @@ export default function LandingPage() {
       </main>
 
       {/* FOOTER */}
-      <footer className="bg-orange-600 text-black text-center py-3 mt-6">
+      {/* FIX: remove mt-6 so footer sits at bottom */}
+      <footer className="bg-orange-600 text-black text-center py-3">
         © {new Date().getFullYear()} ProfileDig — A Place for Friends
       </footer>
     </div>
