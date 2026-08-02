@@ -5,7 +5,7 @@ import { useParams } from "react-router-dom";
 import Notifications from "../components/Notifications";
 
 export default function ProfilePage() {
-  const { id } = useParams(); // profile being viewed
+  const { id } = useParams();
   const [profile, setProfile] = useState(null);
   const [blogs, setBlogs] = useState([]);
   const [comments, setComments] = useState([]);
@@ -274,6 +274,52 @@ export default function ProfilePage() {
           <div className="bg-white text-black rounded p-4">
             <h2 className="text-xl font-bold mb-2">{profile.status_message || "No status yet"}</h2>
           </div>
+
+          {/* PROFILE SONG PLAYER */}
+          {profile.profile_song && (
+            <div className="bg-white text-black rounded p-4">
+              <h3 className="font-bold text-lg mb-2 text-orange-600">Profile Song</h3>
+
+              {(profile.profile_song.includes("youtube.com") ||
+                profile.profile_song.includes("youtu.be")) && (
+                <iframe
+                  width="100%"
+                  height="200"
+                  src={profile.profile_song.replace("watch?v=", "embed/")}
+                  allow="autoplay"
+                  className="rounded"
+                ></iframe>
+              )}
+
+              {profile.profile_song.includes("soundcloud.com") && (
+                <iframe
+                  width="100%"
+                  height="200"
+                  scrolling="no"
+                  frameBorder="no"
+                  allow="autoplay"
+                  className="rounded"
+                  src={`https://w.soundcloud.com/player/?url=${encodeURIComponent(
+                    profile.profile_song
+                  )}&auto_play=true`}
+                ></iframe>
+              )}
+
+              {profile.profile_song.endsWith(".mp3") && (
+                <audio controls autoPlay className="w-full mt-2">
+                  <source src={profile.profile_song} type="audio/mpeg" />
+                </audio>
+              )}
+            </div>
+          )}
+
+          {/* CUSTOM HTML */}
+          {profile.custom_html && (
+            <div
+              className="custom-profile-html bg-white text-black rounded p-4"
+              dangerouslySetInnerHTML={{ __html: profile.custom_html }}
+            />
+          )}
 
           {/* BLOG ENTRIES */}
           <div className="bg-orange-500 text-black rounded p-4">
