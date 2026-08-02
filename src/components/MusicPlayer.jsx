@@ -1,4 +1,4 @@
-export function MusicPlayer() {
+export default function MusicPlayer() {
   return (
     <div className="fixed bottom-0 left-0 right-0 bg-surface border-t border-accent p-4 flex items-center justify-between">
       <div className="flex items-center gap-4">

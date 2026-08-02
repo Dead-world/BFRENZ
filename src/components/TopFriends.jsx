@@ -1,8 +1,7 @@
-export function TopFriends() {
+export default function TopFriends() {
   const friends = [
-    { name: "Friend 1", img: "/avatar1.png" },
-    { name: "Friend 2", img: "/avatar2.png" },
-    // ...
+    { name: "Friend 1", img: "/default-avatar.png" },
+    { name: "Friend 2", img: "/default-avatar.png" },
   ];
 
   return (
