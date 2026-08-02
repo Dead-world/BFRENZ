@@ -37,7 +37,6 @@ export default function LandingPage() {
       return;
     }
 
-    // Redirect to dashboard
     window.location.href = "/dashboard";
   }
 
@@ -48,66 +47,67 @@ export default function LandingPage() {
   }
 
   return (
-    // FIX: make entire page a flex column so main can grow
     <div className="min-h-screen flex flex-col bg-black text-white font-sans">
-      
-      {/* HEADER */}
-     <header className="bg-orange-600 text-white py-4 px-6 flex justify-between items-center">
-  <div className="flex items-center gap-4">
-    <h1 className="text-3xl font-bold">ProfileDig</h1>
 
-    {user && (
-      <div className="flex items-center gap-3">
-        {/* Profile Picture */}
-        <img
-          src={user.user_metadata?.avatar_url || "/default-avatar.png"}
-          alt="Profile"
-          className="w-10 h-10 rounded-full border border-white object-cover"
-        />
+      {/* HEADER — MySpace Style */}
+      <header className="bg-orange-600 text-white py-4 px-6 flex justify-between items-center">
 
-        {/* Welcome Text */}
-        <span className="font-semibold">
-          Welcome, {user.user_metadata?.username || "Member"}
-        </span>
-      </div>
-    )}
-  </div>
+        {/* Left side: Logo + Avatar + Welcome */}
+        <div className="flex items-center gap-4">
+          <h1 className="text-3xl font-bold">ProfileDig</h1>
 
-  <div className="flex items-center gap-6">
-    <nav className="space-x-4 flex items-center">
-      <a href="/" className="hover:underline">Home</a>
-      <a href="/browse" className="hover:underline">Browse</a>
-      <a href="/music" className="hover:underline">Music</a>
-      <a href="/videos" className="hover:underline">Videos</a>
-      <a href="/blogs" className="hover:underline">Blogs</a>
+          {user && (
+            <div className="flex items-center gap-3">
+              {/* Avatar */}
+              <img
+                src={user.user_metadata?.avatar_url || "/default-avatar.png"}
+                alt="Profile"
+                className="w-10 h-10 rounded-full border border-white object-cover"
+              />
 
-      {user && (
-        <>
-          <a href="/dashboard" className="hover:underline font-bold">Dashboard</a>
-          <a href={`/profile/${user.id}`} className="hover:underline">Profile</a>
-          <a href="/settings" className="hover:underline">Settings</a>
-        </>
-      )}
-    </nav>
+              {/* Welcome */}
+              <span className="font-semibold">
+                Welcome, {user.user_metadata?.username || "Member"}
+              </span>
+            </div>
+          )}
+        </div>
 
-    <Notifications />
+        {/* Right side: Navigation + Notifications + Logout */}
+        <div className="flex items-center gap-6">
+          <nav className="space-x-4 flex items-center">
+            <a href="/" className="hover:underline">Home</a>
+            <a href="/browse" className="hover:underline">Browse</a>
+            <a href="/music" className="hover:underline">Music</a>
+            <a href="/videos" className="hover:underline">Videos</a>
+            <a href="/blogs" className="hover:underline">Blogs</a>
 
-    {user && (
-      <button
-        onClick={handleLogout}
-        className="bg-white text-black px-3 py-1 rounded hover:bg-orange-500 hover:text-white transition"
-      >
-        Logout
-      </button>
-    )}
-  </div>
-</header>
+            {user && (
+              <>
+                <a href="/dashboard" className="hover:underline font-bold">Dashboard</a>
+                <a href={`/profile/${user.id}`} className="hover:underline">Profile</a>
+                <a href="/settings" className="hover:underline">Settings</a>
+              </>
+            )}
+          </nav>
 
+          <Notifications />
 
-      {/* MAIN GRID */}
-      {/* FIX: flex-grow makes main fill remaining space */}
+       {user && (
+  <button
+    onClick={handleLogout}
+    className="bg-white text-black px-3 py-1 rounded hover:bg-orange-500 hover:text-white transition"
+  >
+    Logout
+  </button>
+)}
+
+        </div>
+      </header>
+
+      {/* MAIN GRID — fills remaining height */}
       <main className="grid grid-cols-1 md:grid-cols-3 gap-6 p-6 flex-grow">
-        
+
         {/* LEFT COLUMN */}
         <section className="space-y-4">
           <h2 className="bg-orange-500 text-black font-bold px-3 py-2 rounded">Cool New Videos</h2>
@@ -144,7 +144,7 @@ export default function LandingPage() {
         {/* RIGHT COLUMN */}
         <aside className="space-y-6">
 
-          {/* MEMBER LOGIN — hidden if user is logged in */}
+          {/* MEMBER LOGIN — hidden if logged in */}
           {!user && (
             <div className="bg-white text-black p-4 rounded">
               <h2 className="text-xl font-bold text-orange-600 mb-2">Member Login</h2>
@@ -201,7 +201,6 @@ export default function LandingPage() {
       </main>
 
       {/* FOOTER */}
-      {/* FIX: remove mt-6 so footer sits at bottom */}
       <footer className="bg-orange-600 text-black text-center py-3">
         © {new Date().getFullYear()} ProfileDig — A Place for Friends
       </footer>

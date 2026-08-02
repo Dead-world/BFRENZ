@@ -132,14 +132,15 @@ export default function Dashboard() {
 
     <Notifications />
 
-    {user && (
-      <button
-        onClick={handleLogout}
-        className="bg-white text-black px-3 py-1 rounded hover:bg-orange-500 hover:text-white transition"
-      >
-        Logout
-      </button>
-    )}
+  {user && (
+  <button
+    onClick={handleLogout}
+    className="bg-white text-black px-3 py-1 rounded hover:bg-orange-500 hover:text-white transition"
+  >
+    Logout
+  </button>
+)}
+
   </div>
 </header>
 
