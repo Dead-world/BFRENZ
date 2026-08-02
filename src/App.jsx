@@ -7,7 +7,8 @@ import FriendsPage from "./pages/FriendsPage";
 import MessagesPage from "./pages/MessagesPage";
 import SettingsPage from "./pages/SettingsPage";
 import Dashboard from "./pages/Dashboard";
-import Notifications from "../components/Notifications";
+import Notifications from "./components/Notifications";
+
 
 
 import { useAuth } from "./context/AuthContext";
