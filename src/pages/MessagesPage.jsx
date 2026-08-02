@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { supabase } from "../supabaseClient";
+import { supabase } from "../SupabaseClient";
 import { useNavigate } from "react-router-dom";
 
 export default function MessagesPage() {
