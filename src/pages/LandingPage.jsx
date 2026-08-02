@@ -28,7 +28,7 @@ export default function LandingPage() {
     }
 
     // Redirect to profile page
-    window.location.href = `/profile/${data.user.id}`;
+   window.location.href = "/dashboard";
   }
 
   return (
