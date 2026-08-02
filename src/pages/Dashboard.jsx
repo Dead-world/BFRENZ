@@ -11,6 +11,7 @@ export default function Dashboard() {
   const [profile, setProfile] = useState(null);
   const [recentMessages, setRecentMessages] = useState([]);
   const [recentFriends, setRecentFriends] = useState([]);
+  const [top8, setTop8] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -65,13 +66,29 @@ export default function Dashboard() {
 
       setRecentFriends(friendsData || []);
 
+      // Load Top 8 Friends
+      const { data: top8Data } = await supabase
+        .from("friends")
+        .select(`
+          friend_id,
+          profiles!friends_friend_id_fkey (
+            username,
+            avatar_url
+          )
+        `)
+        .eq("user_id", user.id)
+        .eq("status", "accepted")
+        .order("created_at", { ascending: false })
+        .limit(8);
+
+      setTop8(top8Data || []);
+
       setLoading(false);
     }
 
     loadDashboard();
   }, [user]);
 
-  // Logout
   async function handleLogout() {
     await supabase.auth.signOut();
     navigate("/");
@@ -86,11 +103,11 @@ export default function Dashboard() {
     );
   }
 
-  // ⭐ MAIN DASHBOARD RENDER
+  // ⭐ MAIN DASHBOARD
   return (
     <div className="min-h-screen bg-[#f0f0f0] text-black flex flex-col">
 
-      {/* HEADER — MySpace Style */}
+      {/* HEADER */}
       <header className="bg-orange-600 text-white py-4 px-4 flex flex-wrap justify-between items-center gap-4 shadow-lg">
         <div className="flex items-center gap-3">
           <h1 className="text-2xl md:text-3xl font-bold">ProfileDig</h1>
@@ -132,10 +149,10 @@ export default function Dashboard() {
         </div>
       </header>
 
-      {/* MAIN CONTENT — MySpace Layout */}
+      {/* MAIN CONTENT */}
       <main className="flex flex-col md:flex-row gap-6 p-4">
 
-        {/* LEFT COLUMN — Classic MySpace Profile Box */}
+        {/* LEFT COLUMN */}
         <div className="w-full md:w-1/3 bg-white border border-gray-300 rounded-lg p-4 shadow-md">
 
           <img
@@ -175,31 +192,31 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* RIGHT COLUMN — Friends + Messages */}
-        
-        {/* TOP 8 FRIENDS — MySpace Style */}
-<div className="bg-white border border-gray-300 rounded-lg p-4 shadow-md">
-  <h3 className="text-xl font-bold text-orange-600 mb-3">Top 8 Friends</h3>
+        {/* RIGHT COLUMN */}
+        <div className="w-full md:w-2/3 flex flex-col gap-6">
 
-  {top8.length === 0 ? (
-    <p className="text-gray-600 text-sm">You haven't added any friends yet.</p>
-  ) : (
-    <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-      {top8.map((f) => (
-        <div key={f.friend_id} className="text-center">
-          <img
-            src={f.profiles.avatar_url || "/default-avatar.png"}
-            className="w-full h-24 object-cover rounded border-2 border-orange-600"
-          />
-          <p className="text-sm mt-1">{f.profiles.username}</p>
-        </div>
-      ))}
-    </div>
-  )}
-</div>
+          {/* TOP 8 FRIENDS */}
+          <div className="bg-white border border-gray-300 rounded-lg p-4 shadow-md">
+            <h3 className="text-xl font-bold text-orange-600 mb-3">Top 8 Friends</h3>
 
+            {top8.length === 0 ? (
+              <p className="text-gray-600 text-sm">You haven't added any friends yet.</p>
+            ) : (
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                {top8.map((f) => (
+                  <div key={f.friend_id} className="text-center">
+                    <img
+                      src={f.profiles.avatar_url || "/default-avatar.png"}
+                      className="w-full h-24 object-cover rounded border-2 border-orange-600"
+                    />
+                    <p className="text-sm mt-1">{f.profiles.username}</p>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
 
-          {/* Recent Messages */}
+          {/* RECENT MESSAGES */}
           <div className="bg-white border border-gray-300 rounded-lg p-4 shadow-md">
             <h3 className="text-xl font-bold text-orange-600 mb-3">Recent Messages</h3>
 
@@ -218,7 +235,7 @@ export default function Dashboard() {
             )}
           </div>
 
-          {/* Friends */}
+          {/* FRIENDS */}
           <div className="bg-white border border-gray-300 rounded-lg p-4 shadow-md">
             <h3 className="text-xl font-bold text-orange-600 mb-3">Friends</h3>
 
@@ -242,6 +259,7 @@ export default function Dashboard() {
         </div>
       </main>
 
+      {/* FOOTER */}
       <footer className="bg-orange-600 text-black text-center py-4 text-sm mt-auto">
         © {new Date().getFullYear()} ProfileDig — A Place for Friends
       </footer>
