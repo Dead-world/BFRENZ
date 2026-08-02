@@ -9,6 +9,7 @@ export default function ProfilePage() {
   const [profile, setProfile] = useState(null);
   const [blogs, setBlogs] = useState([]);
   const [comments, setComments] = useState([]);
+  const [top8, setTop8] = useState([]);
   const [user, setUser] = useState(null);
 
   // Load logged-in user
@@ -35,6 +36,29 @@ export default function ProfilePage() {
     }
 
     loadProfile();
+  }, [id]);
+
+  // Load Top 8 Friends
+  useEffect(() => {
+    async function loadTop8() {
+      const { data } = await supabase
+        .from("friends")
+        .select(`
+          friend_id,
+          profiles!friends_friend_id_fkey (
+            username,
+            avatar_url
+          )
+        `)
+        .eq("user_id", id)
+        .eq("status", "accepted")
+        .order("created_at", { ascending: false })
+        .limit(8);
+
+      setTop8(data || []);
+    }
+
+    loadTop8();
   }, [id]);
 
   // Load blog entries
@@ -111,7 +135,7 @@ export default function ProfilePage() {
     });
   }
 
-  // ⭐ FIX: Add logout function
+  // Logout
   async function handleLogout() {
     await supabase.auth.signOut();
     setUser(null);
@@ -126,11 +150,16 @@ export default function ProfilePage() {
     );
   }
 
+  // Calculate age
+  const age = profile.birthday
+    ? Math.floor((Date.now() - new Date(profile.birthday)) / 31557600000)
+    : "Unknown";
+
   return (
     <div className="min-h-screen bg-black text-white font-sans">
 
       {/* HEADER */}
-      <header className="bg-orange-600 text-white py-4 px-6 flex justify-between items-center">
+      <header className="bg-orange-600 text-white py-4 px-6 flex justify-between items-center flex-wrap gap-4">
         <div className="flex items-center gap-4">
           <h1 className="text-3xl font-bold">ProfileDig</h1>
 
@@ -149,8 +178,8 @@ export default function ProfilePage() {
           )}
         </div>
 
-        <div className="flex items-center gap-6">
-          <nav className="space-x-4 flex items-center">
+        <div className="flex items-center gap-6 flex-wrap">
+          <nav className="space-x-4 flex items-center text-sm md:text-base">
             <a href="/" className="hover:underline">Home</a>
             <a href="/browse" className="hover:underline">Browse</a>
             <a href="/music" className="hover:underline">Music</a>
@@ -179,24 +208,26 @@ export default function ProfilePage() {
         </div>
       </header>
 
-
-
-
       {/* MAIN GRID */}
       <main className="grid grid-cols-1 md:grid-cols-3 gap-6 p-6">
+
         {/* LEFT SIDEBAR */}
         <aside className="space-y-4">
+
           {/* PROFILE CARD */}
           <div className="bg-white text-black rounded p-4">
             <img
-  src={profile.avatar_url}
-  alt={profile.username}
-  className="w-full object-contain rounded bg-black"
-/>
+              src={profile.avatar_url || "/default-avatar.png"}
+              alt={profile.username}
+              className="w-full object-contain rounded bg-black"
+            />
 
-            <h2 className="text-xl font-bold">{profile.username}</h2>
-            <p className="text-sm">{profile.gender || "Unknown"}, {profile.age || "N/A"} years old</p>
-            <p className="text-sm">{profile.location || "Unknown"}</p>
+            <h2 className="text-xl font-bold mt-2">{profile.username}</h2>
+
+            <p className="text-sm">{profile.gender || "Unknown"}</p>
+            <p className="text-sm">{age} years old</p>
+            <p className="text-sm">{profile.hometown || "Unknown"}</p>
+
             <p className="text-sm mt-2">Mood: {profile.status || "offline"}</p>
             <p className="text-xs mt-1">Last Seen: {profile.last_seen || "Unknown"}</p>
           </div>
@@ -212,9 +243,12 @@ export default function ProfilePage() {
               Add to Friends
             </button>
 
-            <button className="w-full bg-white text-black font-semibold py-1 rounded hover:bg-orange-600 hover:text-white transition">
+            <a
+              href={`/messages/${id}`}
+              className="block w-full text-center bg-white text-black font-semibold py-1 rounded hover:bg-orange-600 hover:text-white transition"
+            >
               Send Message
-            </button>
+            </a>
 
             <button className="w-full bg-white text-black font-semibold py-1 rounded hover:bg-orange-600 hover:text-white transition">
               Block User
@@ -235,6 +269,7 @@ export default function ProfilePage() {
 
         {/* RIGHT COLUMN */}
         <section className="md:col-span-2 space-y-6">
+
           {/* STATUS */}
           <div className="bg-white text-black rounded p-4">
             <h2 className="text-xl font-bold mb-2">{profile.status_message || "No status yet"}</h2>
@@ -262,6 +297,27 @@ export default function ProfilePage() {
             <p className="text-sm mb-3">
               <strong>Who I'd like to meet:</strong> {profile.meet || "Anyone cool."}
             </p>
+          </div>
+
+          {/* TOP 8 FRIENDS */}
+          <div className="bg-white text-black rounded p-4">
+            <h3 className="font-bold text-lg mb-2 text-orange-600">Top 8 Friends</h3>
+
+            {top8.length === 0 ? (
+              <p className="text-sm text-gray-600">This user has no friends yet.</p>
+            ) : (
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                {top8.map((f) => (
+                  <div key={f.friend_id} className="text-center">
+                    <img
+                      src={f.profiles.avatar_url || "/default-avatar.png"}
+                      className="w-full h-24 object-cover rounded border-2 border-orange-600"
+                    />
+                    <p className="text-sm mt-1">{f.profiles.username}</p>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* COMMENTS */}
