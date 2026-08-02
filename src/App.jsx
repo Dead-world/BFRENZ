@@ -7,7 +7,7 @@ import DashboardPage from "./pages/DashboardPage";
 import ProfilePage from "./pages/ProfilePage";
 import MessagesPage from "./pages/MessagesPage";
 import FriendsPage from "./pages/FriendsPage";
-import SettingsPage from "./pages/SettingsPage";
+import SettingsPage from "./pages/SettingsPage.jsx";
 import MusicPlayer from "./components/MusicPlayer";
 
 export default function App() {
