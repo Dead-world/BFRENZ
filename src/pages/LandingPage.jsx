@@ -1,11 +1,21 @@
 // src/pages/LandingPage.jsx
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { supabase } from "../supabaseClient";
 import Notifications from "../components/Notifications";
 
 export default function LandingPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [user, setUser] = useState(null);
+
+  // Check if user is already logged in
+  useEffect(() => {
+    async function getUser() {
+      const { data } = await supabase.auth.getUser();
+      setUser(data.user);
+    }
+    getUser();
+  }, []);
 
   async function handleLogin(e) {
     e.preventDefault();
@@ -27,8 +37,14 @@ export default function LandingPage() {
       return;
     }
 
-    // Redirect to profile page
-   window.location.href = "/dashboard";
+    // Redirect to dashboard
+    window.location.href = "/dashboard";
+  }
+
+  async function handleLogout() {
+    await supabase.auth.signOut();
+    setUser(null);
+    window.location.href = "/";
   }
 
   return (
@@ -47,6 +63,15 @@ export default function LandingPage() {
           </nav>
 
           <Notifications />
+
+          {user && (
+            <button
+              onClick={handleLogout}
+              className="bg-white text-black px-3 py-1 rounded hover:bg-orange-500 hover:text-white transition"
+            >
+              Logout
+            </button>
+          )}
         </div>
       </header>
 
@@ -87,44 +112,49 @@ export default function LandingPage() {
 
         {/* RIGHT COLUMN */}
         <aside className="space-y-6">
-          <div className="bg-white text-black p-4 rounded">
-            <h2 className="text-xl font-bold text-orange-600 mb-2">Member Login</h2>
 
-            <form onSubmit={handleLogin} className="space-y-2">
-              {error && <p className="text-red-500 text-sm">{error}</p>}
+          {/* MEMBER LOGIN — hidden if user is logged in */}
+          {!user && (
+            <div className="bg-white text-black p-4 rounded">
+              <h2 className="text-xl font-bold text-orange-600 mb-2">Member Login</h2>
 
-              <input
-                name="email"
-                type="email"
-                placeholder="E-Mail"
-                className="w-full border border-gray-400 rounded px-2 py-1"
-                autoComplete="email"
-              />
+              <form onSubmit={handleLogin} className="space-y-2">
+                {error && <p className="text-red-500 text-sm">{error}</p>}
 
-              <input
-                name="password"
-                type="password"
-                placeholder="Password"
-                className="w-full border border-gray-400 rounded px-2 py-1"
-                autoComplete="current-password"
-              />
+                <input
+                  name="email"
+                  type="email"
+                  placeholder="E-Mail"
+                  className="w-full border border-gray-400 rounded px-2 py-1"
+                  autoComplete="email"
+                />
 
-              <div className="flex items-center justify-between">
-                <label className="text-sm">
-                  <input type="checkbox" className="mr-1" /> Remember Me
-                </label>
+                <input
+                  name="password"
+                  type="password"
+                  placeholder="Password"
+                  className="w-full border border-gray-400 rounded px-2 py-1"
+                  autoComplete="current-password"
+                />
 
-                <button
-                  type="submit"
-                  disabled={loading}
-                  className="bg-orange-600 text-white px-3 py-1 rounded hover:bg-orange-700"
-                >
-                  {loading ? "Logging in..." : "Login"}
-                </button>
-              </div>
-            </form>
-          </div>
+                <div className="flex items-center justify-between">
+                  <label className="text-sm">
+                    <input type="checkbox" className="mr-1" /> Remember Me
+                  </label>
 
+                  <button
+                    type="submit"
+                    disabled={loading}
+                    className="bg-orange-600 text-white px-3 py-1 rounded hover:bg-orange-700"
+                  >
+                    {loading ? "Logging in..." : "Login"}
+                  </button>
+                </div>
+              </form>
+            </div>
+          )}
+
+          {/* COOL NEW PEOPLE */}
           <div className="bg-orange-500 text-black p-4 rounded">
             <h2 className="text-xl font-bold mb-2">Cool New People</h2>
             <div className="grid grid-cols-3 gap-2">
