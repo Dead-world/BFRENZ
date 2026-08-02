@@ -6,42 +6,73 @@ export default function LandingPage() {
   return (
     <div className="min-h-screen bg-background text-text flex flex-col">
 
-      {/* NAVBAR */}
-      <nav className="flex items-center justify-between px-8 py-6 border-b border-accent">
-        <img src="/ProfileDigLogo.png" alt="ProfileDigLogo" className="h-20" />
+      {/* TOP BAR — MySpace style */}
+      <header className="w-full bg-surface border-b border-accent px-6 py-4 flex items-center justify-between">
+        <img src="/logo.svg" alt="ProfileDig Logo" className="h-14" />
 
-        <button
-          onClick={() => navigate("/login")}
-          className="px-4 py-2 bg-primary text-text font-medium rounded-md 
-                     hover:bg-accent transition"
-        >
-          Login
-        </button>
-      </nav>
+        <div className="flex gap-4">
+          <button
+            onClick={() => navigate("/login")}
+            className="px-4 py-2 bg-primary hover:bg-accent rounded text-text font-semibold"
+          >
+            Login
+          </button>
+          <button
+            onClick={() => navigate("/signup")}
+            className="px-4 py-2 border border-primary hover:bg-primary hover:text-text rounded font-semibold text-primary"
+          >
+            Sign Up
+          </button>
+        </div>
+      </header>
 
-      {/* HERO SECTION */}
-      <main className="flex flex-col items-center justify-center flex-1 text-center px-6">
-        <h2 className="text-5xl font-extrabold mb-6 text-primary">
-          Discover. Connect. Define Your Identity.
-        </h2>
+      {/* MAIN CONTENT — MySpace layout */}
+      <main className="flex flex-1 w-full">
 
-        <p className="text-lg text-subtle max-w-xl mb-10">
-          ProfileDig is your personal identity hub — explore profiles, connect with others,
-          and build your digital presence with clarity and style.
-        </p>
+        {/* LEFT SIDEBAR */}
+        <aside className="w-64 bg-surface border-r border-accent p-6 hidden md:block">
+          <h2 className="text-xl font-bold text-primary mb-4">Navigation</h2>
 
-        <button
-          onClick={() => navigate("/signup")}
-          className="px-6 py-3 bg-primary hover:bg-accent transition text-text 
-                     font-semibold rounded-lg"
-        >
-          Get Started
-        </button>
+          <ul className="space-y-3 text-subtle">
+            <li className="hover:text-primary cursor-pointer">Home</li>
+            <li className="hover:text-primary cursor-pointer">Profiles</li>
+            <li className="hover:text-primary cursor-pointer">Top Friends</li>
+            <li className="hover:text-primary cursor-pointer">Messages</li>
+            <li className="hover:text-primary cursor-pointer">Settings</li>
+          </ul>
+        </aside>
+
+        {/* CENTER CONTENT */}
+        <section className="flex-1 p-10 text-center">
+          <h1 className="text-5xl font-extrabold text-primary mb-6">
+            Welcome to ProfileDig
+          </h1>
+
+          <p className="text-subtle max-w-2xl mx-auto mb-10 text-lg">
+            The modern identity hub inspired by the golden era of social profiles.
+            Customize your presence, connect with others, and define your digital identity.
+          </p>
+
+          <button
+            onClick={() => navigate("/signup")}
+            className="px-8 py-4 bg-primary hover:bg-accent rounded-lg text-text font-bold text-xl transition"
+          >
+            Create Your Profile
+          </button>
+
+          {/* Retro MySpace-style content box */}
+          <div className="mt-16 mx-auto max-w-3xl bg-surface border border-accent rounded-xl p-8 text-left">
+            <h2 className="text-2xl font-bold text-primary mb-4">Featured Profiles</h2>
+            <p className="text-subtle">
+              Coming soon — a throwback to classic MySpace “Top Friends,” but modernized.
+            </p>
+          </div>
+        </section>
       </main>
 
       {/* FOOTER */}
-      <footer className="text-center py-6 text-subtle text-sm border-t border-accent">
-        © {new Date().getFullYear()} ProfileDig — All rights reserved.
+      <footer className="w-full bg-surface border-t border-accent py-4 text-center text-subtle text-sm">
+        © {new Date().getFullYear()} ProfileDig — Your Identity, Your Space.
       </footer>
     </div>
   );
