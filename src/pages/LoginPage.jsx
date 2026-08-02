@@ -28,22 +28,30 @@ export default function LoginPage() {
   }
 
   return (
-    <form onSubmit={handleLogin}>
+    <form onSubmit={handleLogin} className="space-y-3">
       <input
         type="email"
         placeholder="Email"
+        value={email}                     // FIXED
         onChange={(e) => setEmail(e.target.value)}
+        className="w-full px-3 py-2 rounded bg-white text-black border border-orange-600"
       />
 
       <input
         type="password"
         placeholder="Password"
+        value={password}                  // FIXED
         onChange={(e) => setPassword(e.target.value)}
+        className="w-full px-3 py-2 rounded bg-white text-black border border-orange-600"
       />
 
-      <button>Login</button>
+      <button
+        className="w-full bg-orange-600 hover:bg-orange-700 text-white font-semibold py-2 rounded"
+      >
+        Login
+      </button>
 
-      {error && <p>{error}</p>}
+      {error && <p className="text-red-500 text-sm">{error}</p>}
     </form>
   );
 }
