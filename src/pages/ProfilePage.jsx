@@ -147,10 +147,11 @@ export default function ProfilePage() {
           {/* PROFILE CARD */}
           <div className="bg-white text-black rounded p-4">
             <img
-              src={profile.avatar_url || "/default-avatar.png"}
-              alt="Profile"
-              className="w-full h-48 object-cover rounded mb-3"
-            />
+  src={profile.avatar_url}
+  alt={profile.username}
+  className="w-full object-contain rounded bg-black"
+/>
+
             <h2 className="text-xl font-bold">{profile.username}</h2>
             <p className="text-sm">{profile.gender || "Unknown"}, {profile.age || "N/A"} years old</p>
             <p className="text-sm">{profile.location || "Unknown"}</p>
