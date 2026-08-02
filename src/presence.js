@@ -1,4 +1,4 @@
-import { supabase } from "./SupabaseClient";
+import { supabase } from "./supabaseClient";
 
 export const presenceChannel = supabase.channel("online-users", {
   config: {

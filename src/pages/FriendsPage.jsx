@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { supabase } from "../SupabaseClient";
+import { supabase } from "../supabaseClient";
 import TopFriends from "../components/TopFriends";
 import { useNavigate } from "react-router-dom";
 

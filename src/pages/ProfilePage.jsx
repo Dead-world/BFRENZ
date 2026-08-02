@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import { supabase } from "../SupabaseClient";
+import { supabase } from "../supabaseClient";
 import { useAuth } from "../context/AuthContext";
 import TopFriends from "../components/TopFriends";
 import MusicPlayer from "../components/MusicPlayer";
