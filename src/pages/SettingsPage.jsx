@@ -31,7 +31,7 @@ export default function SettingsPage() {
       const { data, error } = await supabase
         .from("profiles")
         .select("*")
-        .eq("id", user.id)
+        .eq("User_id", user.id)
         .single();
 
       if (error) console.error(error);
