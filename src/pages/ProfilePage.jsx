@@ -9,8 +9,3 @@ export default function ProfilePage() {
     </div>
   );
 }
-<<<<<<< HEAD:src/pages/ProfilePage.Jsx
-  
-=======
- 
->>>>>>> 3435961a7516f05a642297710e2be3ee42ca2ad5:src/pages/ProfilePage.jsx
