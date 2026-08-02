@@ -20,11 +20,13 @@ export default function ProfilePage() {
       setLoading(true);
 
       // Fetch profile data
-      const { data: userData, error } = await supabase
+      // Fetch profile data
+  const { data: userData, error } = await supabase
         .from("profiles")
         .select("*")
-        .eq("id", id)
+        .eq("User_id", id)
         .single();
+
 
       if (error) console.error(error);
       setProfile(userData);
