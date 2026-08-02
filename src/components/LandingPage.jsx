@@ -8,7 +8,7 @@ export default function LandingPage() {
 
       {/* TOP BAR — MySpace style */}
       <header className="w-full bg-surface border-b border-accent px-6 py-4 flex items-center justify-between">
-        <img src="/logo.svg" alt="ProfileDig Logo" className="h-14" />
+        <img src="/ProfileDigLogo.png" alt="ProfileDig Logo" className="h-14" />
 
         <div className="flex gap-4">
           <button
