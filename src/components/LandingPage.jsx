@@ -8,7 +8,7 @@ export default function LandingPage() {
 
       {/* NAVBAR */}
       <nav className="flex items-center justify-between px-8 py-6">
-        <h1 className="text-2xl font-bold tracking-tight">ProfileDig</h1>
+        <img src="/logo.png" alt="ProfileDigLogo" className="h-10" />
        <button
   onClick={() => navigate("/login")}
   className="px-4 py-2 bg-white text-gray-900 font-medium rounded-md hover:bg-gray-200 transition"
