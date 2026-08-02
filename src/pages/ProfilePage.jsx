@@ -321,6 +321,13 @@ export default function ProfilePage() {
             />
           )}
 
+          {/* CUSTOM HTML / CSS FROM SETTINGS */}
+          {profile.custom_html && (
+            <div
+             className="custom-profile-html"
+             dangerouslySetInnerHTML={{ __html: profile.custom_html }}
+            />
+     )}
           {/* BLOG ENTRIES */}
           <div className="bg-orange-500 text-black rounded p-4">
             <h3 className="font-bold text-lg mb-2">{profile.username}'s Latest Blog Entries</h3>
