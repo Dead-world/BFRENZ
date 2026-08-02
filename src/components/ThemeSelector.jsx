@@ -1,4 +1,4 @@
-export function ThemeSelector({ setTheme }) {
+export default function ThemeSelector({ setTheme }) {
   const themes = [
     { name: "Orange", primary: "#FF6B00", accent: "#E65100" },
     { name: "Blue", primary: "#3B82F6", accent: "#1E40AF" },

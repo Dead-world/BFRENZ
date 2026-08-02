@@ -1,4 +1,4 @@
-export function EditableAboutMe({ about, setAbout }) {
+export default function EditableAboutMe({ about, setAbout }) {
   return (
     <div className="bg-surface border border-accent p-6 rounded-xl">
       <h2 className="text-2xl font-bold text-primary mb-4">About Me</h2>
