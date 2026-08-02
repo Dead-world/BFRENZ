@@ -23,30 +23,33 @@ export default function SignupPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-900 text-white flex items-center justify-center">
+    <div className="min-h-screen bg-background text-text flex items-center justify-center px-6">
+
       <form
         onSubmit={handleSignup}
-        className="bg-[#111827] p-8 rounded-xl w-full max-w-md border border-gray-800"
+        className="bg-surface p-8 rounded-xl w-full max-w-md border border-accent shadow-lg"
       >
-        <h1 className="text-3xl font-bold mb-6">Create Account</h1>
+        <h1 className="text-3xl font-bold mb-6 text-primary">Create Account</h1>
 
         {error && <p className="text-red-500 mb-4">{error}</p>}
 
         <input
           type="email"
           placeholder="Email"
-          className="w-full mb-4 px-4 py-3 bg-[#1A1A1A] border border-gray-700 rounded-lg"
+          className="w-full mb-4 px-4 py-3 bg-background border border-accent rounded-lg text-text"
           onChange={(e) => setEmail(e.target.value)}
         />
 
         <input
           type="password"
           placeholder="Password"
-          className="w-full mb-6 px-4 py-3 bg-[#1A1A1A] border border-gray-700 rounded-lg"
+          className="w-full mb-6 px-4 py-3 bg-background border border-accent rounded-lg text-text"
           onChange={(e) => setPassword(e.target.value)}
         />
 
-        <button className="w-full py-3 bg-indigo-500 hover:bg-indigo-600 rounded-lg font-semibold">
+        <button
+          className="w-full py-3 bg-primary hover:bg-accent rounded-lg font-semibold text-text transition"
+        >
           Sign Up
         </button>
       </form>

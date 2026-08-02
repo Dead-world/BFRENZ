@@ -4,9 +4,10 @@ export default function ProfilePage() {
   const { id } = useParams();
 
   return (
-    <div className="min-h-screen bg-gray-900 text-white flex items-center justify-center">
-      <h1 className="text-4xl font-bold">Profile: {id}</h1>
+    <div className="min-h-screen bg-background text-text flex items-center justify-center px-6">
+      <h1 className="text-4xl font-bold text-primary">
+        Profile: {id}
+      </h1>
     </div>
   );
 }
-  
