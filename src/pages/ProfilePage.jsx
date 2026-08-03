@@ -16,7 +16,9 @@ export default function ProfilePage() {
 
   // Load logged-in user
   useEffect(() => {
-    supabase.auth.getUser().then(({ data }) => setCurrentUser(data.user));
+    supabase.auth.getUser().then(({ data }) => {
+      setCurrentUser(data?.user || null);
+    });
   }, []);
 
   // Load profile data (FIXED)
@@ -25,7 +27,7 @@ export default function ProfilePage() {
       const { data, error } = await supabase
         .from("profiles")
         .select("*")
-        .eq("user_id", id)   // FIXED: correct column name
+        .eq("user_id", id)   // FIXED: Supabase is case-sensitive
         .single();
 
       if (error) {
@@ -49,6 +51,7 @@ export default function ProfilePage() {
         profile_id: id,
       });
     }
+
     addView();
   }, [id]);
 
@@ -62,6 +65,7 @@ export default function ProfilePage() {
 
       setViews(data?.length || 0);
     }
+
     loadViews();
   }, [id]);
 
@@ -76,6 +80,7 @@ export default function ProfilePage() {
 
       setBulletins(data || []);
     }
+
     loadBulletins();
   }, [id]);
 
@@ -112,47 +117,6 @@ export default function ProfilePage() {
 
     loadComments();
   }, [id]);
-
-  if (!profile) {
-    return <div>Loading profile...</div>;
-  }
-
-  return (
-    <>
-      <Navbar />
-
-      <div className="profile-page">
-
-        <div className="profile-header">
-          <img
-            src={profile.avatar_url}
-            alt="Avatar"
-            className="profile-avatar"
-          />
-
-          <h1 className="profile-username">{profile.username}</h1>
-        </div>
-
-        <div className="profile-info">
-
-          <div className="profile-location">
-            <strong>Location:</strong> {profile.location || "Not set"}
-          </div>
-
-          <div className="profile-mood">
-            <strong>Mood:</strong> {profile.mood || "Not set"}
-          </div>
-
-        </div>
-
-        <div className="profile-views">
-          <strong>Profile Views:</strong> {views}
-        </div>
-
-      </div>
-    </>
-  );
-}
 
 
 
