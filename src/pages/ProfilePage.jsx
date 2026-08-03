@@ -149,10 +149,11 @@ export default function ProfilePage() {
   }
 
   // Instant Message
-  function instantMessage() {
-    window.location.href = `/messages/${id}`;
-  }
+const navigate = useNavigate();
 
+function instantMessage() {
+  navigate(`/messages/${id}`);
+}
   // Post bulletin
   async function postBulletin(e) {
     e.preventDefault();
