@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { supabase } from "../supabaseClient";
 import { useParams, Link } from "react-router-dom";
-import Navbar from "../components/Navbar";
+import Navbar from "../components/NavBar";
 
 export default function ProfilePage() {
   const { id } = useParams();
