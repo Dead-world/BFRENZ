@@ -6,7 +6,6 @@ import NavBar from "../components/NavBar";
 export default function ProfilePage() {
   const { id } = useParams();
   const [profile, setProfile] = useState(null);
-  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     async function loadProfile() {
@@ -15,15 +14,12 @@ export default function ProfilePage() {
         .select("*")
         .eq("User_id", id)
         .single();
-
       setProfile(data);
-      setLoading(false);
     }
-
     loadProfile();
   }, [id]);
 
-  if (loading || !profile) {
+  if (!profile) {
     return (
       <div className="min-h-screen bg-black text-orange-500 flex items-center justify-center">
         <p className="text-xl font-bold">Loading profile...</p>
@@ -31,7 +27,6 @@ export default function ProfilePage() {
     );
   }
 
-  // Detect song type
   const songURL = profile.mp3_url || profile.youtube_url || "";
   const isYouTube =
     songURL.includes("youtube.com") || songURL.includes("youtu.be");
@@ -39,118 +34,140 @@ export default function ProfilePage() {
   const isMP3 = songURL.endsWith(".mp3");
 
   return (
-    <div className="min-h-screen bg-black text-orange-500">
+    <div className="min-h-screen bg-black text-orange-500 font-[Verdana]">
       <NavBar user={{ id }} />
 
-      <main className="max-w-5xl mx-auto p-4 grid grid-cols-1 md:grid-cols-3 gap-6">
+      {/* HEADER */}
+      <header className="bg-orange-600 border-b border-orange-400 p-3 text-black">
+        <h1 className="text-3xl font-bold">{profile.username}</h1>
+        <p className="text-sm">Mood: {profile.status_message || "Online"}</p>
+      </header>
 
-        {/* LEFT COLUMN */}
-        <section className="bg-black/80 border border-orange-600 rounded-lg p-4 shadow-md">
-          <img
-            src={profile.avatar_url || "/default-avatar.png"}
-            className="w-full rounded-lg border-2 border-orange-600 mb-4"
-          />
+      {/* MAIN GRID */}
+      <main className="max-w-5xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-4 p-4">
 
-          <h2 className="text-2xl font-bold text-orange-600">{profile.username}</h2>
-
-          <p className="text-sm mt-1">
-            <strong>Status:</strong> {profile.status || "Online"}
-          </p>
-
-          <p className="text-sm mt-1">
-            <strong>Mood:</strong> {profile.status_message || "Feeling good!"}
-          </p>
-
-          <div className="mt-4">
-            <h3 className="text-lg font-bold text-orange-600 border-b border-orange-600 pb-1">
-              About Me
-            </h3>
-            <p className="text-sm mt-2 whitespace-pre-line">
-              {profile.about_me || "This user hasn't written anything yet."}
+        {/* LEFT SIDEBAR */}
+        <aside className="space-y-4">
+          {/* Avatar */}
+          <div className="border border-orange-600 p-2 bg-black">
+            <img
+              src={profile.avatar_url || "/default-avatar.png"}
+              alt="avatar"
+              className="w-full rounded border border-orange-600"
+            />
+            <p className="text-sm mt-2 text-orange-400">
+              <strong>Male</strong> <br />
+              32 years old <br />
+              Michigan, United States
             </p>
+            <p className="text-xs mt-2 text-orange-400">Last Login: 08/03/2026</p>
           </div>
 
-          <div className="mt-4">
-            <h3 className="text-lg font-bold text-orange-600 border-b border-orange-600 pb-1">
-              Interests
+          {/* Contacting Section */}
+          <div className="border border-orange-600 bg-black p-2">
+            <h3 className="font-bold mb-2 text-orange-400">
+              Contacting {profile.username}
             </h3>
-            <p className="text-sm mt-2">
-              <strong>General:</strong> {profile.general_interests || "None"}
-            </p>
-            <p className="text-sm mt-1">
-              <strong>Music:</strong> {profile.music_interests || "None"}
-            </p>
+            <div className="grid grid-cols-2 gap-2 text-xs">
+              {[
+                "Send Message",
+                "Add to Friends",
+                "Instant Message",
+                "Add to Group",
+                "Forward to Friend",
+                "Add to Favorites",
+                "Block User",
+                "Rank User",
+              ].map((label) => (
+                <button
+                  key={label}
+                  className="bg-orange-600 text-black border border-orange-400 p-1 rounded hover:bg-orange-400 transition"
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
           </div>
-        </section>
 
-        {/* RIGHT COLUMN */}
-        <section className="md:col-span-2 space-y-6">
+          {/* Song Player */}
+          {songURL && (
+            <div className="border border-orange-600 bg-black p-2">
+              <h3 className="font-bold mb-1 text-orange-400">Profile Song</h3>
+              {isYouTube && (
+                <iframe
+                  width="100%"
+                  height="120"
+                  src={songURL.replace("watch?v=", "embed/")}
+                  allow="autoplay"
+                  className="rounded"
+                ></iframe>
+              )}
+              {isSoundCloud && (
+                <iframe
+                  width="100%"
+                  height="120"
+                  scrolling="no"
+                  frameBorder="no"
+                  allow="autoplay"
+                  className="rounded"
+                  src={`https://w.soundcloud.com/player/?url=${encodeURIComponent(
+                    songURL
+                  )}&auto_play=true`}
+                ></iframe>
+              )}
+              {isMP3 && (
+                <audio controls autoPlay className="w-full mt-2 accent-orange-600">
+                  <source src={songURL} type="audio/mpeg" />
+                </audio>
+              )}
+            </div>
+          )}
+        </aside>
 
-          {/* STATUS */}
-          <div className="bg-white text-black rounded p-4">
-            <h2 className="text-xl font-bold mb-2">
-              {profile.status_message || "No status yet"}
+        {/* RIGHT CONTENT */}
+        <section className="md:col-span-2 space-y-4">
+          {/* Status */}
+          <div className="border border-orange-600 bg-black p-3">
+            <h2 className="text-xl font-bold mb-2 text-orange-400">
+              {profile.status_message || "Testing out the new status"}
             </h2>
           </div>
 
-         {/* PROFILE SONG PLAYER */}
-{profile.mp3_url && (
-  <div className="bg-white text-black rounded p-4">
-    <h3 className="font-bold text-lg mb-2 text-orange-600">Profile Song</h3>
+          {/* About Me */}
+          <div className="border border-orange-600 bg-black p-3">
+            <h3 className="font-bold text-orange-400 mb-1">About Me</h3>
+            <p className="text-sm text-white whitespace-pre-line">
+              {profile.about_me ||
+                "I'm here to help you. Send me a message if you're confused by anything!"}
+            </p>
+          </div>
 
-    {/* MP3 */}
-    {profile.mp3_url.endsWith(".mp3") && (
-      <audio controls autoPlay className="w-full mt-2">
-        <source src={profile.mp3_url} type="audio/mpeg" />
-      </audio>
-    )}
+          {/* Interests */}
+          <div className="border border-orange-600 bg-black p-3">
+            <h3 className="font-bold text-orange-400 mb-1">Interests</h3>
+            <p className="text-sm text-white">
+              <strong>General:</strong> {profile.general_interests || "None"}
+            </p>
+            <p className="text-sm mt-1 text-white">
+              <strong>Music:</strong> {profile.music_interests || "None"}
+            </p>
+          </div>
 
-    {/* YOUTUBE */}
-    {(profile.mp3_url.includes("youtube.com") ||
-      profile.mp3_url.includes("youtu.be")) && (
-      <iframe
-        width="100%"
-        height="200"
-        src={profile.mp3_url.replace("watch?v=", "embed/")}
-        allow="autoplay"
-        className="rounded"
-      ></iframe>
-    )}
-
-    {/* SOUNDCLOUD */}
-    {profile.mp3_url.includes("soundcloud.com") && (
-      <iframe
-        width="100%"
-        height="200"
-        scrolling="no"
-        frameBorder="no"
-        allow="autoplay"
-        className="rounded"
-        src={`https://w.soundcloud.com/player/?url=${encodeURIComponent(
-          profile.mp3_url
-        )}&auto_play=true`}
-      ></iframe>
-    )}
-  </div>
-)}
-
-
-          {/* CUSTOM HTML */}
+          {/* Custom HTML */}
           {profile.custom_html && (
             <div
-              className="bg-white text-black rounded p-4"
+              className="border border-orange-600 bg-black p-3 text-white"
               dangerouslySetInnerHTML={{ __html: profile.custom_html }}
             />
           )}
 
-          {/* CUSTOM CSS */}
-          {profile.custom_css && (
-            <style>{profile.custom_css}</style>
-          )}
+          {/* Custom CSS */}
+          {profile.custom_css && <style>{profile.custom_css}</style>}
         </section>
       </main>
 
-      <footer className="bg-orange-600 text-black text-center py-4 text-sm mt-auto">
+      {/* FOOTER */}
+      <footer className="bg-orange-600 border-t border-orange-400 text-center py-3 text-xs text-black">
         © {new Date().getFullYear()} ProfileDig — A Place for Friends
       </footer>
     </div>

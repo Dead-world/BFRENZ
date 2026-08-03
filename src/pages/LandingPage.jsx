@@ -1,230 +1,220 @@
-// src/pages/LandingPage.jsx
-import React, { useState, useEffect } from "react";
-import { supabase } from "../supabaseClient";
-import Notifications from "../components/Notifications";
+import NavBar from "../components/NavBar";
 
 export default function LandingPage() {
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
-  const [user, setUser] = useState(null);
-
-  // Check if user is already logged in
-  useEffect(() => {
-    async function getUser() {
-      const { data } = await supabase.auth.getUser();
-      setUser(data.user);
-    }
-    getUser();
-  }, []);
-
-  async function handleLogin(e) {
-    e.preventDefault();
-    setLoading(true);
-    setError("");
-
-    const email = e.target.email.value;
-    const password = e.target.password.value;
-
-    const { error: loginError } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
-
-    setLoading(false);
-
-    if (loginError) {
-      setError("Invalid email or password");
-      return;
-    }
-
-    window.location.href = "/dashboard";
-  }
-
-  async function handleLogout() {
-    await supabase.auth.signOut();
-    setUser(null);
-    window.location.href = "/";
-  }
-
   return (
-    <div className="min-h-screen flex flex-col bg-black text-white font-sans">
-
-      {/* HEADER — Mobile Friendly */}
-      <header className="
-        bg-orange-600 text-white py-4 px-4 
-        flex flex-wrap items-center justify-between gap-4
-        shadow-lg
-      ">
-        
-        {/* Logo + Avatar */}
-        <div className="flex items-center gap-3 min-w-[150px]">
-          <h1 className="text-2xl md:text-3xl font-bold">ProfileDig</h1>
-
-          {user && (
-            <div className="flex items-center gap-2">
-              <img
-                src={user.user_metadata?.avatar_url || "/default-avatar.png"}
-                alt="Profile"
-                className="w-8 h-8 md:w-10 md:h-10 rounded-full border border-white object-cover"
-              />
-
-              <span className="font-semibold text-sm md:text-base">
-                Welcome, {user.user_metadata?.username || "Member"}
-              </span>
-            </div>
-          )}
+    <div className="min-h-screen bg-black text-orange-500 font-[Verdana]">
+      {/* HEADER */}
+      <header className="bg-orange-600 text-black border-b border-orange-400">
+        <div className="max-w-6xl mx-auto flex justify-between items-center p-3">
+          <h1 className="text-3xl font-bold">ProfileDig</h1>
+          <p className="italic text-sm">a place for friends</p>
         </div>
 
-        {/* Navigation + Notifications + Logout */}
-        <div className="
-          flex flex-wrap items-center gap-4 
-          w-full md:w-auto
-        ">
-          <nav className="
-            flex flex-wrap gap-3 
-            text-sm md:text-base
-            w-full md:w-auto
-          ">
-            <a href="/" className="hover:underline">Home</a>
-            <a href="/browse" className="hover:underline">Browse</a>
-            <a href="/music" className="hover:underline">Music</a>
-            <a href="/videos" className="hover:underline">Videos</a>
-            <a href="/blogs" className="hover:underline">Blogs</a>
-
-            {user && (
-              <>
-                <a href="/dashboard" className="hover:underline font-bold">Dashboard</a>
-                <a href={`/profile/${user.id}`} className="hover:underline">Profile</a>
-              
-              </>
-            )}
-          </nav>
-
-          <Notifications />
-
-          {user && (
-            <button
-              onClick={handleLogout}
-              className="
-                bg-white text-black px-3 py-1 rounded 
-                hover:bg-orange-500 hover:text-white 
-                transition text-sm md:text-base
-              "
-            >
-              Logout
-            </button>
-          )}
-        </div>
+        {/* Top Navigation */}
+        <nav className="bg-black text-orange-500 border-t border-orange-400">
+          <ul className="flex flex-wrap justify-center text-xs font-bold">
+            {[
+              "Home",
+              "Browse",
+              "Search",
+              "Invite",
+              "Film",
+              "Mail",
+              "Blog",
+              "Favorites",
+              "Forum",
+              "Groups",
+              "Events",
+              "Videos",
+              "Music",
+              "Comedy",
+              "Classifieds",
+            ].map((item) => (
+              <li
+                key={item}
+                className="px-3 py-2 hover:bg-orange-600 hover:text-black transition"
+              >
+                {item}
+              </li>
+            ))}
+          </ul>
+        </nav>
       </header>
 
-
-           {/* MAIN CONTENT */}
-      <main className="
-        flex-grow 
-        flex flex-col md:flex-row 
-        items-center justify-center 
-        gap-10 
-        px-4 py-10
-      ">
-
-        {/* LEFT SIDE — HERO TEXT */}
-        <div className="
-          text-center md:text-left 
-          max-w-lg
-        ">
-          <h2 className="text-3xl md:text-4xl font-bold text-orange-500 mb-4">
-            Welcome to ProfileDig
-          </h2>
-
-          <p className="text-gray-300 text-sm md:text-base leading-relaxed">
-            A place for friends — inspired by the golden era of MySpace.  
-            Connect, customize, share your vibe, and discover new people.
-          </p>
-
-          <p className="text-gray-400 text-xs md:text-sm mt-3">
-            Mobile‑friendly. Fast. Personal. Social the way it used to be.
-          </p>
-        </div>
-
-        {/* RIGHT SIDE — LOGIN CARD */}
-        <div className="
-          w-full max-w-sm 
-          bg-gray-950 
-          border border-orange-600 
-          rounded-xl 
-          shadow-2xl 
-          p-6
-        ">
-          <h3 className="text-xl font-bold text-center text-orange-500 mb-4">
-            Member Login
-          </h3>
-
-          <form onSubmit={handleLogin} className="space-y-4">
-            <input
-              type="email"
-              name="email"
-              placeholder="Email"
-              className="
-                w-full px-3 py-2 rounded 
-                bg-white text-black 
-                border border-orange-600 
-                focus:outline-none focus:ring-2 focus:ring-orange-500 
-                transition
-              "
-            />
-
-            <input
-              type="password"
-              name="password"
-              placeholder="Password"
-              className="
-                w-full px-3 py-2 rounded 
-                bg-white text-black 
-                border border-orange-600 
-                focus:outline-none focus:ring-2 focus:ring-orange-500 
-                transition
-              "
-            />
-
-            <button
-              type="submit"
-              className="
-                w-full bg-orange-600 
-                hover:bg-orange-700 
-                text-white font-semibold 
-                py-2 rounded 
-                transition-transform transform hover:scale-[1.02]
-              "
-            >
-              Login
-            </button>
-
-            {error && (
-              <p className="text-red-500 text-sm text-center">{error}</p>
-            )}
-          </form>
-
-          <div className="text-center mt-6 text-sm text-gray-400">
-            Don’t have an account?{" "}
-            <a
-              href="/signup"
-              className="text-orange-500 hover:underline font-semibold"
-            >
-              Sign up here
-            </a>
+      {/* MAIN CONTENT */}
+      <main className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-4 p-4">
+        {/* LEFT COLUMN */}
+        <section className="space-y-4">
+          {/* Cool New Videos */}
+          <div className="border border-orange-600 bg-black p-3">
+            <h2 className="text-lg font-bold mb-2 text-orange-400">
+              Cool New Videos
+            </h2>
+            <div className="grid grid-cols-2 gap-2 text-sm text-white">
+              {[
+                "Funny Ticket Short",
+                "Be Safe This Holiday",
+                "93 Head Spins!",
+                "Get Familiar - Skate",
+              ].map((title) => (
+                <div
+                  key={title}
+                  className="bg-orange-600 text-black rounded p-2 hover:bg-orange-400 transition"
+                >
+                  {title}
+                </div>
+              ))}
+            </div>
+            <p className="text-xs mt-2 text-orange-400">
+              41,347 uploaded today!
+            </p>
           </div>
-        </div>
+
+          {/* Categories */}
+          <div className="border border-orange-600 bg-black p-3 text-sm text-white">
+            <h3 className="font-bold text-orange-400 mb-2">Explore</h3>
+            <div className="grid grid-cols-2 gap-1">
+              {[
+                "Books",
+                "Comedy",
+                "Filmmakers",
+                "Jobs",
+                "MySpaceIM",
+                "Schools",
+                "TV On Demand",
+                "Blogs",
+                "ChatRooms",
+                "Classifieds",
+                "Games",
+                "Horoscopes",
+                "Movies",
+                "Music",
+                "Music Videos",
+                "Videos",
+              ].map((item) => (
+                <span
+                  key={item}
+                  className="hover:text-orange-400 cursor-pointer"
+                >
+                  {item}
+                </span>
+              ))}
+            </div>
+          </div>
+
+          {/* MySpace Movies */}
+          <div className="border border-orange-600 bg-black p-3 text-white">
+            <h3 className="font-bold text-orange-400 mb-2">ProfileDig Movies</h3>
+            <ul className="text-sm list-disc list-inside">
+              <li>Find Movie Showtimes</li>
+              <li>Read Movie News</li>
+              <li>Get Movie Tickets</li>
+            </ul>
+            <button className="mt-3 bg-orange-600 text-black font-bold px-3 py-1 rounded hover:bg-orange-400 transition">
+              Check Out Movies Now
+            </button>
+          </div>
+        </section>
+
+        {/* CENTER COLUMN */}
+        <section className="space-y-4">
+          {/* Music Feature */}
+          <div className="border border-orange-600 bg-black p-3 text-white">
+            <h3 className="font-bold text-orange-400 mb-2">ProfileDig Music</h3>
+            <div className="bg-orange-600 text-black p-2 rounded">
+              <h4 className="font-bold">Featured Artist: Clipse</h4>
+              <p className="text-sm mt-1">
+                Hip Hop / Rap — Virginia Beach, VA
+              </p>
+              <p className="text-xs mt-2">
+                “Provocative,” “Lyrical Grandeur,” and “Classic.” Listen now!
+              </p>
+              <button className="mt-2 bg-black text-orange-500 px-3 py-1 rounded hover:bg-orange-400 hover:text-black transition">
+                ▶ Listen Now
+              </button>
+            </div>
+          </div>
+
+          {/* Specials */}
+          <div className="border border-orange-600 bg-black p-3 text-white">
+            <h3 className="font-bold text-orange-400 mb-2">ProfileDig Specials</h3>
+            <p className="text-sm">
+              Discover exclusive content, community events, and featured creators.
+            </p>
+          </div>
+        </section>
+
+        {/* RIGHT COLUMN */}
+        <aside className="space-y-4">
+          {/* Member Login */}
+          <div className="border border-orange-600 bg-black p-3 text-white">
+            <h3 className="font-bold text-orange-400 mb-2">Member Login</h3>
+            <form className="space-y-2 text-sm">
+              <div>
+                <label>Email:</label>
+                <input
+                  type="email"
+                  className="w-full p-1 rounded bg-white text-black"
+                />
+              </div>
+              <div>
+                <label>Password:</label>
+                <input
+                  type="password"
+                  className="w-full p-1 rounded bg-white text-black"
+                />
+              </div>
+              <div className="flex items-center gap-2">
+                <input type="checkbox" />
+                <span>Remember Me</span>
+              </div>
+              <div className="flex gap-2">
+                <button className="bg-orange-600 text-black font-bold px-3 py-1 rounded hover:bg-orange-400 transition">
+                  LOGIN
+                </button>
+                <button className="bg-orange-600 text-black font-bold px-3 py-1 rounded hover:bg-orange-400 transition">
+                  SIGN UP
+                </button>
+              </div>
+              <p className="text-xs mt-1 text-orange-400 cursor-pointer hover:text-orange-300">
+                Forgot your password?
+              </p>
+            </form>
+          </div>
+
+          {/* Cool New People */}
+          <div className="border border-orange-600 bg-black p-3 text-white">
+            <h3 className="font-bold text-orange-400 mb-2">Cool New People</h3>
+            <div className="grid grid-cols-3 gap-2">
+              {["Joe", "Embi", "Jason"].map((name) => (
+                <div
+                  key={name}
+                  className="bg-orange-600 text-black p-2 rounded text-center font-bold hover:bg-orange-400 transition"
+                >
+                  {name}
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Videos */}
+          <div className="border border-orange-600 bg-black p-3 text-white">
+            <h3 className="font-bold text-orange-400 mb-2">Videos</h3>
+            <div className="bg-orange-600 text-black p-2 rounded">
+              <h4 className="font-bold">Kiwi</h4>
+              <p className="text-xs mt-1">
+                Created using Maya, After Effects, and rigged with The Setup Machine.
+              </p>
+              <button className="mt-2 bg-black text-orange-500 px-3 py-1 rounded hover:bg-orange-400 hover:text-black transition">
+                ▶ Watch It Now
+              </button>
+            </div>
+          </div>
+        </aside>
       </main>
 
       {/* FOOTER */}
-      <footer className="
-        bg-orange-600 
-        text-black 
-        text-center 
-        py-4 
-        text-sm 
-        mt-auto
-      ">
+      <footer className="bg-orange-600 text-black text-center py-3 text-xs border-t border-orange-400">
         © {new Date().getFullYear()} ProfileDig — A Place for Friends
       </footer>
     </div>
