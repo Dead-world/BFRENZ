@@ -24,8 +24,9 @@ export default function Dashboard() {
 
   async function uploadFile(file, folder) {
     const fileName = `${user.id}-${Date.now()}-${file.name}`;
+
     const { error } = await supabase.storage
-      .from(folder)
+      .from(folder) // folder = "songs" or "avatars"
       .upload(fileName, file);
 
     if (error) {
@@ -49,11 +50,13 @@ export default function Dashboard() {
     let avatar_url = profile.avatar_url;
     let mp3_url = profile.mp3_url;
 
+    // Avatar upload
     const avatarFile = form.get("avatar");
     if (avatarFile && avatarFile.size > 0) {
       avatar_url = await uploadFile(avatarFile, "avatars");
     }
 
+    // MP3 upload (your bucket is named "songs")
     const mp3File = form.get("mp3");
     if (mp3File && mp3File.size > 0) {
       mp3_url = await uploadFile(mp3File, "songs");
@@ -79,7 +82,7 @@ export default function Dashboard() {
       .eq("User_id", user.id);
 
     setSaving(false);
-    alert("Settings updated!");
+    alert("Dashboard updated!");
   }
 
   if (!profile) {
