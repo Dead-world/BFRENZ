@@ -21,10 +21,7 @@ function RetroPlayer({ url, cover }) {
       <h3 className="font-bold text-orange-400 mb-2">Now Playing</h3>
 
       <div className="flex gap-3 items-center">
-        <img
-          src={cover}
-          className="w-20 h-20 border border-orange-600 rounded"
-        />
+        <img src={cover} className="w-20 h-20 border border-orange-600 rounded" />
 
         <audio controls className="w-full accent-orange-600">
           <source src={url} type="audio/mpeg" />
@@ -33,11 +30,7 @@ function RetroPlayer({ url, cover }) {
 
       <div className="flex gap-1 mt-3">
         {bars.map((h, i) => (
-          <div
-            key={i}
-            style={{ height: `${h}px` }}
-            className="w-2 bg-orange-600"
-          />
+          <div key={i} style={{ height: `${h}px` }} className="w-2 bg-orange-600" />
         ))}
       </div>
     </div>
@@ -72,9 +65,7 @@ function TopEight({ userId }) {
               src={f.profiles.avatar_url}
               className="w-16 h-16 rounded border border-orange-600 mx-auto"
             />
-            <p className="text-xs mt-1 text-orange-400">
-              {f.profiles.username}
-            </p>
+            <p className="text-xs mt-1 text-orange-400">{f.profiles.username}</p>
           </div>
         ))}
       </div>
@@ -82,8 +73,8 @@ function TopEight({ userId }) {
   );
 }
 
-/* Bulletin Board */
-function BulletinBoard() {
+/* Bulletin Board — FIXED to show only THIS user's bulletins */
+function BulletinBoard({ userId }) {
   const [bulletins, setBulletins] = useState([]);
 
   useEffect(() => {
@@ -91,28 +82,107 @@ function BulletinBoard() {
       const { data } = await supabase
         .from("bulletins")
         .select("*, profiles(username)")
-        .order("created_at", { ascending: false })
-        .limit(10);
+        .eq("user_id", userId)
+        .order("created_at", { ascending: false });
 
       setBulletins(data || []);
     }
     loadBulletins();
-  }, []);
+  }, [userId]);
 
   return (
     <div className="border border-orange-600 bg-black p-3 text-white">
       <h3 className="font-bold text-orange-400 mb-2">Bulletin Board</h3>
 
+      {bulletins.length === 0 && (
+        <p className="text-gray-400 text-sm">No bulletins yet.</p>
+      )}
+
       {bulletins.map((b) => (
         <div key={b.id} className="mb-4 p-2 border border-orange-600 rounded">
           <p className="text-orange-400 font-bold">{b.title}</p>
           <p className="text-xs text-orange-500">
-            Posted by {b.profiles.username} —{" "}
-            {new Date(b.created_at).toLocaleString()}
+            Posted by {b.profiles.username} — {new Date(b.created_at).toLocaleString()}
           </p>
           <p className="text-sm mt-1">{b.body}</p>
         </div>
       ))}
+    </div>
+  );
+}
+
+/* Comments Section — NEW */
+function CommentsSection({ profileId, user }) {
+  const [comments, setComments] = useState([]);
+  const [newComment, setNewComment] = useState("");
+
+  async function loadComments() {
+    const { data } = await supabase
+      .from("comments")
+      .select("*, profiles(username, avatar_url)")
+      .eq("profile_id", profileId)
+      .order("created_at", { ascending: false });
+
+    setComments(data || []);
+  }
+
+  useEffect(() => {
+    loadComments();
+  }, [profileId]);
+
+  async function addComment(e) {
+    e.preventDefault();
+    if (!newComment.trim()) return;
+
+    await supabase.from("comments").insert({
+      profile_id: profileId,
+      user_id: user.id,
+      content: newComment,
+    });
+
+    setNewComment("");
+    loadComments();
+  }
+
+  return (
+    <div className="border border-orange-600 bg-black p-3 text-white rounded">
+      <h3 className="font-bold text-orange-400 mb-3">Comments</h3>
+
+      {user && (
+        <form onSubmit={addComment} className="mb-4">
+          <textarea
+            value={newComment}
+            onChange={(e) => setNewComment(e.target.value)}
+            className="w-full p-2 rounded bg-gray-200 text-black"
+            placeholder="Leave a comment..."
+          />
+          <button className="mt-2 bg-orange-600 text-black font-bold px-3 py-1 rounded hover:bg-orange-400">
+            Post Comment
+          </button>
+        </form>
+      )}
+
+      {comments.length === 0 ? (
+        <p className="text-gray-400 text-sm">No comments yet.</p>
+      ) : (
+        comments.map((c) => (
+          <div key={c.id} className="bg-orange-600 text-black p-3 rounded mb-3">
+            <div className="flex items-center gap-3">
+              <img
+                src={c.profiles.avatar_url}
+                className="w-10 h-10 rounded-full border border-black"
+              />
+              <span className="font-bold">{c.profiles.username}</span>
+            </div>
+
+            <p className="mt-2">{c.content}</p>
+
+            <p className="text-xs mt-2 text-black/70">
+              {new Date(c.created_at).toLocaleString()}
+            </p>
+          </div>
+        ))
+      )}
     </div>
   );
 }
@@ -182,19 +252,13 @@ export default function ProfilePage() {
   }
 
   const songURL = profile.mp3_url || profile.youtube_url || "";
-  const isYouTube =
-    songURL.includes("youtube.com") || songURL.includes("youtu.be");
+  const isYouTube = songURL.includes("youtube.com") || songURL.includes("youtu.be");
   const isSoundCloud = songURL.includes("soundcloud.com");
- const isMP3 = songURL.includes(".mp3");
+  const isMP3 = songURL.includes(".mp3");
 
   return (
     <div className="min-h-screen bg-black text-orange-500 font-[Verdana]">
       <NavBar user={{ id }} />
-
-      {/* HEADER */}
-      <header className="bg-orange-600 border-b border-orange-400 p-3 text-black">
-  
-</header>
 
       {/* MAIN GRID */}
       <main className="max-w-5xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-4 p-4">
@@ -203,30 +267,30 @@ export default function ProfilePage() {
         <aside className="space-y-4">
           {/* Avatar */}
           <div className="border border-orange-600 p-2 bg-black text-center">
-  <h1 className="text-2xl font-bold text-orange-400 mb-2">
-    {profile.username}
-  </h1>
+            <h1 className="text-2xl font-bold text-orange-400 mb-2">
+              {profile.username}
+            </h1>
 
-  <img
-    src={profile.avatar_url || "/default-avatar.png"}
-    alt="avatar"
-    className="w-full rounded border border-orange-600"
-  />
+            <img
+              src={profile.avatar_url || "/default-avatar.png"}
+              alt="avatar"
+              className="w-full rounded border border-orange-600"
+            />
 
-  <p className="text-sm mt-2 text-orange-400">
-    <strong>Male</strong> <br />
-    32 years old <br />
-    Michigan, United States
-  </p>
+            <p className="text-sm mt-2 text-orange-400">
+              <strong>Male</strong> <br />
+              32 years old <br />
+              Michigan, United States
+            </p>
 
-  <p className="text-sm mt-2 text-orange-400">
-    Mood: {profile.status_message || "Online"}
-  </p>
+            <p className="text-sm mt-2 text-orange-400">
+              Mood: {profile.status_message || "Online"}
+            </p>
 
-  <p className="text-xs mt-2 text-orange-400">
-    Last Login: {profile.last_online || "Unknown"}
-  </p>
-</div>
+            <p className="text-xs mt-2 text-orange-400">
+              Last Login: {profile.last_online || "Unknown"}
+            </p>
+          </div>
 
           {/* Contacting Section */}
           <div className="border border-orange-600 bg-black p-2">
@@ -284,19 +348,12 @@ export default function ProfilePage() {
               )}
 
               {isMP3 && (
-                <audio
-                  controls
-                  autoPlay
-                  className="w-full mt-2 accent-orange-600"
-                >
+                <audio controls autoPlay className="w-full mt-2 accent-orange-600">
                   <source src={songURL} type="audio/mpeg" />
                 </audio>
               )}
             </div>
           )}
-
-          
-          
 
           {/* Who's Online */}
           <WhosOnline />
@@ -335,7 +392,10 @@ export default function ProfilePage() {
           <TopEight userId={id} />
 
           {/* Bulletin Board */}
-          <BulletinBoard />
+          <BulletinBoard userId={id} />
+
+          {/* Comments Section */}
+          <CommentsSection profileId={id} user={profile} />
 
           {/* Custom HTML */}
           {profile.custom_html && (
