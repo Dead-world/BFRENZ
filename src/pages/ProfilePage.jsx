@@ -193,7 +193,7 @@ export default function ProfilePage() {
 
       {/* HEADER */}
       <header className="bg-orange-600 border-b border-orange-400 p-3 text-black">
-  <h1 className="text-3xl font-bold">Profile</h1>
+  
 </header>
 
       {/* MAIN GRID */}
