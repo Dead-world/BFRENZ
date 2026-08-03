@@ -32,14 +32,13 @@ function ProtectedRoute({ children }) {
   }
 
   // ⭐ Redirect authenticated users to their profile page
-  if (
-    location.pathname === "/" ||
-    location.pathname === "/dashboard" ||
-    location.pathname === "/login" ||
-    location.pathname === "/signup"
-  ) {
-    return <Navigate to={`/profile/${user.id}`} replace />;
-  }
+ if (
+  location.pathname === "/" ||
+  location.pathname === "/login" ||
+  location.pathname === "/signup"
+) {
+  return <Navigate to={`/profile/${user.id}`} replace />;
+}
 
   return children;
 }
