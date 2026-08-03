@@ -123,10 +123,10 @@ export default function SettingsPage() {
     alert("Profile song updated!");
   }
 
-  if (!profile) return <div className="p-10 text-[#d4af37]">Loading...</div>;
+  if (!profile) return <div className="p-10 text-orange-500">Loading...</div>;
 
   return (
-    <main className="min-h-screen bg-black text-[#d4af37] p-10">
+    <main className="min-h-screen bg-black text-orange-500 p-10">
       <Notifications />
 
       <h1 className="text-4xl font-bold mb-10 text-center">Settings</h1>
@@ -134,7 +134,7 @@ export default function SettingsPage() {
       <div className="max-w-3xl mx-auto space-y-10">
 
         {/* Profile Form */}
-        <div className="bg-black/70 border border-[#d4af37] p-8 rounded-xl shadow-xl">
+        <div className="bg-black/80 border border-orange-500 p-8 rounded-xl shadow-xl">
           <form onSubmit={saveChanges} className="space-y-6">
 
             <div>
@@ -212,7 +212,7 @@ export default function SettingsPage() {
             <button
               type="submit"
               disabled={saving}
-              className="bg-[#d4af37] text-black font-bold px-4 py-2 rounded hover:bg-yellow-500 transition"
+              className="bg-orange-600 text-black font-bold px-4 py-2 rounded hover:bg-orange-400 transition"
             >
               {saving ? "Saving..." : "Save Changes"}
             </button>
@@ -220,13 +220,13 @@ export default function SettingsPage() {
         </div>
 
         {/* Avatar Upload */}
-        <div className="bg-black/70 border border-[#d4af37] p-8 rounded-xl shadow-xl">
+        <div className="bg-black/80 border border-orange-500 p-8 rounded-xl shadow-xl">
           <h3 className="text-xl font-bold mb-3">Upload Avatar</h3>
           <input type="file" accept="image/*" onChange={uploadAvatar} className="text-black" />
         </div>
 
         {/* MP3 Upload */}
-        <div className="bg-black/70 border border-[#d4af37] p-8 rounded-xl shadow-xl">
+        <div className="bg-black/80 border border-orange-500 p-8 rounded-xl shadow-xl">
           <h3 className="text-xl font-bold mb-3">Upload Song</h3>
           <input type="file" accept="audio/*" onChange={uploadSong} className="text-black" />
         </div>
