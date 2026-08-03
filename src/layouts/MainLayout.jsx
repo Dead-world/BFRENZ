@@ -1,6 +1,7 @@
+import { Outlet } from "react-router-dom";
 import Notifications from "../components/Notifications";
 
-export default function MainLayout({ children }) {
+export default function MainLayout() {
   return (
     <div className="min-h-screen bg-black text-white">
       <header className="bg-orange-600 text-white py-3 px-6 flex justify-between items-center">
@@ -19,7 +20,10 @@ export default function MainLayout({ children }) {
         </div>
       </header>
 
-      {children}
+      {/* Page content */}
+      <main className="p-10">
+        <Outlet />
+      </main>
     </div>
   );
 }
