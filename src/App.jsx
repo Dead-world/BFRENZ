@@ -46,7 +46,7 @@ export default function App() {
       <Route path="/music" element={<MusicPage />} />
       <Route path="/videos" element={<VideosPage />} />
 
-      {/* AUTHENTICATED ROUTES WITH MAIN LAYOUT */}
+      {/* PROTECTED ROUTES */}
       <Route
         element={
           <ProtectedRoute>

@@ -1,3 +1,9 @@
-export default function MainLayout({ children }) {
-  return <>{children}</>;
+import { Outlet } from "react-router-dom";
+
+export default function MainLayout() {
+  return (
+    <>
+      <Outlet />
+    </>
+  );
 }
