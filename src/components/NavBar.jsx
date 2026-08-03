@@ -1,44 +1,68 @@
-// src/components/NavBar.jsx
-import { useAuth } from "../context/AuthContext";
-import { supabase } from "../supabaseClient";
-import { useNavigate } from "react-router-dom";
+import React from 'react';
+import { useAuth } from '../hooks/useAuth';
+import { supabase } from '../supabaseClient'; // Essential for the logout button to work
 
 export default function NavBar() {
   const { user } = useAuth();
-  const navigate = useNavigate();
 
-  async function handleLogout() {
+  const handleLogout = async () => {
     await supabase.auth.signOut();
-    navigate("/"); // send them back to landing page
-  }
+  };
 
   return (
-    <nav className="bg-orange-600 border-b border-orange-400 p-3 text-black flex justify-between items-center">
-      <img
-        src="/ProfileDigLogo.png"
-        alt="ProfileDig Logo"
-        className="h-20 object-contain px-2"
-      />
+    <nav style={{ 
+      backgroundColor: '#000000', 
+      padding: '10px', 
+      display: 'flex', 
+      justifyContent: 'space-between', 
+      alignItems: 'center',
+      borderBottom: '2px solid #FF6600'
+    }}>
+      {/* Left-Side Logo Branding */}
+      <div>
+        <a href="/" style={{ color: '#FF6600', textDecoration: 'none', fontWeight: 'bold', fontSize: '14px' }}>
+          ProfileDig
+        </a>
+      </div>
 
-      <div className="flex gap-4 items-center">
-        <a href="/" className="font-bold hover:text-orange-200">Home</a>
-        <a href="/browse" className="font-bold hover:text-orange-200">Browse</a>
-        <a href="/music" className="font-bold hover:text-orange-200">Music</a>
-        <a href="/videos" className="font-bold hover:text-orange-200">Videos</a>
-        <a href="/blogs" className="font-bold hover:text-orange-200">Blogs</a>
-
-        {user && (
+      {/* Right-Side Navigation State Links */}
+      <div style={{ fontSize: '12px' }}>
+        <a href="/" style={{ color: '#ffffff', textDecoration: 'none', marginLeft: '15px' }}>Home</a>
+        
+        {user ? (
           <>
-            <a href="/dashboard" className="font-bold hover:text-orange-200">Dashboard</a>
-            <a href={`/profile/${user.id}`} className="font-bold hover:text-orange-200">Profile</a>
-            
-
-            <button
-              onClick={handleLogout}
-              className="bg-white text-black font-bold px-3 py-1 rounded hover:bg-orange-200"
+            {/* Renders instantly when state flips to logged in */}
+            <a href="/dashboard" style={{ color: '#ffffff', textDecoration: 'none', marginLeft: '15px' }}>
+              Dashboard
+            </a>
+            <a href={`/profile/${user.id}`} style={{ color: '#FF6600', textDecoration: 'none', marginLeft: '15px', fontWeight: 'bold' }}>
+              My Profile
+            </a>
+            <button 
+              onClick={handleLogout} 
+              style={{ 
+                backgroundColor: '#FF6600', 
+                color: '#ffffff', 
+                border: '1px solid #ffffff', 
+                padding: '3px 7px', 
+                marginLeft: '15px', 
+                cursor: 'pointer',
+                fontSize: '11px',
+                fontWeight: 'bold'
+              }}
             >
-              Logout
+              Log Out
             </button>
+          </>
+        ) : (
+          <>
+            {/* Renders when there is no active auth session */}
+            <a href="/login" style={{ color: '#FF6600', textDecoration: 'none', marginLeft: '15px', fontWeight: 'bold' }}>
+              Log In
+            </a>
+            <a href="/register" style={{ color: '#ffffff', textDecoration: 'none', marginLeft: '15px' }}>
+              Sign Up
+            </a>
           </>
         )}
       </div>

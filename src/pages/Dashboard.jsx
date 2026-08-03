@@ -1,7 +1,10 @@
 import { useEffect, useState } from "react";
 import { supabase } from "../supabaseClient";
-import { useAuth } from "../context/AuthContext";
+
 import NavBar from "../components/NavBar";
+import React from 'react';
+// Change this line to import from your hooks file instead of the context file:
+import { useAuth } from '../hooks/useAuth'; 
 
 export default function Dashboard() {
   const { user } = useAuth();

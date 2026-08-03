@@ -13,7 +13,7 @@ import MessagesPage from "./pages/MessagesPage";
 import Dashboard from "./pages/Dashboard";
 
 import MainLayout from "./layouts/MainLayout";
-import { useAuth } from "./context/AuthContext";
+import { useAuth } from './hooks/useAuth';
 
 function ProtectedRoute({ children }) {
   const { user, loading } = useAuth();
