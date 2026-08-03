@@ -13,7 +13,7 @@ export default function Dashboard() {
       const { data } = await supabase
         .from("profiles")
         .select("*")
-        .eq("user_id", user.id)
+        .eq("User_id", user.id)
         .single();
 
       setProfile(data);
@@ -86,7 +86,7 @@ export default function Dashboard() {
     await supabase
       .from("profiles")
       .update(updates)
-      .eq("user_id", user.id);
+      .eq("User_id", user.id);
 
     setSaving(false);
     alert("Dashboard updated!");
@@ -234,7 +234,7 @@ export default function Dashboard() {
       const body = form.get("body");
 
       const { error } = await supabase.from("bulletins").insert({
-        user_id: user.id,
+        User_id: user.id,
         title,
         body,
       });
