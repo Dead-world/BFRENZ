@@ -1,228 +1,226 @@
 import { useEffect, useState } from "react";
 import { supabase } from "../supabaseClient";
 import { useAuth } from "../context/AuthContext";
-import { useNavigate } from "react-router-dom";
-import Notifications from "../components/Notifications";
+import NavBar from "../components/NavBar";
 
-export default function Dashboard() {
+export default function SettingsPage() {
   const { user } = useAuth();
-  const navigate = useNavigate();
-
   const [profile, setProfile] = useState(null);
-  const [recentMessages, setRecentMessages] = useState([]);
-  const [recentFriends, setRecentFriends] = useState([]);
-  const [top8, setTop8] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    if (!user) return;
-
-    async function loadDashboard() {
-      setLoading(true);
-
-      // Load profile
-      const { data: profileData } = await supabase
+    async function loadProfile() {
+      const { data } = await supabase
         .from("profiles")
         .select("*")
         .eq("User_id", user.id)
         .single();
 
-      setProfile(profileData);
-
-      // Load recent messages
-      const { data: messagesData } = await supabase
-        .from("messages")
-        .select(`
-          *,
-          profiles!messages_sender_id_fkey (
-            username,
-            avatar_url,
-            status,
-            last_seen
-          )
-        `)
-        .eq("receiver_id", user.id)
-        .order("created_at", { ascending: false })
-        .limit(5);
-
-      setRecentMessages(messagesData || []);
-
-      // Load recent friends
-      const { data: friendsData } = await supabase
-        .from("friends")
-        .select(`
-          friend_id,
-          profiles!friends_friend_id_fkey (
-            username,
-            avatar_url,
-            status,
-            last_seen
-          )
-        `)
-        .eq("user_id", user.id)
-        .eq("status", "accepted")
-        .order("created_at", { ascending: false })
-        .limit(5);
-
-      setRecentFriends(friendsData || []);
-
-      // Load Top 8 Friends
-      const { data: top8Data } = await supabase
-        .from("friends")
-        .select(`
-          friend_id,
-          profiles!friends_friend_id_fkey (
-            username,
-            avatar_url
-          )
-        `)
-        .eq("user_id", user.id)
-        .eq("status", "accepted")
-        .order("created_at", { ascending: false })
-        .limit(8);
-
-      setTop8(top8Data || []);
-
-      setLoading(false);
+      setProfile(data);
     }
 
-    loadDashboard();
+    if (user) loadProfile();
   }, [user]);
 
-  async function handleLogout() {
-    await supabase.auth.signOut();
-    navigate("/");
+  async function uploadFile(file, folder) {
+    const fileName = `${user.id}-${Date.now()}-${file.name}`;
+    const { data, error } = await supabase.storage
+      .from(folder)
+      .upload(fileName, file);
+
+    if (error) {
+      console.error(error);
+      return null;
+    }
+
+    const { data: urlData } = supabase.storage
+      .from(folder)
+      .getPublicUrl(fileName);
+
+    return urlData.publicUrl;
   }
 
-  // Loading screen
-  if (loading || !profile) {
+  async function saveChanges(e) {
+    e.preventDefault();
+    setSaving(true);
+
+    const form = new FormData(e.target);
+
+    let avatar_url = profile.avatar_url;
+    let mp3_url = profile.mp3_url;
+
+    const avatarFile = form.get("avatar");
+    if (avatarFile && avatarFile.size > 0) {
+      avatar_url = await uploadFile(avatarFile, "avatars");
+    }
+
+    const mp3File = form.get("mp3");
+    if (mp3File && mp3File.size > 0) {
+      mp3_url = await uploadFile(mp3File, "music");
+    }
+
+    const updates = {
+      username: form.get("username"),
+      status: form.get("status"),
+      status_message: form.get("status_message"),
+      about_me: form.get("about_me"),
+      general_interests: form.get("general_interests"),
+      music_interests: form.get("music_interests"),
+      custom_html: form.get("custom_html"),
+      custom_css: form.get("custom_css"),
+      youtube_url: form.get("youtube_url"),
+      avatar_url,
+      mp3_url,
+    };
+
+    await supabase
+      .from("profiles")
+      .update(updates)
+      .eq("User_id", user.id);
+
+    setSaving(false);
+    alert("Settings updated!");
+  }
+
+  if (!profile) {
     return (
       <div className="min-h-screen bg-black text-orange-500 flex items-center justify-center">
-        <p className="text-xl font-bold">Loading your dashboard...</p>
+        <p className="text-xl font-bold">Loading settings...</p>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-black text-orange-500 flex flex-col">
+    <div className="min-h-screen bg-black text-orange-500">
+      <NavBar user={user} />
 
-      {/* NAV BAR */}
-    <NavBar user={user} onLogout={handleLogout} />
+      <main className="max-w-4xl mx-auto p-8">
+        <h1 className="text-4xl font-bold mb-8 text-center">Account Settings</h1>
 
-      {/* MAIN CONTENT */}
-      <main className="flex flex-col md:flex-row gap-6 p-4">
-
-        {/* LEFT COLUMN */}
-        <div className="w-full md:w-1/3 bg-black/80 border border-orange-600 rounded-lg p-4 shadow-md">
-
-          <img
-            src={profile.avatar_url || "/default-avatar.png"}
-            className="w-full rounded-lg border-2 border-orange-600 mb-4"
-          />
-
-          <h2 className="text-2xl font-bold text-orange-600">{profile.username}</h2>
-
-          <p className="text-sm mt-1">
-            <strong>Status:</strong> {profile.status || "Online"}
-          </p>
-
-          <p className="text-sm mt-1">
-            <strong>Mood:</strong> {profile.status_message || "Feeling good!"}
-          </p>
-
-          <div className="mt-4">
-            <h3 className="text-lg font-bold text-orange-600 border-b border-orange-600 pb-1">
-              About Me
-            </h3>
-            <p className="text-sm mt-2 whitespace-pre-line">
-              {profile.about_me || "This user hasn't written anything yet."}
-            </p>
+        <form
+          onSubmit={saveChanges}
+          className="bg-black/80 border border-orange-600 rounded-xl p-8 shadow-xl space-y-8"
+        >
+          {/* Avatar Upload */}
+          <div>
+            <label className="block font-bold mb-1">Profile Avatar</label>
+            <img
+              src={profile.avatar_url || "/default-avatar.png"}
+              className="w-32 h-32 rounded-full border-2 border-orange-600 mb-3 object-cover"
+            />
+            <input type="file" name="avatar" accept="image/*" className="text-white" />
           </div>
 
-          <div className="mt-4">
-            <h3 className="text-lg font-bold text-orange-600 border-b border-orange-600 pb-1">
-              Interests
-            </h3>
-            <p className="text-sm mt-2">
-              <strong>General:</strong> {profile.general_interests || "None"}
-            </p>
-            <p className="text-sm mt-1">
-              <strong>Music:</strong> {profile.music_interests || "None"}
-            </p>
+          {/* Username */}
+          <div>
+            <label className="block font-bold mb-1">Username</label>
+            <input
+              name="username"
+              defaultValue={profile.username}
+              className="w-full p-2 rounded bg-white text-black"
+            />
           </div>
-        </div>
 
-        {/* RIGHT COLUMN */}
-        <div className="w-full md:w-2/3 flex flex-col gap-6">
+          {/* Status */}
+          <div>
+            <label className="block font-bold mb-1">Status</label>
+            <input
+              name="status"
+              defaultValue={profile.status}
+              className="w-full p-2 rounded bg-white text-black"
+            />
+          </div>
 
-          {/* TOP 8 FRIENDS */}
-          <div className="bg-black/80 border border-orange-600 rounded-lg p-4 shadow-md">
-            <h3 className="text-xl font-bold text-orange-600 mb-3">Top 8 Friends</h3>
+          {/* Status Message */}
+          <div>
+            <label className="block font-bold mb-1">Status Message</label>
+            <input
+              name="status_message"
+              defaultValue={profile.status_message}
+              className="w-full p-2 rounded bg-white text-black"
+            />
+          </div>
 
-            {top8.length === 0 ? (
-              <p className="text-gray-400 text-sm">You haven't added any friends yet.</p>
-            ) : (
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                {top8.map((f) => (
-                  <div key={f.friend_id} className="text-center">
-                    <img
-                      src={f.profiles.avatar_url || "/default-avatar.png"}
-                      className="w-full h-24 object-cover rounded border-2 border-orange-600"
-                    />
-                    <p className="text-sm mt-1">{f.profiles.username}</p>
-                  </div>
-                ))}
-              </div>
+          {/* About Me */}
+          <div>
+            <label className="block font-bold mb-1">About Me</label>
+            <textarea
+              name="about_me"
+              defaultValue={profile.about_me}
+              className="w-full p-2 rounded bg-white text-black"
+            />
+          </div>
+
+          {/* Interests */}
+          <div>
+            <label className="block font-bold mb-1">General Interests</label>
+            <textarea
+              name="general_interests"
+              defaultValue={profile.general_interests}
+              className="w-full p-2 rounded bg-white text-black"
+            />
+          </div>
+
+          <div>
+            <label className="block font-bold mb-1">Music Interests</label>
+            <textarea
+              name="music_interests"
+              defaultValue={profile.music_interests}
+              className="w-full p-2 rounded bg-white text-black"
+            />
+          </div>
+
+          {/* Custom HTML */}
+          <div>
+            <label className="block font-bold mb-1">Custom HTML</label>
+            <textarea
+              name="custom_html"
+              defaultValue={profile.custom_html}
+              className="w-full p-2 rounded bg-white text-black h-32"
+            />
+          </div>
+
+          {/* Custom CSS */}
+          <div>
+            <label className="block font-bold mb-1">Custom CSS</label>
+            <textarea
+              name="custom_css"
+              defaultValue={profile.custom_css}
+              className="w-full p-2 rounded bg-white text-black h-32"
+            />
+          </div>
+
+          {/* YouTube Video */}
+          <div>
+            <label className="block font-bold mb-1">YouTube Video URL</label>
+            <input
+              name="youtube_url"
+              defaultValue={profile.youtube_url}
+              className="w-full p-2 rounded bg-white text-black"
+            />
+          </div>
+
+          {/* MP3 Upload */}
+          <div>
+            <label className="block font-bold mb-1">Upload MP3</label>
+            <input type="file" name="mp3" accept="audio/mp3" className="text-white" />
+            {profile.mp3_url && (
+              <audio controls className="mt-3 w-full">
+                <source src={profile.mp3_url} type="audio/mp3" />
+              </audio>
             )}
           </div>
 
-          {/* RECENT MESSAGES */}
-          <div className="bg-black/80 border border-orange-600 rounded-lg p-4 shadow-md">
-            <h3 className="text-xl font-bold text-orange-600 mb-3">Recent Messages</h3>
-
-            {recentMessages.length === 0 ? (
-              <p className="text-gray-400 text-sm">No messages yet.</p>
-            ) : (
-              <div className="flex flex-col gap-3">
-                {recentMessages.map((msg) => (
-                  <div key={msg.id} className="border-b border-orange-600 pb-2">
-                    <p className="text-sm">
-                      <strong>{msg.profiles.username}</strong>: {msg.content}
-                    </p>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-
-          {/* FRIENDS */}
-          <div className="bg-black/80 border border-orange-600 rounded-lg p-4 shadow-md">
-            <h3 className="text-xl font-bold text-orange-600 mb-3">Friends</h3>
-
-            {recentFriends.length === 0 ? (
-              <p className="text-gray-400 text-sm">No friends added yet.</p>
-            ) : (
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-                {recentFriends.map((f) => (
-                  <div key={f.friend_id} className="text-center">
-                    <img
-                      src={f.profiles.avatar_url || "/default-avatar.png"}
-                      className="w-full h-24 object-cover rounded border-2 border-orange-600"
-                    />
-                    <p className="text-sm mt-1">{f.profiles.username}</p>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-
-        </div>
+          {/* Save Button */}
+          <button
+            type="submit"
+            disabled={saving}
+            className="bg-orange-600 text-black font-bold px-4 py-2 rounded hover:bg-orange-400 transition"
+          >
+            {saving ? "Saving..." : "Save Changes"}
+          </button>
+        </form>
       </main>
-
-      {/* FOOTER */}
-      <footer className="bg-orange-600 text-black text-center py-4 text-sm mt-auto">
-        © {new Date().getFullYear()} ProfileDig — A Place for Friends
-      </footer>
     </div>
   );
 }
