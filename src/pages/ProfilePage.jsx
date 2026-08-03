@@ -75,18 +75,33 @@ export default function ProfilePage() {
     setBulletins((prev) => prev.filter((b) => b.id !== bulletinId));
   }
 
-  // Load comments
-  useEffect(() => {
-    async function loadComments() {
-      const { data } = await supabase
-        .from("comments")
-        .select("*, profiles:user_id(username, avatar_url)")
-        .eq("profile_id", id)
-        .order("created_at", { ascending: true });
-      setComments(data || []);
+ useEffect(() => {
+  async function loadComments() {
+    const { data, error } = await supabase
+      .from("comments")
+      .select(`
+        id,
+        content,
+        created_at,
+        user_id,
+        profiles:user_id (
+          username,
+          avatar_url
+        )
+      `)
+      .eq("profile_id", id)
+      .order("created_at", { ascending: true });
+
+    if (error) {
+      console.error("COMMENT LOAD ERROR:", error);
     }
-    loadComments();
-  }, [id]);
+
+    setComments(data || []);
+  }
+
+  loadComments();
+}, [id]);
+
 
   // Delete comment
   async function deleteComment(commentId) {
