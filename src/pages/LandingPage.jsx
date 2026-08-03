@@ -103,18 +103,7 @@ export default function LandingPage() {
   return (
     <div className="min-h-screen w-full bg-black text-orange-500 font-[Verdana] flex flex-col">
 
-      {/* HEADER */}
-      <header className="relative bg-orange-600 text-black border-b border-orange-400">
-        <Sparkles />
 
-        <div className="max-w-6xl mx-auto flex justify-between items-center p-3">
-          <img
-            src="/ProfileDigLogo.png"
-            alt="ProfileDig Logo"
-            className="h-28 object-contain px-2"
-          />
-        </div>
-      </header>
 
       {/* NAVBAR BELOW HEADER */}
       <NavBar />
