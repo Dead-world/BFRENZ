@@ -4,7 +4,12 @@ export default function NavBar({ user }) {
   return (
     <header className="bg-orange-600 text-white py-4 px-4 flex flex-wrap justify-between items-center gap-4 shadow-lg">
       <div className="flex items-center gap-3">
-        <h1 className="text-2xl md:text-3xl font-bold">ProfileDig</h1>
+        <img 
+  src="/ProfileDigLogo.png" 
+  alt="ProfileDig Logo" 
+  className="h-10 object-contain"
+/>
+
 
   
       </div>
