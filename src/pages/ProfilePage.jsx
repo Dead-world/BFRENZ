@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { supabase } from "../supabaseClient";
 import { useParams, Link } from "react-router-dom";
-import Notifications from "../components/Notifications";
+import Navbar from "../components/Navbar";
 
 export default function ProfilePage() {
   const { id } = useParams();
@@ -15,11 +15,7 @@ export default function ProfilePage() {
 
   // Load logged-in user
   useEffect(() => {
-    async function loadUser() {
-      const { data } = await supabase.auth.getUser();
-      setCurrentUser(data.user);
-    }
-    loadUser();
+    supabase.auth.getUser().then(({ data }) => setCurrentUser(data.user));
   }, []);
 
   // Load profile data
@@ -73,6 +69,12 @@ export default function ProfilePage() {
     loadBulletins();
   }, [id]);
 
+  // Delete bulletin
+  async function deleteBulletin(bulletinId) {
+    await supabase.from("bulletins").delete().eq("id", bulletinId);
+    setBulletins((prev) => prev.filter((b) => b.id !== bulletinId));
+  }
+
   // Load comments
   useEffect(() => {
     async function loadComments() {
@@ -85,6 +87,12 @@ export default function ProfilePage() {
     }
     loadComments();
   }, [id]);
+
+  // Delete comment
+  async function deleteComment(commentId) {
+    await supabase.from("comments").delete().eq("id", commentId);
+    setComments((prev) => prev.filter((c) => c.id !== commentId));
+  }
 
   // Load friends (Top 8)
   useEffect(() => {
@@ -99,15 +107,41 @@ export default function ProfilePage() {
     loadFriends();
   }, [id]);
 
+  // Add Friend
+  async function addFriend() {
+    if (!currentUser) return;
+    await supabase.from("friends").insert({
+      user_id: currentUser.id,
+      friend_id: id,
+    });
+    alert("Friend added!");
+  }
+
+  // Block User
+  async function blockUser() {
+    if (!currentUser) return;
+    await supabase.from("blocked_users").insert({
+      user_id: currentUser.id,
+      blocked_id: id,
+    });
+    alert("User blocked.");
+  }
+
+  // Forward to Friend (placeholder)
+  function forwardToFriend() {
+    alert("Forwarded to friend (placeholder).");
+  }
+
+  // Instant Message
+  function instantMessage() {
+    window.location.href = `/messages/${id}`;
+  }
+
   // Post bulletin
   async function postBulletin(e) {
     e.preventDefault();
-    if (!currentUser) return;
-
     const title = e.target.title.value;
     const body = e.target.body.value;
-
-    if (!title.trim() || !body.trim()) return;
 
     const { data } = await supabase
       .from("bulletins")
@@ -121,10 +155,7 @@ export default function ProfilePage() {
   // Post comment
   async function postComment(e) {
     e.preventDefault();
-    if (!currentUser) return;
-
     const content = e.target.comment.value;
-    if (!content.trim()) return;
 
     const { data } = await supabase
       .from("comments")
@@ -154,23 +185,8 @@ export default function ProfilePage() {
   return (
     <div className="min-h-screen bg-black text-white font-sans">
 
-      {/* HEADER */}
-      <header className="bg-orange-600 text-white py-4 px-6 flex justify-between items-center">
-        <h1 className="text-3xl font-bold">ProfileDig</h1>
-
-        <nav className="space-x-4">
-          <a href="/" className="hover:underline">Home</a>
-          <a href="/browse" className="hover:underline">Browse</a>
-          <a href="/music" className="hover:underline">Music</a>
-          <a href="/videos" className="hover:underline">Videos</a>
-          <a href="/blogs" className="hover:underline">Blogs</a>
-          <a href="/dashboard" className="hover:underline font-bold">Dashboard</a>
-          <a href={`/profile/${currentUser?.id}`} className="hover:underline">Profile</a>
-          <a href="/settings" className="hover:underline">Settings</a>
-        </nav>
-
-        <Notifications />
-      </header>
+      {/* NAV BAR */}
+      <Navbar user={currentUser} />
 
       {/* MAIN CONTENT */}
       <div className="flex flex-col md:flex-row p-4 gap-4">
@@ -202,10 +218,18 @@ export default function ProfilePage() {
 
           {/* CONTACT TABLE */}
           <div className="bg-black border border-yellow-500 p-3 space-y-2 text-center">
-            <button className="bg-orange-600 w-full py-1 rounded">Add Friend</button>
-            <button className="bg-orange-600 w-full py-1 rounded">Instant Message</button>
-            <button className="bg-orange-600 w-full py-1 rounded">Forward to Friend</button>
-            <button className="bg-orange-600 w-full py-1 rounded">Block User</button>
+            <button onClick={addFriend} className="bg-orange-600 w-full py-1 rounded">
+              Add Friend
+            </button>
+            <button onClick={instantMessage} className="bg-orange-600 w-full py-1 rounded">
+              Instant Message
+            </button>
+            <button onClick={forwardToFriend} className="bg-orange-600 w-full py-1 rounded">
+              Forward to Friend
+            </button>
+            <button onClick={blockUser} className="bg-orange-600 w-full py-1 rounded">
+              Block User
+            </button>
           </div>
 
           {/* PROFILE SONG */}
@@ -280,7 +304,17 @@ export default function ProfilePage() {
             {bulletins.length > 0 ? (
               bulletins.map((b) => (
                 <div key={b.id} className="p-3 bg-white text-black rounded mb-3">
-                  <h4 className="font-bold">{b.title}</h4>
+                  <div className="flex justify-between">
+                    <h4 className="font-bold">{b.title}</h4>
+                    {currentUser?.id === id && (
+                      <button
+                        onClick={() => deleteBulletin(b.id)}
+                        className="text-red-600 font-bold"
+                      >
+                        X
+                      </button>
+                    )}
+                  </div>
                   <p>{b.body}</p>
                 </div>
               ))
@@ -309,13 +343,25 @@ export default function ProfilePage() {
             {comments.length > 0 ? (
               comments.map((c) => (
                 <div key={c.id} className="p-3 bg-white text-black rounded mb-3">
-                  <div className="flex items-center gap-3">
-                    <img
-                      src={c.profiles?.avatar_url || "/default-avatar.png"}
-                      className="w-10 h-10 rounded border border-orange-600"
-                    />
-                    <span className="font-bold">{c.profiles?.username}</span>
+                  <div className="flex justify-between items-center">
+                    <div className="flex items-center gap-3">
+                      <img
+                        src={c.profiles?.avatar_url || "/default-avatar.png"}
+                        className="w-10 h-10 rounded border border-orange-600"
+                      />
+                      <span className="font-bold">{c.profiles?.username}</span>
+                    </div>
+
+                    {currentUser?.id === c.user_id && (
+                      <button
+                        onClick={() => deleteComment(c.id)}
+                        className="text-red-600 font-bold"
+                      >
+                        X
+                      </button>
+                    )}
                   </div>
+
                   <p className="mt-2">{c.content}</p>
                 </div>
               ))
