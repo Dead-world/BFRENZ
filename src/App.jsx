@@ -1,4 +1,4 @@
-import { Routes, Route, Navigate } from "react-router-dom";
+import { Routes, Route, Navigate, useLocation } from "react-router-dom";
 
 import LandingPage from "./pages/LandingPage";
 import LoginPage from "./pages/LoginPage";
@@ -17,6 +17,7 @@ import { useAuth } from "./context/AuthContext";
 
 function ProtectedRoute({ children }) {
   const { user, loading } = useAuth();
+  const location = useLocation();
 
   if (loading) {
     return (
@@ -28,6 +29,16 @@ function ProtectedRoute({ children }) {
 
   if (!user) {
     return <Navigate to="/login" replace />;
+  }
+
+  // ⭐ Redirect authenticated users to their profile page
+  if (
+    location.pathname === "/" ||
+    location.pathname === "/dashboard" ||
+    location.pathname === "/login" ||
+    location.pathname === "/signup"
+  ) {
+    return <Navigate to={`/profile/${user.id}`} replace />;
   }
 
   return children;
@@ -56,8 +67,7 @@ export default function App() {
         <Route path="/profile/:id" element={<ProfilePage />} />
         <Route path="/friends" element={<FriendsPage />} />
         <Route path="/messages/:id" element={<MessagesPage />} />
-
-       <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/dashboard" element={<Dashboard />} />
       </Route>
 
       {/* CATCH-ALL */}
