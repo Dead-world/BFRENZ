@@ -10,7 +10,6 @@ import VideosPage from "./pages/VideosPage";
 import ProfilePage from "./pages/ProfilePage";
 import FriendsPage from "./pages/FriendsPage";
 import MessagesPage from "./pages/MessagesPage";
-import SettingsPage from "./pages/SettingsPage";
 import Dashboard from "./pages/Dashboard";
 
 import MainLayout from "./layouts/MainLayout";
@@ -57,8 +56,7 @@ export default function App() {
         <Route path="/profile/:id" element={<ProfilePage />} />
         <Route path="/friends" element={<FriendsPage />} />
         <Route path="/messages" element={<MessagesPage />} />
-        <Route path="/settings" element={<SettingsPage />} />
-        <Route path="/dashboard" element={<Dashboard />} />
+       <Route path="/dashboard" element={<Dashboard />} />
       </Route>
 
       {/* CATCH-ALL */}

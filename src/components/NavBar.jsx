@@ -29,7 +29,6 @@ export default function NavBar({ user }) {
           <a href="/blogs" className="hover:underline">Blogs</a>
           <a href="/dashboard" className="hover:underline">Dashboard</a>
           <a href={`/profile/${user?.id}`} className="hover:underline">Profile</a>
-          <a href="/settings" className="hover:underline">Settings</a>
         </nav>
 
         <Notifications />
