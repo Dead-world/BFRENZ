@@ -286,8 +286,8 @@ export default function ProfilePage() {
             </div>
           )}
 
-          {/* Retro Player */}
-          <RetroPlayer url={songURL} cover={profile.avatar_url} />
+          
+          
 
           {/* Who's Online */}
           <WhosOnline />
