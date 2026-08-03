@@ -1,41 +1,49 @@
 import { useEffect, useState } from "react";
 import { supabase } from "../supabaseClient";
-import { useParams, Link } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import Navbar from "../components/NavBar";
 
 export default function ProfilePage() {
-  const { id } = useParams(); // profile id from URL
+  const { id } = useParams(); // This is profiles.User_id
 
   const [profile, setProfile] = useState(null);
   const [currentUser, setCurrentUser] = useState(null);
   const [bulletins, setBulletins] = useState([]);
   const [comments, setComments] = useState([]);
   const [views, setViews] = useState(0);
-  const [loadingProfile, setLoadingProfile] = useState(true);
+  const [loading, setLoading] = useState(true);
 
   // Load logged-in user
   useEffect(() => {
-    const loadUser = async () => {
-      const { data, error } = await supabase.auth.getUser();
-      if (error) {
-        console.error("AUTH LOAD ERROR:", error);
-        return;
-      }
+    async function loadUser() {
+      const { data } = await supabase.auth.getUser();
       setCurrentUser(data?.user || null);
-    };
-
+    }
     loadUser();
   }, []);
 
-  // Load profile data
+  // Load profile data (MATCHES YOUR SCHEMA)
   useEffect(() => {
-    const loadProfile = async () => {
-      setLoadingProfile(true);
+    async function loadProfile() {
+      setLoading(true);
 
       const { data, error } = await supabase
         .from("profiles")
-        .select("id, username, avatar_url, location, mood")
-        .eq("id", id) // IMPORTANT: adjust if your column is different
+        .select(`
+          User_id,
+          username,
+          avatar_url,
+          status_message,
+          hometown,
+          about_me,
+          gender,
+          birthday,
+          general_interests,
+          music_interests,
+          meet,
+          last_online
+        `)
+        .eq("User_id", id)
         .single();
 
       if (error) {
@@ -43,61 +51,47 @@ export default function ProfilePage() {
       }
 
       setProfile(data || null);
-      setLoadingProfile(false);
-    };
-
-    if (id) {
-      loadProfile();
+      setLoading(false);
     }
+
+    loadProfile();
   }, [id]);
 
   // Add profile view
   useEffect(() => {
-    const addView = async () => {
+    async function addView() {
       const { data: auth } = await supabase.auth.getUser();
       if (!auth?.user) return;
 
-      try {
-        await supabase.from("profile_views").insert({
-          viewer_id: auth.user.id,
-          profile_id: id,
-        });
-      } catch (err) {
-        console.error("PROFILE VIEW INSERT ERROR:", err);
-      }
-    };
-
-    if (id) {
-      addView();
+      await supabase.from("profile_views").insert({
+        viewer_id: auth.user.id,
+        profile_id: id,
+      });
     }
+
+    addView();
   }, [id]);
 
   // Load view count
   useEffect(() => {
-    const loadViews = async () => {
-      const { data, error } = await supabase
+    async function loadViews() {
+      const { data } = await supabase
         .from("profile_views")
         .select("id")
         .eq("profile_id", id);
 
-      if (error) {
-        console.error("PROFILE VIEWS LOAD ERROR:", error);
-      }
-
       setViews(data?.length || 0);
-    };
-
-    if (id) {
-      loadViews();
     }
+
+    loadViews();
   }, [id]);
 
-  // Load bulletins
+  // Load bulletins (MATCHES YOUR SCHEMA)
   useEffect(() => {
-    const loadBulletins = async () => {
+    async function loadBulletins() {
       const { data, error } = await supabase
         .from("bulletins")
-        .select("id, title, content, created_at, user_id")
+        .select("id, user_id, title, body, created_at")
         .eq("user_id", id)
         .order("created_at", { ascending: false });
 
@@ -106,26 +100,20 @@ export default function ProfilePage() {
       }
 
       setBulletins(data || []);
-    };
-
-    if (id) {
-      loadBulletins();
     }
+
+    loadBulletins();
   }, [id]);
 
   // Delete bulletin
-  const deleteBulletin = async (bulletinId) => {
-    try {
-      await supabase.from("bulletins").delete().eq("id", bulletinId);
-      setBulletins((prev) => prev.filter((b) => b.id !== bulletinId));
-    } catch (err) {
-      console.error("DELETE BULLETIN ERROR:", err);
-    }
-  };
+  async function deleteBulletin(bulletinId) {
+    await supabase.from("bulletins").delete().eq("id", bulletinId);
+    setBulletins((prev) => prev.filter((b) => b.id !== bulletinId));
+  }
 
-  // Load comments
+  // Load comments (MATCHES YOUR FOREIGN KEYS)
   useEffect(() => {
-    const loadComments = async () => {
+    async function loadComments() {
       const { data, error } = await supabase
         .from("comments")
         .select(`
@@ -133,7 +121,7 @@ export default function ProfilePage() {
           content,
           created_at,
           user_id,
-          profiles:user_id (
+          profiles:comments_user_id_fkey (
             username,
             avatar_url
           )
@@ -146,21 +134,16 @@ export default function ProfilePage() {
       }
 
       setComments(data || []);
-    };
-
-    if (id) {
-      loadComments();
     }
+
+    loadComments();
   }, [id]);
 
-  // Loading / missing profile states
-  if (loadingProfile) {
+  if (loading) {
     return (
       <>
         <Navbar />
-        <div className="profile-page">
-          <div>Loading profile...</div>
-        </div>
+        <div className="profile-page">Loading profile...</div>
       </>
     );
   }
@@ -169,19 +152,17 @@ export default function ProfilePage() {
     return (
       <>
         <Navbar />
-        <div className="profile-page">
-          <div>Profile not found.</div>
-        </div>
+        <div className="profile-page">Profile not found.</div>
       </>
     );
   }
 
-  // Main render
   return (
     <>
       <Navbar />
 
       <div className="profile-page">
+
         {/* Header */}
         <div className="profile-header">
           <img
@@ -195,11 +176,11 @@ export default function ProfilePage() {
         {/* Location & Mood */}
         <div className="profile-info">
           <div className="profile-location">
-            <strong>Location:</strong> {profile.location || "Not set"}
+            <strong>Location:</strong> {profile.hometown || "Not set"}
           </div>
 
           <div className="profile-mood">
-            <strong>Mood:</strong> {profile.mood || "Not set"}
+            <strong>Mood:</strong> {profile.status_message || "Not set"}
           </div>
         </div>
 
@@ -224,10 +205,8 @@ export default function ProfilePage() {
                   </button>
                 )}
               </div>
-              <p>{b.content}</p>
-              <small>
-                {new Date(b.created_at).toLocaleString()}
-              </small>
+              <p>{b.body}</p>
+              <small>{new Date(b.created_at).toLocaleString()}</small>
             </div>
           ))}
         </div>
@@ -249,14 +228,13 @@ export default function ProfilePage() {
                 <span className="comment-username">
                   {c.profiles?.username || "Unknown"}
                 </span>
-                <small>
-                  {new Date(c.created_at).toLocaleString()}
-                </small>
+                <small>{new Date(c.created_at).toLocaleString()}</small>
               </div>
               <p>{c.content}</p>
             </div>
           ))}
         </div>
+
       </div>
     </>
   );
