@@ -107,46 +107,7 @@ export default function Dashboard() {
     <div className="min-h-screen bg-black text-orange-500 flex flex-col">
 
       {/* NAV BAR */}
-      <header className="bg-orange-600 text-white py-4 px-4 flex flex-wrap justify-between items-center gap-4 shadow-lg">
-        <div className="flex items-center gap-3">
-          <h1 className="text-2xl md:text-3xl font-bold">ProfileDig</h1>
-
-          {user && (
-            <div className="flex items-center gap-2">
-              <img
-                src={user.user_metadata?.avatar_url || "/default-avatar.png"}
-                alt="Profile"
-                className="w-8 h-8 md:w-10 md:h-10 rounded-full border border-white object-cover"
-              />
-              <span className="font-semibold text-sm md:text-base">
-                Welcome, {user.user_metadata?.username || "Member"}
-              </span>
-            </div>
-          )}
-        </div>
-
-        <div className="flex flex-wrap items-center gap-4 w-full md:w-auto">
-          <nav className="flex flex-wrap gap-3 text-sm md:text-base">
-            <a href="/" className="hover:underline">Home</a>
-            <a href="/browse" className="hover:underline">Browse</a>
-            <a href="/music" className="hover:underline">Music</a>
-            <a href="/videos" className="hover:underline">Videos</a>
-            <a href="/blogs" className="hover:underline">Blogs</a>
-            <a href="/dashboard" className="hover:underline font-bold">Dashboard</a>
-            <a href={`/profile/${user.id}`} className="hover:underline">Profile</a>
-            <a href="/settings" className="hover:underline">Settings</a>
-          </nav>
-
-          <Notifications />
-
-          <button
-            onClick={handleLogout}
-            className="bg-white text-black px-3 py-1 rounded hover:bg-orange-500 hover:text-white transition text-sm md:text-base"
-          >
-            Logout
-          </button>
-        </div>
-      </header>
+    <NavBar user={user} onLogout={handleLogout} />
 
       {/* MAIN CONTENT */}
       <main className="flex flex-col md:flex-row gap-6 p-4">
