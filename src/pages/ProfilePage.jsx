@@ -277,13 +277,9 @@ export default function ProfilePage() {
           </div>
 
          {/* PROFILE SONG PLAYER */}
-         <ProfileSongPlayer
-  url={
-    profile.mp3_url
-      ? profile.mp3_url
-      : profile.youtube_url
-  }
-/>
+          <ProfileSongPlayer url={profile.mp3_url || profile.youtube_url} />
+
+
 
 
           {/* CUSTOM HTML */}
