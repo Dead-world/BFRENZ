@@ -4,7 +4,6 @@ import { useParams, Link } from "react-router-dom";
 import Navbar from "../components/NavBar";
 import { useNavigate } from "react-router-dom";
 
-
 export default function ProfilePage() {
   const { id } = useParams();
 
@@ -20,16 +19,22 @@ export default function ProfilePage() {
     supabase.auth.getUser().then(({ data }) => setCurrentUser(data.user));
   }, []);
 
-  // Load profile data
+  // Load profile data (FIXED)
   useEffect(() => {
     async function loadProfile() {
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from("profiles")
         .select("*")
-        .eq("User_id", id)
+        .eq("user_id", id)   // FIXED: correct column name
         .single();
+
+      if (error) {
+        console.error("PROFILE LOAD ERROR:", error);
+      }
+
       setProfile(data);
     }
+
     loadProfile();
   }, [id]);
 
@@ -38,6 +43,7 @@ export default function ProfilePage() {
     async function addView() {
       const { data: auth } = await supabase.auth.getUser();
       if (!auth?.user) return;
+
       await supabase.from("profile_views").insert({
         viewer_id: auth.user.id,
         profile_id: id,
@@ -53,6 +59,7 @@ export default function ProfilePage() {
         .from("profile_views")
         .select("id")
         .eq("profile_id", id);
+
       setViews(data?.length || 0);
     }
     loadViews();
@@ -66,6 +73,7 @@ export default function ProfilePage() {
         .select("*")
         .eq("user_id", id)
         .order("created_at", { ascending: false });
+
       setBulletins(data || []);
     }
     loadBulletins();
@@ -77,33 +85,74 @@ export default function ProfilePage() {
     setBulletins((prev) => prev.filter((b) => b.id !== bulletinId));
   }
 
- useEffect(() => {
-  async function loadComments() {
-    const { data, error } = await supabase
-      .from("comments")
-      .select(`
-  id,
-  content,
-  created_at,
-  user_id,
-  profiles:user_id (
-    username,
-    avatar_url
-  )
-`)
+  // Load comments
+  useEffect(() => {
+    async function loadComments() {
+      const { data, error } = await supabase
+        .from("comments")
+        .select(`
+          id,
+          content,
+          created_at,
+          user_id,
+          profiles:user_id (
+            username,
+            avatar_url
+          )
+        `)
+        .eq("profile_id", id)
+        .order("created_at", { ascending: true });
 
-      .eq("profile_id", id)
-      .order("created_at", { ascending: true });
+      if (error) {
+        console.error("COMMENT LOAD ERROR:", error);
+      }
 
-    if (error) {
-      console.error("COMMENT LOAD ERROR:", error);
+      setComments(data || []);
     }
 
-    setComments(data || []);
+    loadComments();
+  }, [id]);
+
+  if (!profile) {
+    return <div>Loading profile...</div>;
   }
 
-  loadComments();
-}, [id]);
+  return (
+    <>
+      <Navbar />
+
+      <div className="profile-page">
+
+        <div className="profile-header">
+          <img
+            src={profile.avatar_url}
+            alt="Avatar"
+            className="profile-avatar"
+          />
+
+          <h1 className="profile-username">{profile.username}</h1>
+        </div>
+
+        <div className="profile-info">
+
+          <div className="profile-location">
+            <strong>Location:</strong> {profile.location || "Not set"}
+          </div>
+
+          <div className="profile-mood">
+            <strong>Mood:</strong> {profile.mood || "Not set"}
+          </div>
+
+        </div>
+
+        <div className="profile-views">
+          <strong>Profile Views:</strong> {views}
+        </div>
+
+      </div>
+    </>
+  );
+}
 
 
 
