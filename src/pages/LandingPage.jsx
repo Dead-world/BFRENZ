@@ -1,12 +1,17 @@
 import { useState, useEffect } from "react";
 import { supabase } from "../supabaseClient";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import NavBar from "../components/NavBar";
 
 export default function LandingPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [user, setUser] = useState(null);
+  const [featuredUsers, setFeaturedUsers] = useState([]);
+  const [index, setIndex] = useState(0);
+  const navigate = useNavigate();
 
+  // Load logged-in user
   useEffect(() => {
     async function loadUser() {
       const { data } = await supabase.auth.getUser();
@@ -14,6 +19,27 @@ export default function LandingPage() {
     }
     loadUser();
   }, []);
+
+  // Load featured users
+  useEffect(() => {
+    async function loadUsers() {
+      const { data } = await supabase
+        .from("profiles")
+        .select("username, avatar_url")
+        .limit(10);
+      if (data) setFeaturedUsers(data);
+    }
+    loadUsers();
+  }, []);
+
+  // Rotate featured users
+  useEffect(() => {
+    if (featuredUsers.length === 0) return;
+    const interval = setInterval(() => {
+      setIndex((prev) => (prev + 1) % featuredUsers.length);
+    }, 3000);
+    return () => clearInterval(interval);
+  }, [featuredUsers]);
 
   async function handleLogin(e) {
     e.preventDefault();
@@ -23,13 +49,11 @@ export default function LandingPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-black via-[#0a0a0a] to-[#1a1a1a] text-white flex flex-col items-center justify-center font-[Verdana]">
-      {/* HEADER */}
-      <header className="w-full bg-orange-600 text-black py-3 px-6 text-2xl font-bold">
-        ProfileDig
-      </header>
+    <div className="min-h-screen bg-gradient-to-b from-black via-[#0a0a0a] to-[#1a1a1a] text-white flex flex-col items-center font-[Verdana]">
+      {/* NAVBAR */}
+      <NavBar />
 
-      {/* INTRO SECTION */}
+      {/* INTRO */}
       <div className="text-center mt-10 mb-6 max-w-xl px-4">
         <h1 className="text-3xl font-bold text-orange-500 mb-2">
           A Modern Spin on the Classic MySpace
@@ -80,9 +104,20 @@ export default function LandingPage() {
       {/* COOL NEW PEOPLE */}
       <div className="mt-10 text-center">
         <h3 className="text-orange-400 font-bold mb-3">Cool New People</h3>
-        <p className="text-sm text-gray-300">
-          Discover fresh faces, creative minds, and artists shaping the new social era.
-        </p>
+        {featuredUsers.length > 0 ? (
+          <div className="flex flex-col items-center gap-3">
+            <img
+              src={featuredUsers[index].avatar_url}
+              alt="User avatar"
+              className="w-16 h-16 rounded border border-orange-600"
+            />
+            <p className="text-lg font-bold text-orange-400">
+              {featuredUsers[index].username}
+            </p>
+          </div>
+        ) : (
+          <p className="text-sm text-gray-400">Loading users...</p>
+        )}
       </div>
 
       {/* MUSIC + VIDEOS */}
@@ -92,7 +127,10 @@ export default function LandingPage() {
           <p className="text-sm text-gray-300">
             Stream tracks from independent artists and share your own playlists.
           </p>
-          <button className="mt-3 bg-orange-600 text-black font-bold px-3 py-1 rounded hover:bg-orange-400 transition">
+          <button
+            onClick={() => navigate("/music")}
+            className="mt-3 bg-orange-600 text-black font-bold px-3 py-1 rounded hover:bg-orange-400 transition"
+          >
             ▶ Explore Music
           </button>
         </div>
@@ -102,7 +140,10 @@ export default function LandingPage() {
           <p className="text-sm text-gray-300">
             Watch creative videos, short films, and community highlights — all in one place.
           </p>
-          <button className="mt-3 bg-orange-600 text-black font-bold px-3 py-1 rounded hover:bg-orange-400 transition">
+          <button
+            onClick={() => navigate("/videos")}
+            className="mt-3 bg-orange-600 text-black font-bold px-3 py-1 rounded hover:bg-orange-400 transition"
+          >
             ▶ Watch Videos
           </button>
         </div>
