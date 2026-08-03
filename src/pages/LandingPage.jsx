@@ -35,6 +35,9 @@ export default function LandingPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
+  // Logged-in user
+  const [user, setUser] = useState(null);
+
   // Dynamic Videos
   const [videos, setVideos] = useState([]);
 
@@ -44,6 +47,15 @@ export default function LandingPage() {
   // Rotating Featured Users
   const [featuredUsers, setFeaturedUsers] = useState([]);
   const [index, setIndex] = useState(0);
+
+  // Load logged-in user
+  useEffect(() => {
+    async function loadUser() {
+      const { data } = await supabase.auth.getUser();
+      setUser(data.user);
+    }
+    loadUser();
+  }, []);
 
   async function handleLogin(e) {
     e.preventDefault();
@@ -103,14 +115,15 @@ export default function LandingPage() {
   return (
     <div className="min-h-screen w-full bg-black text-orange-500 font-[Verdana] flex flex-col">
 
-
-
-      {/* NAVBAR BELOW HEADER */}
+      {/* NAVBAR */}
       <NavBar />
 
       {/* MAIN CONTENT */}
       <main className="flex-grow max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-4 p-4">
+
+        {/* LEFT COLUMN */}
         <section className="space-y-4">
+
           {/* Categories */}
           <div className="border border-orange-600 bg-black p-3 text-sm text-white">
             <h3 className="font-bold text-orange-400 mb-2">Explore</h3>
@@ -191,57 +204,59 @@ export default function LandingPage() {
         {/* RIGHT COLUMN */}
         <aside className="space-y-4">
 
-          {/* Member Login */}
-          <div className="border border-orange-600 bg-black p-3 text-white">
-            <h3 className="font-bold text-orange-400 mb-2">Member Login</h3>
+          {/* Member Login — ONLY when logged OUT */}
+          {!user && (
+            <div className="border border-orange-600 bg-black p-3 text-white">
+              <h3 className="font-bold text-orange-400 mb-2">Member Login</h3>
 
-            <form onSubmit={handleLogin} className="space-y-2 text-sm">
-              <div>
-                <label>Email:</label>
-                <input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="w-full p-1 rounded bg-white text-black"
-                />
-              </div>
+              <form onSubmit={handleLogin} className="space-y-2 text-sm">
+                <div>
+                  <label>Email:</label>
+                  <input
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    className="w-full p-1 rounded bg-white text-black"
+                  />
+                </div>
 
-              <div>
-                <label>Password:</label>
-                <input
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="w-full p-1 rounded bg-white text-black"
-                />
-              </div>
+                <div>
+                  <label>Password:</label>
+                  <input
+                    type="password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    className="w-full p-1 rounded bg-white text-black"
+                  />
+                </div>
 
-              <div className="flex items-center gap-2">
-                <input type="checkbox" />
-                <span>Remember Me</span>
-              </div>
+                <div className="flex items-center gap-2">
+                  <input type="checkbox" />
+                  <span>Remember Me</span>
+                </div>
 
-              <div className="flex gap-2">
-                <button
-                  type="submit"
-                  className="bg-orange-600 text-black font-bold px-3 py-1 rounded hover:bg-orange-400 transition"
-                >
-                  LOGIN
-                </button>
+                <div className="flex gap-2">
+                  <button
+                    type="submit"
+                    className="bg-orange-600 text-black font-bold px-3 py-1 rounded hover:bg-orange-400 transition"
+                  >
+                    LOGIN
+                  </button>
 
-                <Link
-                  to="/signup"
-                  className="bg-orange-600 text-black font-bold px-3 py-1 rounded hover:bg-orange-400 transition"
-                >
-                  SIGN UP
-                </Link>
-              </div>
+                  <Link
+                    to="/signup"
+                    className="bg-orange-600 text-black font-bold px-3 py-1 rounded hover:bg-orange-400 transition"
+                  >
+                    SIGN UP
+                  </Link>
+                </div>
 
-              <p className="text-xs mt-1 text-orange-400 cursor-pointer hover:text-orange-300">
-                Forgot your password?
-              </p>
-            </form>
-          </div>
+                <p className="text-xs mt-1 text-orange-400 cursor-pointer hover:text-orange-300">
+                  Forgot your password?
+                </p>
+              </form>
+            </div>
+          )}
 
           {/* Rotating Featured Users */}
           <div className="border border-orange-600 bg-black p-3 text-white">
