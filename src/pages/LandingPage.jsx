@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+iimport { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { supabase } from "../supabaseClient";
 import NavBar from "../components/NavBar";
@@ -108,49 +108,20 @@ export default function LandingPage() {
         <Sparkles />
 
         <div className="max-w-6xl mx-auto flex justify-between items-center p-3">
-        <img
-  src="/ProfileDigLogo.png"
-  alt="ProfileDig Logo"
-  className="h-28 object-contain px-2"
-/>
+          <img
+            src="/ProfileDigLogo.png"
+            alt="ProfileDig Logo"
+            className="h-28 object-contain px-2"
+          />
         </div>
-
-        return (
-  <div className="min-h-screen bg-black text-orange-500">
-    <NavBar user={user} />
-
-    {/* rest of your page */}
-  </div>
-);
-
       </header>
+
+      {/* NAVBAR BELOW HEADER */}
+      <NavBar />
 
       {/* MAIN CONTENT */}
       <main className="flex-grow max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-4 p-4">
 
-        {/* LEFT COLUMN */}
-        <section className="space-y-4">
-
-          {/* Cool New Videos */}
-          <div className="border border-orange-600 bg-black p-3">
-            <h2 className="text-lg font-bold mb-2 text-orange-400">Cool New Videos</h2>
-
-            <div className="grid grid-cols-2 gap-2 text-sm text-white">
-              {videos.map((v) => (
-                <div
-                  key={v.id}
-                  className="bg-orange-600 text-black rounded p-2 hover:bg-orange-400 transition cursor-pointer"
-                  onClick={() => window.location.href = v.video_url}
-                >
-                  {v.title}
-                </div>
-              ))}
-            </div>
-
-            <p className="text-xs mt-2 text-orange-400">
-              {videos.length} featured today!
-            </p>
-          </div>
 
           {/* Categories */}
           <div className="border border-orange-600 bg-black p-3 text-sm text-white">
