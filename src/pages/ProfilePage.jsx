@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "../supabaseClient";
 import { useParams } from "react-router-dom";
 import Notifications from "../components/Notifications";
+import ProfileSongPlayer from "../components/ProfileSongPlayer";
 
 export default function ProfilePage() {
   const { id } = useParams();
@@ -275,43 +276,8 @@ export default function ProfilePage() {
             <h2 className="text-xl font-bold mb-2">{profile.status_message || "No status yet"}</h2>
           </div>
 
-          {/* PROFILE SONG PLAYER */}
-          {profile.profile_song && (
-            <div className="bg-white text-black rounded p-4">
-              <h3 className="font-bold text-lg mb-2 text-orange-600">Profile Song</h3>
-
-              {(profile.profile_song.includes("youtube.com") ||
-                profile.profile_song.includes("youtu.be")) && (
-                <iframe
-                  width="100%"
-                  height="200"
-                  src={profile.profile_song.replace("watch?v=", "embed/")}
-                  allow="autoplay"
-                  className="rounded"
-                ></iframe>
-              )}
-
-              {profile.profile_song.includes("soundcloud.com") && (
-                <iframe
-                  width="100%"
-                  height="200"
-                  scrolling="no"
-                  frameBorder="no"
-                  allow="autoplay"
-                  className="rounded"
-                  src={`https://w.soundcloud.com/player/?url=${encodeURIComponent(
-                    profile.profile_song
-                  )}&auto_play=true`}
-                ></iframe>
-              )}
-
-              {profile.profile_song.endsWith(".mp3") && (
-                <audio controls autoPlay className="w-full mt-2">
-                  <source src={profile.profile_song} type="audio/mpeg" />
-                </audio>
-              )}
-            </div>
-          )}
+         {/* PROFILE SONG PLAYER */}
+          <ProfileSongPlayer url={profile.profile_song} />
 
           {/* CUSTOM HTML */}
           {profile.custom_html && (
