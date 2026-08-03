@@ -193,9 +193,8 @@ export default function ProfilePage() {
 
       {/* HEADER */}
       <header className="bg-orange-600 border-b border-orange-400 p-3 text-black">
-        <h1 className="text-3xl font-bold">{profile.username}</h1>
-        <p className="text-sm">Mood: {profile.status_message || "Online"}</p>
-      </header>
+  <h1 className="text-3xl font-bold">Profile</h1>
+</header>
 
       {/* MAIN GRID */}
       <main className="max-w-5xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-4 p-4">
@@ -203,21 +202,31 @@ export default function ProfilePage() {
         {/* LEFT SIDEBAR */}
         <aside className="space-y-4">
           {/* Avatar */}
-          <div className="border border-orange-600 p-2 bg-black">
-            <img
-              src={profile.avatar_url || "/default-avatar.png"}
-              alt="avatar"
-              className="w-full rounded border border-orange-600"
-            />
-            <p className="text-sm mt-2 text-orange-400">
-              <strong>Male</strong> <br />
-              32 years old <br />
-              Michigan, United States
-            </p>
-            <p className="text-xs mt-2 text-orange-400">
-              Last Login: {profile.last_online || "Unknown"}
-            </p>
-          </div>
+          <div className="border border-orange-600 p-2 bg-black text-center">
+  <h1 className="text-2xl font-bold text-orange-400 mb-2">
+    {profile.username}
+  </h1>
+
+  <img
+    src={profile.avatar_url || "/default-avatar.png"}
+    alt="avatar"
+    className="w-full rounded border border-orange-600"
+  />
+
+  <p className="text-sm mt-2 text-orange-400">
+    <strong>Male</strong> <br />
+    32 years old <br />
+    Michigan, United States
+  </p>
+
+  <p className="text-sm mt-2 text-orange-400">
+    Mood: {profile.status_message || "Online"}
+  </p>
+
+  <p className="text-xs mt-2 text-orange-400">
+    Last Login: {profile.last_online || "Unknown"}
+  </p>
+</div>
 
           {/* Contacting Section */}
           <div className="border border-orange-600 bg-black p-2">
