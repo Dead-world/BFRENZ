@@ -84,7 +84,7 @@ export default function BrowsePage() {
           <img
             src="/ProfileDigLogo.png"
             alt="ProfileDig Logo"
-            className="h-28 md:h-16 object-contain"
+            className="h-28 md:h-28 object-contain"
           />
 
         </div>
