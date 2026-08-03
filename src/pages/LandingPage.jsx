@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { supabase } from "../supabaseClient";
+import NavBar from "../components/NavBar";
 
 // Sparkles overlay
 function Sparkles() {
@@ -114,27 +115,14 @@ export default function LandingPage() {
 />
         </div>
 
-        {/* Top Navigation */}
-        <nav className="bg-black text-orange-500 border-t border-orange-400">
-          <ul className="flex flex-wrap justify-center text-xs font-bold">
-            {[
-              { name: "Home", path: "/" },
-              { name: "Browse", path: "/browse" },
-              { name: "Search", path: "/search" },
-              { name: "Mail", path: "/messages" },
-              { name: "Blog", path: "/blog" },
-              { name: "Profile", path: "/profile" },
-              { name: "Dashboard", path: "/dashboard" },
-            ].map((item) => (
-              <li
-                key={item.name}
-                className="px-3 py-2 hover:bg-orange-600 hover:text-black transition"
-              >
-                <Link to={item.path}>{item.name}</Link>
-              </li>
-            ))}
-          </ul>
-        </nav>
+        return (
+  <div className="min-h-screen bg-black text-orange-500">
+    <NavBar user={user} />
+
+    {/* rest of your page */}
+  </div>
+);
+
       </header>
 
       {/* MAIN CONTENT */}
