@@ -9,8 +9,8 @@ export default function ProfileSongPlayer({ url }) {
   const isMP3 = url.endsWith(".mp3");
 
   return (
-    <div className="bg-black/80 border border-orange-600 rounded p-4 shadow-md">
-      <h3 className="font-bold text-lg mb-3 text-orange-600">Profile Song</h3>
+    <div className="bg-white text-black rounded p-4">
+      <h3 className="font-bold text-lg mb-2 text-orange-600">Profile Song</h3>
 
       {/* YOUTUBE */}
       {isYouTube && (
@@ -40,11 +40,7 @@ export default function ProfileSongPlayer({ url }) {
 
       {/* MP3 */}
       {isMP3 && (
-        <audio
-          controls
-          autoPlay
-          className="w-full mt-2 accent-orange-600"
-        >
+        <audio controls autoPlay className="w-full mt-2 accent-orange-600">
           <source src={url} type="audio/mpeg" />
         </audio>
       )}
