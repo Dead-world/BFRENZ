@@ -95,7 +95,7 @@ export default function SettingsPage() {
     window.location.reload();
   }
 
-  // Upload MP3 song (FINAL WORKING VERSION)
+  // Upload MP3 song
   async function uploadSong(e) {
     const file = e.target.files[0];
     if (!file) return;
@@ -123,106 +123,114 @@ export default function SettingsPage() {
     alert("Profile song updated!");
   }
 
-  if (!profile) return <div className="p-10 text-orange-600">Loading...</div>;
+  if (!profile) return <div className="p-10 text-[#d4af37]">Loading...</div>;
 
   return (
-    <main className="p-10 text-orange-600">
+    <main className="min-h-screen bg-black text-[#d4af37] p-10">
       <Notifications />
 
-      <h1 className="text-3xl font-bold mb-6">Settings</h1>
+      <h1 className="text-4xl font-bold mb-10 text-center">Settings</h1>
 
-      <form onSubmit={saveChanges} className="space-y-6">
-        <div>
-          <label className="block font-bold">Username</label>
-          <input
-            name="username"
-            defaultValue={profile.username}
-            className="text-black w-full p-2 rounded"
-          />
+      <div className="max-w-3xl mx-auto space-y-10">
+
+        {/* Profile Form */}
+        <div className="bg-black/70 border border-[#d4af37] p-8 rounded-xl shadow-xl">
+          <form onSubmit={saveChanges} className="space-y-6">
+
+            <div>
+              <label className="block font-bold mb-1">Username</label>
+              <input
+                name="username"
+                defaultValue={profile.username}
+                className="text-black w-full p-2 rounded"
+              />
+            </div>
+
+            <div>
+              <label className="block font-bold mb-1">Status</label>
+              <input
+                name="status"
+                defaultValue={profile.status}
+                className="text-black w-full p-2 rounded"
+              />
+            </div>
+
+            <div>
+              <label className="block font-bold mb-1">Status Message</label>
+              <input
+                name="status_message"
+                defaultValue={profile.status_message}
+                className="text-black w-full p-2 rounded"
+              />
+            </div>
+
+            <div>
+              <label className="block font-bold mb-1">About Me</label>
+              <textarea
+                name="about_me"
+                defaultValue={profile.about_me}
+                className="text-black w-full p-2 rounded"
+              />
+            </div>
+
+            <div>
+              <label className="block font-bold mb-1">Meet</label>
+              <textarea
+                name="meet"
+                defaultValue={profile.meet}
+                className="text-black w-full p-2 rounded"
+              />
+            </div>
+
+            <div>
+              <label className="block font-bold mb-1">General Interests</label>
+              <textarea
+                name="general_interests"
+                defaultValue={profile.general_interests}
+                className="text-black w-full p-2 rounded"
+              />
+            </div>
+
+            <div>
+              <label className="block font-bold mb-1">Music Interests</label>
+              <textarea
+                name="music_interests"
+                defaultValue={profile.music_interests}
+                className="text-black w-full p-2 rounded"
+              />
+            </div>
+
+            <div>
+              <label className="block font-bold mb-1">Custom HTML</label>
+              <textarea
+                name="custom_html"
+                defaultValue={profile.custom_html}
+                className="text-black w-full p-2 rounded"
+              />
+            </div>
+
+            <button
+              type="submit"
+              disabled={saving}
+              className="bg-[#d4af37] text-black font-bold px-4 py-2 rounded hover:bg-yellow-500 transition"
+            >
+              {saving ? "Saving..." : "Save Changes"}
+            </button>
+          </form>
         </div>
 
-        <div>
-          <label className="block font-bold">Status</label>
-          <input
-            name="status"
-            defaultValue={profile.status}
-            className="text-black w-full p-2 rounded"
-          />
+        {/* Avatar Upload */}
+        <div className="bg-black/70 border border-[#d4af37] p-8 rounded-xl shadow-xl">
+          <h3 className="text-xl font-bold mb-3">Upload Avatar</h3>
+          <input type="file" accept="image/*" onChange={uploadAvatar} className="text-black" />
         </div>
 
-        <div>
-          <label className="block font-bold">Status Message</label>
-          <input
-            name="status_message"
-            defaultValue={profile.status_message}
-            className="text-black w-full p-2 rounded"
-          />
+        {/* MP3 Upload */}
+        <div className="bg-black/70 border border-[#d4af37] p-8 rounded-xl shadow-xl">
+          <h3 className="text-xl font-bold mb-3">Upload Song</h3>
+          <input type="file" accept="audio/*" onChange={uploadSong} className="text-black" />
         </div>
 
-        <div>
-          <label className="block font-bold">About Me</label>
-          <textarea
-            name="about_me"
-            defaultValue={profile.about_me}
-            className="text-black w-full p-2 rounded"
-          />
-        </div>
-
-        <div>
-          <label className="block font-bold">Meet</label>
-          <textarea
-            name="meet"
-            defaultValue={profile.meet}
-            className="text-black w-full p-2 rounded"
-          />
-        </div>
-
-        <div>
-          <label className="block font-bold">General Interests</label>
-          <textarea
-            name="general_interests"
-            defaultValue={profile.general_interests}
-            className="text-black w-full p-2 rounded"
-          />
-        </div>
-
-        <div>
-          <label className="block font-bold">Music Interests</label>
-          <textarea
-            name="music_interests"
-            defaultValue={profile.music_interests}
-            className="text-black w-full p-2 rounded"
-          />
-        </div>
-
-        <div>
-          <label className="block font-bold">Custom HTML</label>
-          <textarea
-            name="custom_html"
-            defaultValue={profile.custom_html}
-            className="text-black w-full p-2 rounded"
-          />
-        </div>
-
-        <button
-          type="submit"
-          disabled={saving}
-          className="bg-orange-600 text-white px-4 py-2 rounded"
-        >
-          {saving ? "Saving..." : "Save Changes"}
-        </button>
-      </form>
-
-      {/* Avatar Upload */}
-      <div className="mt-10">
-        <h3 className="text-xl font-bold mb-2">Upload Avatar</h3>
-        <input type="file" accept="image/*" onChange={uploadAvatar} />
-      </div>
-
-      {/* MP3 Upload */}
-      <div className="mt-10">
-        <h3 className="text-xl font-bold mb-2">Upload Song</h3>
-        <input type="file" accept="audio/*" onChange={uploadSong} />
       </div>
     </main>
   );
