@@ -228,56 +228,7 @@ if (error) {
             )}
           </div>
            
-          {/* Bulletin Posting */}
-<div className="border border-orange-600 p-4 rounded bg-black">
-  <h3 className="font-bold text-orange-400 mb-2">Post a Bulletin</h3>
-
-  <form
-    onSubmit={async (e) => {
-      e.preventDefault();
-      const form = new FormData(e.target);
-      const title = form.get("title");
-      const body = form.get("body");
-
-      const { error } = await supabase.from("bulletins").insert({
-        User_id: user.id,
-        title,
-        body,
-      });
-
-      if (error) {
-        alert("Failed to post bulletin: " + error.message);
-      } else {
-        alert("Bulletin posted!");
-        e.target.reset();
-      }
-    }}
-    className="space-y-3"
-  >
-    <input
-      name="title"
-      placeholder="Bulletin Title"
-      className="w-full p-2 rounded bg-white text-black"
-      required
-    />
-
-    <textarea
-      name="body"
-      placeholder="Write your bulletin..."
-      className="w-full p-2 rounded bg-white text-black h-24"
-      required
-    />
-
-    <button
-      type="submit"
-      className="bg-orange-600 text-black font-bold px-4 py-2 rounded hover:bg-orange-400 transition"
-    >
-      Post Bulletin
-    </button>
-  </form>
-</div>
-
-          {/* Save Button */}
+         {/* Save Button */}
           <button
             type="submit"
             disabled={saving}
