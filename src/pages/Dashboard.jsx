@@ -3,7 +3,7 @@ import { supabase } from "../supabaseClient";
 import { useAuth } from "../context/AuthContext";
 import NavBar from "../components/NavBar";
 
-export default function SettingsPage() {
+export default function Dashboard() {
   const { user } = useAuth();
   const [profile, setProfile] = useState(null);
   const [saving, setSaving] = useState(false);
@@ -24,7 +24,7 @@ export default function SettingsPage() {
 
   async function uploadFile(file, folder) {
     const fileName = `${user.id}-${Date.now()}-${file.name}`;
-    const { data, error } = await supabase.storage
+    const { error } = await supabase.storage
       .from(folder)
       .upload(fileName, file);
 
@@ -85,7 +85,7 @@ export default function SettingsPage() {
   if (!profile) {
     return (
       <div className="min-h-screen bg-black text-orange-500 flex items-center justify-center">
-        <p className="text-xl font-bold">Loading settings...</p>
+        <p className="text-xl font-bold">Loading dashboard...</p>
       </div>
     );
   }
@@ -95,7 +95,7 @@ export default function SettingsPage() {
       <NavBar user={user} />
 
       <main className="max-w-4xl mx-auto p-8">
-        <h1 className="text-4xl font-bold mb-8 text-center">Account Settings</h1>
+        <h1 className="text-4xl font-bold mb-8 text-center">Dashboard</h1>
 
         <form
           onSubmit={saveChanges}
