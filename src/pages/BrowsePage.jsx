@@ -84,21 +84,9 @@ export default function BrowsePage() {
           <img
             src="/ProfileDigLogo.png"
             alt="ProfileDig Logo"
-            className="h-12 md:h-16 object-contain"
+            className="h-28 md:h-16 object-contain"
           />
 
-          {user && (
-            <div className="flex items-center gap-3">
-              <img
-                src={user.user_metadata?.avatar_url || "/default-avatar.png"}
-                alt="Profile"
-                className="w-10 h-10 rounded-full border border-white object-cover"
-              />
-              <span className="font-semibold">
-                Welcome, {user.user_metadata?.username || "Member"}
-              </span>
-            </div>
-          )}
         </div>
 
         <div className="flex items-center gap-6">
