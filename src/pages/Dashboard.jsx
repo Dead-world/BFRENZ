@@ -22,20 +22,27 @@ export default function Dashboard() {
     if (user) loadProfile();
   }, [user]);
 
-  async function uploadFile(file, folder) {
+  // ⭐ FIXED + FULLY WORKING UPLOAD FUNCTION
+  async function uploadFile(file, bucket) {
     const fileName = `${user.id}-${Date.now()}-${file.name}`;
 
-    const { error } = await supabase.storage
-      .from(folder) // folder = "songs" or "avatars"
-      .upload(fileName, file);
+    // Upload file to Supabase Storage
+    const { data, error } = await supabase.storage
+      .from(bucket)
+      .upload(fileName, file, {
+        cacheControl: "3600",
+        upsert: false,
+      });
 
     if (error) {
-      console.error(error);
+      console.error("Upload error:", error);
+      alert("Upload failed: " + error.message);
       return null;
     }
 
+    // Get public URL
     const { data: urlData } = supabase.storage
-      .from(folder)
+      .from(bucket)
       .getPublicUrl(fileName);
 
     return urlData.publicUrl;
@@ -50,13 +57,13 @@ export default function Dashboard() {
     let avatar_url = profile.avatar_url;
     let mp3_url = profile.mp3_url;
 
-    // Avatar upload
+    // ⭐ Avatar Upload
     const avatarFile = form.get("avatar");
     if (avatarFile && avatarFile.size > 0) {
       avatar_url = await uploadFile(avatarFile, "avatars");
     }
 
-    // MP3 upload (your bucket is named "songs")
+    // ⭐ MP3 Upload (bucket = songs)
     const mp3File = form.get("mp3");
     if (mp3File && mp3File.size > 0) {
       mp3_url = await uploadFile(mp3File, "songs");
@@ -206,7 +213,8 @@ export default function Dashboard() {
           {/* MP3 Upload */}
           <div>
             <label className="block font-bold mb-1">Upload MP3</label>
-            <input type="file" name="mp3" accept="audio/mp3" className="text-white" />
+            <input type="file" name="mp3" accept="audio/mp3,audio/mpeg" className="text-white" />
+
             {profile.mp3_url && (
               <audio controls className="mt-3 w-full">
                 <source src={profile.mp3_url} type="audio/mp3" />
