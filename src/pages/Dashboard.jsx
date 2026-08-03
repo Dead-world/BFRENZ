@@ -221,7 +221,8 @@ export default function Dashboard() {
               </audio>
             )}
           </div>
-{/* Bulletin Posting */}
+           
+          {/* Bulletin Posting */}
 <div className="border border-orange-600 p-4 rounded bg-black">
   <h3 className="font-bold text-orange-400 mb-2">Post a Bulletin</h3>
 
