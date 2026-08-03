@@ -5,50 +5,63 @@ import { useParams, Link } from "react-router-dom";
 import Notifications from "../components/Notifications";
 
 export default function MessagesPage() {
-  const { id } = useParams(); // chatting with this user
+  const { id } = useParams(); // chatting with this user (profile User_id)
   const [user, setUser] = useState(null);
   const [otherUser, setOtherUser] = useState(null);
   const [messages, setMessages] = useState([]);
   const [isOtherTyping, setIsOtherTyping] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
-  const [showNewMessageModal, setShowNewMessageModal] = useState(false);
   const messageEndRef = useRef(null);
 
   // Load logged-in user
   useEffect(() => {
     async function loadUser() {
-      const { data } = await supabase.auth.getUser();
+      const { data, error } = await supabase.auth.getUser();
+      if (error) {
+        console.error("LOAD USER ERROR:", error);
+        return;
+      }
       setUser(data.user);
     }
     loadUser();
   }, []);
 
-  // Load the user you're chatting with
+  // Load the user you're chatting with (profile by User_id)
   useEffect(() => {
     async function loadOtherUser() {
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from("profiles")
         .select("*")
         .eq("User_id", id)
         .single();
 
+      if (error) {
+        console.error("LOAD OTHER USER ERROR:", error);
+        return;
+      }
+
       setOtherUser(data);
     }
-    loadOtherUser();
+    if (id) loadOtherUser();
   }, [id]);
 
-  // Load message history
+  // Load message history from user_messages
   useEffect(() => {
-    if (!user) return;
+    if (!user || !id) return;
 
     async function loadMessages() {
-      const { data } = await supabase
-        .from("messages")
+      const { data, error } = await supabase
+        .from("user_messages")
         .select("*")
         .or(`sender_id.eq.${user.id},receiver_id.eq.${user.id}`)
         .order("created_at", { ascending: true });
 
-      const filtered = data.filter(
+      if (error) {
+        console.error("MESSAGE LOAD ERROR:", error);
+        return;
+      }
+
+      const filtered = (data || []).filter(
         (m) =>
           (m.sender_id === user.id && m.receiver_id === id) ||
           (m.sender_id === id && m.receiver_id === user.id)
@@ -60,31 +73,38 @@ export default function MessagesPage() {
     loadMessages();
   }, [user, id]);
 
-  // Mark messages as read
+  // Mark messages as read in user_messages
   useEffect(() => {
-    if (!user) return;
+    if (!user || !id) return;
 
     async function markRead() {
-      await supabase
-        .from("messages")
+      const { error } = await supabase
+        .from("user_messages")
         .update({ read: true })
         .eq("receiver_id", user.id)
         .eq("sender_id", id);
+
+      if (error) console.error("MARK READ ERROR:", error);
     }
 
     markRead();
   }, [user, id]);
 
-  // Load unread count for sidebar widget
+  // Load unread count for sidebar widget from user_messages
   useEffect(() => {
     async function loadUnread() {
       if (!user) return;
 
-      const { data } = await supabase
-        .from("messages")
+      const { data, error } = await supabase
+        .from("user_messages")
         .select("id")
         .eq("receiver_id", user.id)
         .eq("read", false);
+
+      if (error) {
+        console.error("UNREAD LOAD ERROR:", error);
+        return;
+      }
 
       setUnreadCount(data?.length || 0);
     }
@@ -92,15 +112,15 @@ export default function MessagesPage() {
     loadUnread();
   }, [user]);
 
-  // Real-time subscription for messages
+  // Real-time subscription for messages on user_messages
   useEffect(() => {
-    if (!user) return;
+    if (!user || !id) return;
 
     const channel = supabase
-      .channel("messages")
+      .channel("messages-realtime")
       .on(
         "postgres_changes",
-        { event: "INSERT", schema: "public", table: "messages" },
+        { event: "INSERT", schema: "public", table: "user_messages" },
         (payload) => {
           const m = payload.new;
 
@@ -115,6 +135,7 @@ export default function MessagesPage() {
             });
           }
 
+          // Only append if this message belongs to this thread
           if (
             (m.sender_id === user.id && m.receiver_id === id) ||
             (m.sender_id === id && m.receiver_id === user.id)
@@ -125,12 +146,14 @@ export default function MessagesPage() {
       )
       .subscribe();
 
-    return () => supabase.removeChannel(channel);
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [user, id]);
 
   // Typing indicator subscription
   useEffect(() => {
-    if (!user) return;
+    if (!user || !id) return;
 
     const channel = supabase
       .channel("typing")
@@ -142,7 +165,9 @@ export default function MessagesPage() {
       })
       .subscribe();
 
-    return () => supabase.removeChannel(channel);
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [user, id]);
 
   // Auto-scroll
@@ -150,19 +175,23 @@ export default function MessagesPage() {
     messageEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  // Send message
+  // Send message into user_messages
   async function sendMessage(text) {
-    if (!user || !text.trim()) return;
+    if (!user || !id || !text.trim()) return;
 
-    await supabase.from("messages").insert({
+    const { error } = await supabase.from("user_messages").insert({
       sender_id: user.id,
       receiver_id: id,
       content: text,
     });
+
+    if (error) console.error("SEND MESSAGE ERROR:", error);
   }
 
   // Typing broadcast
   function broadcastTyping() {
+    if (!user || !id) return;
+
     supabase.channel("typing").send({
       type: "broadcast",
       event: "typing",
@@ -192,7 +221,6 @@ export default function MessagesPage() {
 
   return (
     <div className="min-h-screen bg-black text-white font-sans">
-
       {/* HEADER */}
       <header className="bg-orange-600 text-white py-4 px-6 flex justify-between items-center">
         <div className="flex items-center gap-4">
@@ -215,17 +243,36 @@ export default function MessagesPage() {
 
         <div className="flex items-center gap-6">
           <nav className="space-x-4 flex items-center">
-            <a href="/" className="hover:underline">Home</a>
-            <a href="/browse" className="hover:underline">Browse</a>
-            <a href="/music" className="hover:underline">Music</a>
-            <a href="/videos" className="hover:underline">Videos</a>
-            <a href="/blogs" className="hover:underline">Blogs</a>
+            <a href="/" className="hover:underline">
+              Home
+            </a>
+            <a href="/browse" className="hover:underline">
+              Browse
+            </a>
+            <a href="/music" className="hover:underline">
+              Music
+            </a>
+            <a href="/videos" className="hover:underline">
+              Videos
+            </a>
+            <a href="/blogs" className="hover:underline">
+              Blogs
+            </a>
 
             {user && (
               <>
-                <a href="/dashboard" className="hover:underline font-bold">Dashboard</a>
-                <a href={`/profile/${user.id}`} className="hover:underline">Profile</a>
-                <a href="/settings" className="hover:underline">Settings</a>
+                <a href="/dashboard" className="hover:underline font-bold">
+                  Dashboard
+                </a>
+                <a
+                  href={`/profile/${user.id}`}
+                  className="hover:underline"
+                >
+                  Profile
+                </a>
+                <a href="/settings" className="hover:underline">
+                  Settings
+                </a>
               </>
             )}
           </nav>

@@ -82,15 +82,16 @@ export default function ProfilePage() {
     const { data, error } = await supabase
       .from("comments")
       .select(`
-        id,
-        content,
-        created_at,
-        user_id,
-        profiles:User_id (
-          username,
-          avatar_url
-        )
-      `)
+  id,
+  content,
+  created_at,
+  user_id,
+  profiles:user_id (
+    username,
+    avatar_url
+  )
+`)
+
       .eq("profile_id", id)
       .order("created_at", { ascending: true });
 
