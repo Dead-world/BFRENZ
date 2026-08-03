@@ -94,20 +94,19 @@ export default function Dashboard() {
     navigate("/");
   }
 
-  // ⭐ Proper loading screen
+  // Loading screen
   if (loading || !profile) {
     return (
-      <div className="min-h-screen bg-[#f0f0f0] text-black flex items-center justify-center">
-        <p className="text-orange-600 text-xl font-bold">Loading your dashboard...</p>
+      <div className="min-h-screen bg-black text-orange-500 flex items-center justify-center">
+        <p className="text-xl font-bold">Loading your dashboard...</p>
       </div>
     );
   }
 
-  // ⭐ MAIN DASHBOARD
   return (
-    <div className="min-h-screen bg-[#f0f0f0] text-black flex flex-col">
+    <div className="min-h-screen bg-black text-orange-500 flex flex-col">
 
-      {/* HEADER */}
+      {/* NAV BAR */}
       <header className="bg-orange-600 text-white py-4 px-4 flex flex-wrap justify-between items-center gap-4 shadow-lg">
         <div className="flex items-center gap-3">
           <h1 className="text-2xl md:text-3xl font-bold">ProfileDig</h1>
@@ -153,7 +152,7 @@ export default function Dashboard() {
       <main className="flex flex-col md:flex-row gap-6 p-4">
 
         {/* LEFT COLUMN */}
-        <div className="w-full md:w-1/3 bg-white border border-gray-300 rounded-lg p-4 shadow-md">
+        <div className="w-full md:w-1/3 bg-black/80 border border-orange-600 rounded-lg p-4 shadow-md">
 
           <img
             src={profile.avatar_url || "/default-avatar.png"}
@@ -162,31 +161,31 @@ export default function Dashboard() {
 
           <h2 className="text-2xl font-bold text-orange-600">{profile.username}</h2>
 
-          <p className="text-sm text-gray-700 mt-1">
+          <p className="text-sm mt-1">
             <strong>Status:</strong> {profile.status || "Online"}
           </p>
 
-          <p className="text-sm text-gray-700 mt-1">
+          <p className="text-sm mt-1">
             <strong>Mood:</strong> {profile.status_message || "Feeling good!"}
           </p>
 
           <div className="mt-4">
-            <h3 className="text-lg font-bold text-orange-600 border-b border-gray-300 pb-1">
+            <h3 className="text-lg font-bold text-orange-600 border-b border-orange-600 pb-1">
               About Me
             </h3>
-            <p className="text-sm text-gray-800 mt-2 whitespace-pre-line">
+            <p className="text-sm mt-2 whitespace-pre-line">
               {profile.about_me || "This user hasn't written anything yet."}
             </p>
           </div>
 
           <div className="mt-4">
-            <h3 className="text-lg font-bold text-orange-600 border-b border-gray-300 pb-1">
+            <h3 className="text-lg font-bold text-orange-600 border-b border-orange-600 pb-1">
               Interests
             </h3>
-            <p className="text-sm text-gray-800 mt-2">
+            <p className="text-sm mt-2">
               <strong>General:</strong> {profile.general_interests || "None"}
             </p>
-            <p className="text-sm text-gray-800 mt-1">
+            <p className="text-sm mt-1">
               <strong>Music:</strong> {profile.music_interests || "None"}
             </p>
           </div>
@@ -196,11 +195,11 @@ export default function Dashboard() {
         <div className="w-full md:w-2/3 flex flex-col gap-6">
 
           {/* TOP 8 FRIENDS */}
-          <div className="bg-white border border-gray-300 rounded-lg p-4 shadow-md">
+          <div className="bg-black/80 border border-orange-600 rounded-lg p-4 shadow-md">
             <h3 className="text-xl font-bold text-orange-600 mb-3">Top 8 Friends</h3>
 
             {top8.length === 0 ? (
-              <p className="text-gray-600 text-sm">You haven't added any friends yet.</p>
+              <p className="text-gray-400 text-sm">You haven't added any friends yet.</p>
             ) : (
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
                 {top8.map((f) => (
@@ -217,16 +216,16 @@ export default function Dashboard() {
           </div>
 
           {/* RECENT MESSAGES */}
-          <div className="bg-white border border-gray-300 rounded-lg p-4 shadow-md">
+          <div className="bg-black/80 border border-orange-600 rounded-lg p-4 shadow-md">
             <h3 className="text-xl font-bold text-orange-600 mb-3">Recent Messages</h3>
 
             {recentMessages.length === 0 ? (
-              <p className="text-gray-600 text-sm">No messages yet.</p>
+              <p className="text-gray-400 text-sm">No messages yet.</p>
             ) : (
               <div className="flex flex-col gap-3">
                 {recentMessages.map((msg) => (
-                  <div key={msg.id} className="border-b border-gray-200 pb-2">
-                    <p className="text-sm text-gray-800">
+                  <div key={msg.id} className="border-b border-orange-600 pb-2">
+                    <p className="text-sm">
                       <strong>{msg.profiles.username}</strong>: {msg.content}
                     </p>
                   </div>
@@ -236,11 +235,11 @@ export default function Dashboard() {
           </div>
 
           {/* FRIENDS */}
-          <div className="bg-white border border-gray-300 rounded-lg p-4 shadow-md">
+          <div className="bg-black/80 border border-orange-600 rounded-lg p-4 shadow-md">
             <h3 className="text-xl font-bold text-orange-600 mb-3">Friends</h3>
 
             {recentFriends.length === 0 ? (
-              <p className="text-gray-600 text-sm">No friends added yet.</p>
+              <p className="text-gray-400 text-sm">No friends added yet.</p>
             ) : (
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
                 {recentFriends.map((f) => (
