@@ -6,18 +6,7 @@ export default function NavBar({ user }) {
       <div className="flex items-center gap-3">
         <h1 className="text-2xl md:text-3xl font-bold">ProfileDig</h1>
 
-        {user && (
-          <div className="flex items-center gap-2">
-            <img
-              src={user.user_metadata?.avatar_url || "/default-avatar.png"}
-              alt="Profile"
-              className="w-8 h-8 md:w-10 md:h-10 rounded-full border border-white object-cover"
-            />
-            <span className="font-semibold text-sm md:text-base">
-              Welcome, {user.user_metadata?.username || "Member"}
-            </span>
-          </div>
-        )}
+  
       </div>
 
       <div className="flex flex-wrap items-center gap-4 w-full md:w-auto">
