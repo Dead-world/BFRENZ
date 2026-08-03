@@ -95,7 +95,7 @@ export default function LandingPage() {
               <>
                 <a href="/dashboard" className="hover:underline font-bold">Dashboard</a>
                 <a href={`/profile/${user.id}`} className="hover:underline">Profile</a>
-                <a href="/settings" className="hover:underline">Settings</a>
+              
               </>
             )}
           </nav>
