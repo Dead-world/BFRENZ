@@ -3,41 +3,23 @@ import { useParams, Link } from "react-router-dom";
 import { supabase } from "../supabaseClient";
 import NavBar from "../components/NavBar";
 
-/* Retro Music Player */
-function RetroPlayer({ url, cover }) {
-  const [bars, setBars] = useState([5, 10, 7, 12, 8]);
+/* THEMES */
+const themes = {
+  neon: `
+    .profile-container { border-color: #0ff; color: #0ff; }
+    body { background: #000; }
+  `,
+  pastel: `
+    .profile-container { border-color: #f8a; color: #f8a; }
+    body { background: #fff7f0; }
+  `,
+  matrix: `
+    .profile-container { border-color: #0f0; color: #0f0; }
+    body { background: #000; }
+  `,
+};
 
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setBars((prev) => prev.map(() => Math.floor(Math.random() * 15) + 5));
-    }, 200);
-    return () => clearInterval(interval);
-  }, []);
-
-  if (!url) return null;
-
-  return (
-    <div className="border border-orange-600 bg-black p-3 text-white rounded profile-container">
-      <h3 className="font-bold text-orange-400 mb-2">Now Playing</h3>
-
-      <div className="flex gap-3 items-center">
-        <img src={cover} className="w-20 h-20 border border-orange-600 rounded" />
-
-        <audio controls className="w-full accent-orange-600">
-          <source src={url} type="audio/mpeg" />
-        </audio>
-      </div>
-
-      <div className="flex gap-1 mt-3">
-        {bars.map((h, i) => (
-          <div key={i} style={{ height: `${h}px` }} className="w-2 bg-orange-600" />
-        ))}
-      </div>
-    </div>
-  );
-}
-
-/* Top 8 Friends (clickable) */
+/* Top 8 Friends */
 function TopEight({ userId }) {
   const [friends, setFriends] = useState([]);
 
@@ -46,7 +28,7 @@ function TopEight({ userId }) {
       const { data } = await supabase
         .from("friends")
         .select("friend_id, profiles(username, avatar_url)")
-        .eq("user_id", userId)
+        .eq("User_id", userId) // FIXED
         .limit(8);
 
       setFriends(data || []);
@@ -60,24 +42,22 @@ function TopEight({ userId }) {
 
       <div className="grid grid-cols-4 gap-3">
         {friends.map((f) => (
-          <div key={f.friend_id} className="text-center">
-            <Link to={`/profile/${f.friend_id}`}>
-              <img
-                src={f.profiles.avatar_url}
-                className="w-16 h-16 rounded border border-orange-600 mx-auto hover:opacity-80 transition"
-              />
-              <p className="text-xs mt-1 text-orange-400 hover:text-orange-200">
-                {f.profiles.username}
-              </p>
-            </Link>
-          </div>
+          <Link key={f.friend_id} to={`/profile/${f.friend_id}`} className="text-center">
+            <img
+              src={f.profiles.avatar_url}
+              className="w-16 h-16 rounded border border-orange-600 mx-auto hover:opacity-80 transition"
+            />
+            <p className="text-xs mt-1 text-orange-400 hover:text-orange-200">
+              {f.profiles.username}
+            </p>
+          </Link>
         ))}
       </div>
     </div>
   );
 }
 
-/* Bulletin Board — per-profile */
+/* Bulletin Board — FIXED */
 function BulletinBoard({ userId }) {
   const [bulletins, setBulletins] = useState([]);
 
@@ -86,7 +66,7 @@ function BulletinBoard({ userId }) {
       const { data } = await supabase
         .from("bulletins")
         .select("*, profiles(username)")
-        .eq("user_id", userId)
+        .eq("User_id", userId) // FIXED
         .order("created_at", { ascending: false });
 
       setBulletins(data || []);
@@ -115,12 +95,11 @@ function BulletinBoard({ userId }) {
   );
 }
 
-/* Comments Section with notifications, delete, replies */
-function CommentsSection({ profileId, user }) {
+/* Comments Section — FIXED */
+function CommentsSection({ profileId, loggedInUser }) {
   const [comments, setComments] = useState([]);
   const [newComment, setNewComment] = useState("");
   const [replyText, setReplyText] = useState({});
-  const [profileOwner, setProfileOwner] = useState(null);
 
   async function loadComments() {
     const { data } = await supabase
@@ -129,21 +108,19 @@ function CommentsSection({ profileId, user }) {
       .eq("profile_id", profileId)
       .order("created_at", { ascending: false });
 
-    // load replies for each comment
     const ids = (data || []).map((c) => c.id);
+
     let repliesMap = {};
     if (ids.length > 0) {
       const { data: replies } = await supabase
         .from("replies")
         .select("*")
-        .in("comment_id", ids)
-        .order("created_at", { ascending: true });
+        .in("comment_id", ids);
 
-      repliesMap = (replies || []).reduce((acc, r) => {
-        acc[r.comment_id] = acc[r.comment_id] || [];
-        acc[r.comment_id].push(r);
-        return acc;
-      }, {});
+      replies.forEach((r) => {
+        repliesMap[r.comment_id] = repliesMap[r.comment_id] || [];
+        repliesMap[r.comment_id].push(r);
+      });
     }
 
     setComments(
@@ -155,56 +132,44 @@ function CommentsSection({ profileId, user }) {
   }
 
   useEffect(() => {
-    async function loadOwner() {
-      const { data } = await supabase
-        .from("profiles")
-        .select("User_id, username")
-        .eq("User_id", profileId)
-        .single();
-      setProfileOwner(data);
-    }
-    loadOwner();
     loadComments();
   }, [profileId]);
 
   async function addComment(e) {
     e.preventDefault();
-    if (!newComment.trim() || !user) return;
+    if (!loggedInUser) return;
 
     await supabase.from("comments").insert({
       profile_id: profileId,
-      user_id: user.id,
+      user_id: loggedInUser.id,
       content: newComment,
     });
 
-    // notification to profile owner
-    if (profileOwner) {
-      await supabase.from("notifications").insert({
-        user_id: profileId,
-        from_user: user.id,
-        type: "comment",
-        message: `${user.username || "Someone"} commented on your profile.`,
-      });
-    }
+    await supabase.from("notifications").insert({
+      user_id: profileId,
+      from_user: loggedInUser.id,
+      type: "comment",
+      message: `${loggedInUser.email} commented on your profile.`,
+    });
 
     setNewComment("");
     loadComments();
   }
 
   async function deleteComment(id, commentUserId) {
-    if (!user) return;
-    if (commentUserId !== user.id && profileId !== user.id) return;
+    if (!loggedInUser) return;
+    if (commentUserId !== loggedInUser.id && profileId !== loggedInUser.id) return;
 
     await supabase.from("comments").delete().eq("id", id);
     loadComments();
   }
 
   async function addReply(commentId) {
-    if (!user || !replyText[commentId]?.trim()) return;
+    if (!loggedInUser) return;
 
     await supabase.from("replies").insert({
       comment_id: commentId,
-      user_id: user.id,
+      user_id: loggedInUser.id,
       content: replyText[commentId],
     });
 
@@ -216,7 +181,7 @@ function CommentsSection({ profileId, user }) {
     <div className="border border-orange-600 bg-black p-3 text-white rounded profile-container">
       <h3 className="font-bold text-orange-400 mb-3">Comments</h3>
 
-      {user && (
+      {loggedInUser && (
         <form onSubmit={addComment} className="mb-4">
           <textarea
             value={newComment}
@@ -230,71 +195,67 @@ function CommentsSection({ profileId, user }) {
         </form>
       )}
 
-      {comments.length === 0 ? (
-        <p className="text-gray-400 text-sm">No comments yet.</p>
-      ) : (
-        comments.map((c) => (
-          <div key={c.id} className="bg-orange-600 text-black p-3 rounded mb-3">
-            <div className="flex items-center gap-3 justify-between">
-              <div className="flex items-center gap-3">
-                <img
-                  src={c.profiles.avatar_url}
-                  className="w-10 h-10 rounded-full border border-black"
-                />
-                <span className="font-bold">{c.profiles.username}</span>
-              </div>
-
-              {(c.user_id === user?.id || profileId === user?.id) && (
-                <button
-                  onClick={() => deleteComment(c.id, c.user_id)}
-                  className="text-xs bg-black text-orange-400 px-2 py-1 rounded border border-orange-600 hover:bg-orange-600 hover:text-black transition"
-                >
-                  Delete
-                </button>
-              )}
+      {comments.map((c) => (
+        <div key={c.id} className="bg-orange-600 text-black p-3 rounded mb-3">
+          <div className="flex items-center gap-3 justify-between">
+            <div className="flex items-center gap-3">
+              <img
+                src={c.profiles.avatar_url}
+                className="w-10 h-10 rounded-full border border-black"
+              />
+              <span className="font-bold">{c.profiles.username}</span>
             </div>
 
-            <p className="mt-2">{c.content}</p>
-
-            <p className="text-xs mt-2 text-black/70">
-              {new Date(c.created_at).toLocaleString()}
-            </p>
-
-            {/* Replies */}
-            {c.replies?.map((r) => (
-              <div
-                key={r.id}
-                className="ml-6 mt-2 bg-black text-orange-400 p-2 rounded border border-orange-600"
+            {(c.user_id === loggedInUser?.id || profileId === loggedInUser?.id) && (
+              <button
+                onClick={() => deleteComment(c.id, c.user_id)}
+                className="text-xs bg-black text-orange-400 px-2 py-1 rounded border border-orange-600 hover:bg-orange-600 hover:text-black transition"
               >
-                <p className="text-sm">{r.content}</p>
-                <p className="text-xs text-orange-600">
-                  {new Date(r.created_at).toLocaleString()}
-                </p>
-              </div>
-            ))}
-
-            {/* Reply form */}
-            {user && (
-              <form
-                onSubmit={(e) => {
-                  e.preventDefault();
-                  addReply(c.id);
-                }}
-                className="ml-6 mt-2"
-              >
-                <input
-                  value={replyText[c.id] || ""}
-                  onChange={(e) =>
-                    setReplyText((prev) => ({ ...prev, [c.id]: e.target.value }))
-                  }
-                  className="w-full p-1 rounded bg-gray-200 text-black"
-                  placeholder="Reply..."
-                />
-              </form>
+                Delete
+              </button>
             )}
           </div>
-        ))
-      )}
+
+          <p className="mt-2">{c.content}</p>
+
+          <p className="text-xs mt-2 text-black/70">
+            {new Date(c.created_at).toLocaleString()}
+          </p>
+
+          {/* Replies */}
+          {c.replies.map((r) => (
+            <div
+              key={r.id}
+              className="ml-6 mt-2 bg-black text-orange-400 p-2 rounded border border-orange-600"
+            >
+              <p className="text-sm">{r.content}</p>
+              <p className="text-xs text-orange-600">
+                {new Date(r.created_at).toLocaleString()}
+              </p>
+            </div>
+          ))}
+
+          {/* Reply form */}
+          {loggedInUser && (
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                addReply(c.id);
+              }}
+              className="ml-6 mt-2"
+            >
+              <input
+                value={replyText[c.id] || ""}
+                onChange={(e) =>
+                  setReplyText((prev) => ({ ...prev, [c.id]: e.target.value }))
+                }
+                className="w-full p-1 rounded bg-gray-200 text-black"
+                placeholder="Reply..."
+              />
+            </form>
+          )}
+        </div>
+      ))}
     </div>
   );
 }
@@ -339,32 +300,27 @@ function WhosOnline() {
   );
 }
 
-/* Themes */
-const themes = {
-  neon: `
-    .profile-container { border-color: #0ff; color: #0ff; }
-    body { background: #000; }
-  `,
-  pastel: `
-    .profile-container { border-color: #f8a; color: #f8a; }
-    body { background: #fff7f0; }
-  `,
-  matrix: `
-    .profile-container { border-color: #0f0; color: #0f0; }
-    body { background: #000; }
-  `,
-};
-
 export default function ProfilePage() {
   const { id } = useParams();
   const [profile, setProfile] = useState(null);
+  const [loggedInUser, setLoggedInUser] = useState(null);
 
+  /* Load logged-in user */
+  useEffect(() => {
+    async function loadLoggedIn() {
+      const { data } = await supabase.auth.getUser();
+      setLoggedInUser(data.user);
+    }
+    loadLoggedIn();
+  }, []);
+
+  /* Load profile owner */
   useEffect(() => {
     async function loadProfile() {
       const { data } = await supabase
         .from("profiles")
         .select("*")
-        .eq("User_id", id)
+        .eq("User_id", id) // FIXED
         .single();
       setProfile(data);
     }
@@ -390,7 +346,7 @@ export default function ProfilePage() {
       {profile.theme && themes[profile.theme] && <style>{themes[profile.theme]}</style>}
       {profile.custom_css && <style>{profile.custom_css}</style>}
 
-      <NavBar user={{ id }} />
+      <NavBar user={loggedInUser} />
 
       <main className="max-w-5xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-4 p-4">
         {/* LEFT SIDEBAR */}
@@ -525,7 +481,7 @@ export default function ProfilePage() {
           <BulletinBoard userId={id} />
 
           {/* Comments Section */}
-          <CommentsSection profileId={id} user={profile} />
+          <CommentsSection profileId={id} loggedInUser={loggedInUser} />
 
           {/* Custom HTML */}
           {profile.custom_html && (
