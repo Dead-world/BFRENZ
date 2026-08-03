@@ -84,7 +84,7 @@ export default function ProfilePage() {
         content,
         created_at,
         user_id,
-        profiles:user_id (
+        profiles:User_id (
           username,
           avatar_url
         )
@@ -101,6 +101,7 @@ export default function ProfilePage() {
 
   loadComments();
 }, [id]);
+
 
 
   // Delete comment
