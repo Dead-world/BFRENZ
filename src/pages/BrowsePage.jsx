@@ -25,48 +25,42 @@ export default function BrowsePage() {
   // Load profiles with filters + pagination
   useEffect(() => {
     async function loadProfiles() {
+      if (!user) return;
+
       let query = supabase
         .from("profiles")
         .select("*")
-        .neq("User_id", user?.id)
+        .neq("User_id", user.id)
         .order("created_at", { ascending: false })
         .range(page * PAGE_SIZE, page * PAGE_SIZE + PAGE_SIZE - 1);
 
-      if (search.trim() !== "") {
-        query = query.ilike("username", `%${search}%`);
-      }
-
-      if (location.trim() !== "") {
-        query = query.ilike("location", `%${location}%`);
-      }
-
-      if (interest.trim() !== "") {
+      if (search.trim()) query = query.ilike("username", `%${search}%`);
+      if (location.trim()) query = query.ilike("location", `%${location}%`);
+      if (interest.trim())
         query = query.or(
           `general_interests.ilike.%${interest}%,music_interests.ilike.%${interest}%`
         );
-      }
 
-      const { data } = await query;
+      const { data, error } = await query;
+      if (error) console.error(error);
       setProfiles(data || []);
     }
 
-    if (user) loadProfiles();
+    loadProfiles();
   }, [user, search, location, interest, page]);
 
   // Add friend
   async function addFriend(friendId) {
     if (!user) return;
-
     await supabase.from("friends").insert({
       user_id: user.id,
       friend_id: friendId,
       status: "pending",
     });
-
     alert("Friend request sent!");
   }
 
-  // ⭐ FIX: Add logout function
+  // Logout
   async function handleLogout() {
     await supabase.auth.signOut();
     setUser(null);
@@ -83,11 +77,15 @@ export default function BrowsePage() {
 
   return (
     <div className="min-h-screen bg-black text-white font-sans">
-
       {/* HEADER */}
       <header className="bg-orange-600 text-white py-4 px-6 flex justify-between items-center">
         <div className="flex items-center gap-4">
-          <h1 className="text-3xl font-bold">ProfileDig</h1>
+          {/* Logo */}
+          <img
+            src="/ProfileDigLogo.png"
+            alt="ProfileDig Logo"
+            className="h-12 md:h-16 object-contain"
+          />
 
           {user && (
             <div className="flex items-center gap-3">
@@ -145,14 +143,12 @@ export default function BrowsePage() {
               onChange={(e) => setSearch(e.target.value)}
               className="px-3 py-2 rounded bg-gray-200 text-black"
             />
-
             <input
               placeholder="Filter by location..."
               value={location}
               onChange={(e) => setLocation(e.target.value)}
               className="px-3 py-2 rounded bg-gray-200 text-black"
             />
-
             <input
               placeholder="Filter by interests..."
               value={interest}
@@ -170,15 +166,12 @@ export default function BrowsePage() {
                 src={p.avatar_url || "/default-avatar.png"}
                 className="w-full h-40 object-cover rounded border-2 border-orange-600 mb-3"
               />
-
               <h3 className="text-xl font-bold">{p.username}</h3>
               <p className="text-sm text-gray-700">{p.location || "Unknown"}</p>
-
               <p className="text-sm mt-2">
                 <strong>Interests:</strong>{" "}
                 {(p.general_interests || p.music_interests || "None").slice(0, 60)}...
               </p>
-
               <div className="mt-4 flex gap-2">
                 <a
                   href={`/profile/${p.User_id}`}
@@ -186,7 +179,6 @@ export default function BrowsePage() {
                 >
                   View Profile
                 </a>
-
                 <button
                   onClick={() => addFriend(p.User_id)}
                   className="flex-1 bg-gray-300 text-black py-2 rounded hover:bg-gray-400"
@@ -207,7 +199,6 @@ export default function BrowsePage() {
           >
             Previous
           </button>
-
           <button
             onClick={() => setPage(page + 1)}
             className="bg-orange-600 text-white px-4 py-2 rounded hover:bg-orange-700"
