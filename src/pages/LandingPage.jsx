@@ -107,8 +107,11 @@ export default function LandingPage() {
         <Sparkles />
 
         <div className="max-w-6xl mx-auto flex justify-between items-center p-3">
-          <h1 className="text-3xl font-bold">ProfileDig</h1>
-          <p className="italic text-sm">a place for friends</p>
+        <img
+  src="/ProfileDigLogo.png"
+  alt="ProfileDig Logo"
+  className="h-28 object-contain px-2"
+/>
         </div>
 
         {/* Top Navigation */}
