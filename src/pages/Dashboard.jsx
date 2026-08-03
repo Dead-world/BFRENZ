@@ -1,15 +1,15 @@
 import { useEffect, useState } from "react";
 import { supabase } from "../supabaseClient";
-
 import NavBar from "../components/NavBar";
 import React from 'react';
-// Change this line to import from your hooks file instead of the context file:
 import { useAuth } from '../hooks/useAuth'; 
 
 export default function Dashboard() {
   const { user } = useAuth();
   const [profile, setProfile] = useState(null);
   const [saving, setSaving] = useState(false);
+  const [birthdayError, setBirthdayError] = useState("");
+  const [birthday, setBirthday] = useState("");
 
   useEffect(() => {
     async function loadProfile() {
@@ -19,17 +19,21 @@ export default function Dashboard() {
         .eq("User_id", user.id)
         .single();
 
-      setProfile(data);
+      if (data) {
+        setProfile(data);
+        if (data.birthday) {
+          setBirthday(data.birthday);
+        }
+      }
     }
 
     if (user) loadProfile();
   }, [user]);
 
-  // ⭐ FIXED + FULLY WORKING UPLOAD FUNCTION
+    // ⭐ FIXED UPLOAD FUNCTION
   async function uploadFile(file, bucket) {
     const fileName = `${user.id}-${Date.now()}-${file.name}`;
 
-    // Upload file to Supabase Storage
     const { data, error } = await supabase.storage
       .from(bucket)
       .upload(fileName, file, {
@@ -43,7 +47,6 @@ export default function Dashboard() {
       return null;
     }
 
-    // Get public URL
     const { data: urlData } = supabase.storage
       .from(bucket)
       .getPublicUrl(fileName);
@@ -51,22 +54,43 @@ export default function Dashboard() {
     return urlData.publicUrl;
   }
 
-  async function saveChanges(e) {
+    async function saveChanges(e) {
     e.preventDefault();
+    setBirthdayError("");
     setSaving(true);
 
-    const form = new FormData(e.target);
+    if (!birthday) {
+      setBirthdayError("Birthday configuration field is required.");
+      setSaving(false);
+      return;
+    }
 
+    const birthDate = new Date(birthday);
+    const today = new Date();
+    let age = today.getFullYear() - birthDate.getFullYear();
+    const monthDiff = today.getMonth() - birthDate.getMonth();
+    
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+      age--;
+    }
+
+    if (age < 16) {
+      setBirthdayError("Invalid Operation: Account profile owners must be 16 years or older.");
+      setSaving(false);
+      return;
+    }
+
+    const form = new FormData(e.target);
     let avatar_url = profile.avatar_url;
     let mp3_url = profile.mp3_url;
 
-    // ⭐ Avatar Upload
+    // Avatar Upload
     const avatarFile = form.get("avatar");
     if (avatarFile && avatarFile.size > 0) {
       avatar_url = await uploadFile(avatarFile, "avatars");
     }
 
-    // ⭐ MP3 Upload (bucket = songs)
+    // MP3 Upload (Fixed comment block parsing leak)
     const mp3File = form.get("mp3");
     if (mp3File && mp3File.size > 0) {
       mp3_url = await uploadFile(mp3File, "songs");
@@ -82,23 +106,25 @@ export default function Dashboard() {
       custom_html: form.get("custom_html"),
       custom_css: form.get("custom_css"),
       youtube_url: form.get("youtube_url"),
+      birthday: birthday,
       avatar_url,
       mp3_url, 
     };
 
-   const { error } = await supabase
-  .from("profiles")
-  .update(updates)
-  .eq("User_id", user.id);
+    const { error } = await supabase
+      .from("profiles")
+      .update(updates)
+      .eq("User_id", user.id);
 
-if (error) {
-  console.error("UPDATE ERROR:", error);
-  alert("Failed to save profile: " + error.message);
-}
-
+    if (error) {
+      console.error("UPDATE ERROR:", error);
+      alert("Failed to save profile: " + error.message);
+    } else {
+      setProfile(prev => ({ ...prev, ...updates }));
+      alert("Dashboard updated successfully!");
+    }
 
     setSaving(false);
-    alert("Dashboard updated!");
   }
 
   if (!profile) {
@@ -109,7 +135,7 @@ if (error) {
     );
   }
 
-  return (
+    return (
     <div className="min-h-screen bg-black text-orange-500">
       <NavBar user={user} />
 
@@ -126,6 +152,7 @@ if (error) {
             <img
               src={profile.avatar_url || "/default-avatar.png"}
               className="w-32 h-32 rounded-full border-2 border-orange-600 mb-3 object-cover"
+              alt="Avatar Preview"
             />
             <input type="file" name="avatar" accept="image/*" className="text-white" />
           </div>
@@ -136,8 +163,25 @@ if (error) {
             <input
               name="username"
               defaultValue={profile.username}
-              className="w-full p-2 rounded bg-white text-black"
+              className="w-full p-2 rounded bg-white text-black focus:outline-none"
             />
+          </div>
+
+          {/* Birthday Input Field */}
+          <div>
+            <label className="block font-bold mb-1">Birthday (Must be 16 or older)</label>
+            <input
+              type="date"
+              value={birthday}
+              onChange={(e) => setBirthday(e.target.value)}
+              className="w-full p-2 rounded bg-white text-black focus:outline-none"
+              required
+            />
+            {birthdayError && (
+              <p className="text-red-500 font-bold text-xs mt-1 uppercase tracking-wider">
+                {birthdayError}
+              </p>
+            )}
           </div>
 
           {/* Status */}
@@ -146,7 +190,7 @@ if (error) {
             <input
               name="status"
               defaultValue={profile.status}
-              className="w-full p-2 rounded bg-white text-black"
+              className="w-full p-2 rounded bg-white text-black focus:outline-none"
             />
           </div>
 
@@ -156,7 +200,7 @@ if (error) {
             <input
               name="status_message"
               defaultValue={profile.status_message}
-              className="w-full p-2 rounded bg-white text-black"
+              className="w-full p-2 rounded bg-white text-black focus:outline-none"
             />
           </div>
 
@@ -166,7 +210,7 @@ if (error) {
             <textarea
               name="about_me"
               defaultValue={profile.about_me}
-              className="w-full p-2 rounded bg-white text-black"
+              className="w-full p-2 rounded bg-white text-black focus:outline-none"
             />
           </div>
 
@@ -176,7 +220,7 @@ if (error) {
             <textarea
               name="general_interests"
               defaultValue={profile.general_interests}
-              className="w-full p-2 rounded bg-white text-black"
+              className="w-full p-2 rounded bg-white text-black focus:outline-none"
             />
           </div>
 
@@ -185,7 +229,7 @@ if (error) {
             <textarea
               name="music_interests"
               defaultValue={profile.music_interests}
-              className="w-full p-2 rounded bg-white text-black"
+              className="w-full p-2 rounded bg-white text-black focus:outline-none"
             />
           </div>
 
@@ -195,7 +239,7 @@ if (error) {
             <textarea
               name="custom_html"
               defaultValue={profile.custom_html}
-              className="w-full p-2 rounded bg-white text-black h-32"
+              className="w-full p-2 rounded bg-white text-black h-32 focus:outline-none"
             />
           </div>
 
@@ -205,7 +249,7 @@ if (error) {
             <textarea
               name="custom_css"
               defaultValue={profile.custom_css}
-              className="w-full p-2 rounded bg-white text-black h-32"
+              className="w-full p-2 rounded bg-white text-black h-32 focus:outline-none"
             />
           </div>
 
@@ -215,7 +259,7 @@ if (error) {
             <input
               name="youtube_url"
               defaultValue={profile.youtube_url}
-              className="w-full p-2 rounded bg-white text-black"
+              className="w-full p-2 rounded bg-white text-black focus:outline-none"
             />
           </div>
 
@@ -225,17 +269,17 @@ if (error) {
             <input type="file" name="mp3" accept="audio/mp3,audio/mpeg" className="text-white" />
 
             {profile.mp3_url && (
-              <audio controls className="mt-3 w-full">
+              <audio controls className="mt-3 w-full" key={profile.mp3_url}>
                 <source src={profile.mp3_url} type="audio/mp3" />
               </audio>
             )}
           </div>
            
-         {/* Save Button */}
+          {/* Save Button */}
           <button
             type="submit"
             disabled={saving}
-            className="bg-orange-600 text-black font-bold px-4 py-2 rounded hover:bg-orange-400 transition"
+            className="bg-orange-600 text-black font-bold px-4 py-2 rounded hover:bg-orange-400 transition disabled:opacity-50"
           >
             {saving ? "Saving..." : "Save Changes"}
           </button>

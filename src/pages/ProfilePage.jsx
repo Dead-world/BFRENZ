@@ -1,150 +1,57 @@
 import React, { useState, useEffect } from "react";
-import { createClient } from "@supabase/supabase-js";
 import { useAuth } from '../hooks/useAuth';
+import NavBar from "../components/NavBar";
+// FIXED: Pull shared instance to comply with Vite Fast Refresh rule
+import { supabase } from "../supabaseClient"; 
 
-// Initialize Supabase Client using exact repository variables
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
-export const supabase = createClient(supabaseUrl, supabaseAnonKey);
-
-// Inject global resets for font-family and responsive containers directly into the document head
 if (typeof document !== 'undefined') {
   const styleEl = document.createElement('style');
   styleEl.innerHTML = `
     * { font-family: Verdana, Arial, Helvetica, sans-serif; box-sizing: border-box; }
-    body { background-color: #000000; margin: 0; padding: 0; color: #000000; }
+    body { background-color: #000000; margin: 0; padding: 0; color: #000000; width: 100%; }
     ::-webkit-scrollbar { width: 8px; }
     ::-webkit-scrollbar-track { background: #000000; }
     ::-webkit-scrollbar-thumb { background: #FF6600; border: 1px solid #ffffff; }
+    @keyframes blink { 0%, 49% { opacity: 1; } 50%, 100% { opacity: 0; } }
+    .retro-blink { animation: blink 1s infinite; }
   `;
   document.head.appendChild(styleEl);
 }
 
-
-
 const styles = {
   container: {
-    maxWidth: '950px',
-    margin: '0 auto',
-    padding: '10px',
-    backgroundColor: '#ffffff',
-    border: '2px solid #FF6600',
+    width: '100%',
     minHeight: '100vh',
-  },
-  headerNav: {
-    backgroundColor: '#000000',
-    color: '#ffffff',
-    padding: '8px',
-    textAlign: 'center',
-    fontSize: '11px',
-    marginBottom: '15px',
-    border: '1px solid #FF6600',
-  },
-  navLink: {
-    color: '#FF6600',
-    textDecoration: 'none',
-    margin: '0 10px',
-    fontWeight: 'bold',
+    backgroundColor: '#ffffff',
+    borderLeft: '4px solid #FF6600',
+    borderRight: '4px solid #FF6600',
+    padding: '20px',
   },
   mainLayout: {
     display: 'flex',
     flexWrap: 'wrap',
-    gap: '15px',
+    gap: '20px',
+    maxWidth: '1250px',
+    margin: '0 auto',
   },
-  leftColumn: {
-    flex: '1 1 40%',
-    minWidth: '300px',
-  },
-  rightColumn: {
-    flex: '1 1 55%',
-    minWidth: '350px',
-  },
-  box: {
-    border: '1px solid #000000',
-    marginBottom: '15px',
-    backgroundColor: '#ffffff',
-  },
-  orangeHeader: {
-    backgroundColor: '#FF6600',
-    color: '#ffffff',
-    padding: '4px 8px',
-    fontSize: '12px',
-    fontWeight: 'bold',
-    margin: 0,
-    borderBottom: '1px solid #000000',
-  },
-  contentPadding: {
-    padding: '10px',
-    fontSize: '11px',
-    lineHeight: '1.4',
-  },
-  table: {
-    width: '100%',
-    borderCollapse: 'collapse',
-    fontSize: '11px',
-  },
-  tableLabel: {
-    backgroundColor: '#ffe5d4',
-    color: '#000000',
-    fontWeight: 'bold',
-    padding: '5px',
-    width: '35%',
-    border: '1px solid #ffffff',
-    verticalAlign: 'top',
-  },
-  tableValue: {
-    padding: '5px',
-    border: '1px solid #ffe5d4',
-    backgroundColor: '#ffffff',
-  },
-  friendGrid: {
-    display: 'grid',
-    gridTemplateColumns: 'repeat(4, 1fr)',
-    gap: '8px',
-    textAlign: 'center',
-    marginTop: '10px',
-  },
-  friendCard: {
-    fontSize: '10px',
-    fontWeight: 'bold',
-  },
-  friendImage: {
-    width: '100%',
-    aspectRatio: '1/1',
-    objectFit: 'cover',
-    border: '1px solid #000000',
-    display: 'block',
-    marginBottom: '4px',
-  },
-  orangeLink: {
-    color: '#FF6600',
-    textDecoration: 'none',
-    fontWeight: 'bold',
-  },
-  button: {
-    backgroundColor: '#FF6600',
-    color: '#ffffff',
-    border: '1px solid #000000',
-    padding: '4px 8px',
-    fontSize: '11px',
-    cursor: 'pointer',
-    fontWeight: 'bold',
-  },
-  textarea: {
-    width: '100%',
-    height: '60px',
-    border: '1px solid #000000',
-    fontSize: '11px',
-    padding: '5px',
-    marginBottom: '5px',
-    resize: 'vertical',
-  }
+  leftColumn: { flex: '1 1 35%', minWidth: '300px' },
+  rightColumn: { flex: '1 1 60%', minWidth: '400px' },
+  box: { border: '1px solid #000000', marginBottom: '15px', backgroundColor: '#ffffff' },
+  orangeHeader: { backgroundColor: '#FF6600', color: '#ffffff', padding: '4px 8px', fontSize: '12px', fontWeight: 'bold', margin: 0, borderBottom: '1px solid #000000' },
+  contentPadding: { padding: '10px', fontSize: '11px', lineHeight: '1.4' },
+  table: { width: '100%', borderCollapse: 'collapse', fontSize: '11px' },
+  tableLabel: { backgroundColor: '#ffe5d4', color: '#000000', fontWeight: 'bold', padding: '5px', width: '35%', border: '1px solid #ffffff' },
+  tableValue: { padding: '5px', border: '1px solid #ffe5d4', backgroundColor: '#ffffff' },
+  friendGrid: { display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '8px', textAlign: 'center', marginTop: '10px' },
+  friendCard: { fontSize: '10px', fontWeight: 'bold' },
+  friendImage: { width: '100%', aspectRatio: '1/1', objectFit: 'cover', border: '1px solid #000000', display: 'block', marginBottom: '4px' },
+  orangeLink: { color: '#FF6600', textDecoration: 'none', fontWeight: 'bold' },
+  button: { backgroundColor: '#FF6600', color: '#ffffff', border: '1px solid #000000', padding: '4px 8px', fontSize: '11px', cursor: 'pointer', fontWeight: 'bold' },
+  textarea: { width: '100%', height: '60px', border: '1px solid #000000', fontSize: '11px', padding: '5px', marginBottom: '5px', resize: 'vertical' }
 };
 
 export default function ProfilePage({ profileId, currentUserId }) {
   const { user } = useAuth();
-  
-  // Resolve target identifier context paths
   const activeProfileId = profileId || currentUserId || user?.id;
 
   const [profile, setProfile] = useState(null);
@@ -168,333 +75,232 @@ export default function ProfilePage({ profileId, currentUserId }) {
   const fetchProfileData = async () => {
     try {
       setLoading(true);
-      
-      // 1. Fetch Profile Info targeting case-sensitive "User_id" primary key
       const { data: prof, error: pErr } = await supabase.from('profiles').select('*').eq('User_id', activeProfileId).single();
       if (pErr) throw pErr;
       setProfile(prof);
 
-      // 2. Fetch Bulletins mapped to standard lowercase fields
       const { data: bulls } = await supabase.from('bulletins').select('*').eq('user_id', activeProfileId).order('created_at', { ascending: false });
       setBulletins(bulls || []);
 
-      // 3. Fetch Blogs written by this author
       const { data: blogPosts } = await supabase.from('blogs').select('*').eq('author_id', activeProfileId).order('created_at', { ascending: false });
       setBlogs(blogPosts || []);
 
-      // 4. Fetch Comments combined with exact foreign key constraint references
       const { data: comms } = await supabase.from('comments')
         .select('*, profiles!comments_user_id_fkey(username, avatar_url)')
         .eq('profile_id', activeProfileId)
         .order('created_at', { ascending: false });
       setComments(comms || []);
 
-      // 5. Fetch Profile View Count metrics
       const { count } = await supabase.from('profile_views').select('*', { count: 'exact', head: true }).eq('profile_id', activeProfileId);
       setViewCount(count || 0);
 
-      // 6. Fetch Real Dynamic Friends List (Fetches the related profiles matching friend rows)
-      const { data: friendRows } = await supabase.from('friends').select('friend_id, profiles!friends_friend_id_fkey(User_id, username, avatar_url)').eq('user_id', activeProfileId).limit(8);
-      if (friendRows) {
-        const structuralFriends = friendRows.map(f => f.profiles).filter(Boolean);
-        setFriends(structuralFriends);
-      }
+      const { data: frRows } = await supabase.from('friends').select('friend_id, profiles!friends_friend_id_fkey(User_id, username, avatar_url)').eq('user_id', activeProfileId).limit(8);
+      if (frRows) setFriends(frRows.map(f => f.profiles).filter(Boolean));
+
     } catch (err) {
-      console.error("Error loading profile data safely:", err);
+      console.error(err);
     } finally {
       setLoading(false);
     }
   };
 
   const recordProfileView = async () => {
-    const viewerId = currentUserId || user?.id;
-    if (!viewerId || viewerId === activeProfileId) return;
-    await supabase.from('profile_views').insert([{ viewer_id: viewerId, profile_id: activeProfileId }]);
+    const vId = currentUserId || user?.id;
+    if (!vId || vId === activeProfileId) return;
+    await supabase.from('profile_views').insert([{ viewer_id: vId, profile_id: activeProfileId }]);
   };
 
   const handlePostComment = async (e) => {
     e.preventDefault();
-    const posterId = currentUserId || user?.id;
-    if (!newComment.trim() || !posterId) return;
+    const pId = currentUserId || user?.id;
+    if (!newComment.trim() || !pId) return;
     
     const { data, error } = await supabase.from('comments').insert([
-      { user_id: posterId, profile_id: activeProfileId, content: newComment.trim() }
+      { user_id: pId, profile_id: activeProfileId, content: newComment.trim() }
     ]).select('*, profiles!comments_user_id_fkey(username, avatar_url)');
 
     if (!error && data) {
-      setComments([data[0], ...comments]);
+      setComments([data, ...comments]);
       setNewComment('');
+      fetchProfileData();
     }
   };
 
-  const handleDeleteBulletin = async (id) => {
-    const { error } = await supabase.from('bulletins').delete().eq('id', id);
-    if (!error) setBulletins(bulletins.filter(b => b.id !== id));
-  };
+    if (loading) return <div style={{ color: '#FF6600', textAlign: 'center', padding: '50px', fontSize: '14px', fontWeight: 'bold', backgroundColor: '#000', minHeight: '100vh' }}>LOADING RETRO CANVAS...</div>;
+  if (!profile) return <div style={{ color: '#FF6600', textAlign: 'center', padding: '50px', fontSize: '14px', fontWeight: 'bold', backgroundColor: '#000', minHeight: '100vh' }}>PROFILE NOT FOUND</div>;
 
-  if (loading) {
-    return <div style={{ color: '#FF6600', textAlign: 'center', padding: '50px', fontSize: '14px', fontWeight: 'bold' }}>LOADING PROFILE...</div>;
-  }
+  return (
+    <div style={{ backgroundColor: '#000000', minHeight: '100vh' }}>
+      <NavBar user={user} />
+      
+      {/* ⭐ DYNAMIC CUSTOM CSS STRING INJECTION BLOCK */}
+      {profile.custom_css && <style>{profile.custom_css}</style>}
 
-  if (!profile) {
-    return <div style={{ color: '#FF6600', textAlign: 'center', padding: '50px', fontSize: '14px', fontWeight: 'bold' }}>PROFILE NOT FOUND</div>;
-  }
-
-
-     return (
-    <div style={styles.container}>
-      {/* Top ProfileDig Banner Navigation */}
-      <div style={styles.headerNav}>
-        <span style={{ fontWeight: 'bold', marginRight: '20px', color: '#FF6600' }}>ProfileDig // Network</span>
-        <a href="#" style={styles.navLink}>Home</a> | 
-        <a href="#" style={styles.navLink}>Browse</a> | 
-        <a href="#" style={styles.navLink}>Search</a> | 
-        <a href="#" style={styles.navLink}>Invite</a> | 
-        <a href="#" style={styles.navLink}>Blog</a>
-      </div>
-
-      <div style={styles.mainLayout}>
-        {/* LEFT COLUMN */}
-        <div style={styles.leftColumn}>
-          {/* Main Identity Box */}
-          <div style={{ marginBottom: '15px' }}>
-            <h1 style={{ fontSize: '17px', margin: '0 0 5px 0', fontWeight: 'bold' }}>{profile.username}</h1>
-            <div style={{ display: 'flex', gap: '10px' }}>
-              <img 
-                src={profile.avatar_url || 'https://placehold.co'} 
-                alt={profile.username} 
-                style={{ width: '150px', height: '150px', border: '1px solid #000000', objectFit: 'cover' }}
-              />
-              <div style={{ fontSize: '11px' }}>
-                <p style={{ margin: '0 0 5px 0' }}><b>"{profile.status_message || 'No status'}"</b></p>
-                <p style={{ margin: '0 0 5px 0' }}>Hometown: {profile.hometown || 'Unknown'}</p>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '5px', marginTop: '10px' }}>
-                  <span style={{
-                    width: '10px', height: '10px', borderRadius: '50%',
-                    backgroundColor: (new Date() - new Date(profile.last_online) < 300000) ? '#00FF00' : '#CCCCCC',
-                    border: '1px solid #000000'
-                  }}></span>
-                  <span>{(new Date() - new Date(profile.last_online) < 300000) ? 'Online Now' : 'Offline'}</span>
-                </div>
-                <p style={{ margin: '15px 0 0 0', fontSize: '12px' }}>Views: <b>{viewCount}</b></p>
-              </div>
-            </div>
-          </div>
-
-          {/* Contact / Interaction Box */}
-          <div style={styles.box}>
-            <h2 style={styles.orangeHeader}>Contacting {profile.username}</h2>
-            <div style={{ ...styles.contentPadding, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '5px' }}>
-              <button style={styles.button}>Send Message</button>
-              <button style={styles.button}>Add to Friends</button>
-              <button style={styles.button}>Add to Group</button>
-              <button style={styles.button}>Forward to Friends</button>
-            </div>
-          </div>
-
-          {/* Real Audio Player connected to your schema's mp3_url field */}
-          <div style={styles.box}>
-            <h2 style={styles.orangeHeader}>{profile.username}'s Music Player</h2>
-            <div style={{ ...styles.contentPadding, backgroundColor: '#000000', color: '#FF6600', textAlign: 'center' }}>
-              <div style={{ fontSize: '10px', marginBottom: '5px', fontWeight: 'bold', letterSpacing: '1px' }}>
-                {profile.mp3_url ? "NOW STREAMING PROFILE AUDIO" : "DEFAULT RETRO STREAM"}
-              </div>
-              <audio controls style={{ width: '100%', height: '30px', borderRadius: '0px' }} key={profile.mp3_url}>
-                <source src={profile.mp3_url || "https://soundhelix.com"} type="audio/mpeg" />
-                Your browser does not support the audio element.
-              </audio>
-            </div>
-          </div>
-
-          {/* Interests and Blurbs Block */}
-          <div style={styles.box}>
-            <h2 style={styles.orangeHeader}>{profile.username}'s Interests</h2>
-            <div style={{ padding: '0px' }}>
-              <table style={styles.table}>
-                <tbody>
-                  <tr>
-                    <td style={styles.tableLabel}>General</td>
-                    <td style={styles.tableValue}>{profile.general_interests || 'No interests listed.'}</td>
-                  </tr>
-                  <tr>
-                    <td style={styles.tableLabel}>Music</td>
-                    <td style={styles.tableValue}>{profile.music_interests || 'No music preferences listed.'}</td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
+      <div style={styles.container}>
+        
+        {/* ⭐ RETRO SCROLLING BLINKING MARQUEE STATUS BANNER */}
+        <div style={{ backgroundColor: '#000', color: '#FF6600', border: '1px solid #FF6600', padding: '6px', marginBottom: '15px', overflow: 'hidden' }}>
+          <marquee scrollamount="5" style={{ fontSize: '11px', fontWeight: 'bold' }}>
+            <span className="retro-blink" style={{ marginRight: '10px', color: '#fff' }}>⚡ STATUS TRANSMISSION:</span> 
+            {profile.username} says: "{profile.status_message || 'No active broadcast transmission...'}"
+          </marquee>
         </div>
 
-        {/* RIGHT COLUMN */}
-        <div style={styles.rightColumn}>
-          {/* Headline Display Text */}
-          <div style={{ backgroundColor: '#ffe5d4', border: '1px solid #FF6600', padding: '8px', marginBottom: '15px', fontSize: '12px' }}>
-            <span style={{ fontWeight: 'bold', color: '#000000' }}>{profile.username} is in your extended network!</span>
-          </div>
+        <div style={styles.mainLayout}>
+          {/* LEFT COLUMN */}
+          <div style={styles.leftColumn}>
+            <div>
+              <h1 style={{ fontSize: '18px', margin: '0 0 5px 0', fontWeight: 'bold' }}>{profile.username}</h1>
+              <div style={{ display: 'flex', gap: '10px' }}>
+                <img src={profile.avatar_url || 'https://placehold.co'} alt="Avatar" style={{ width: '150px', height: '150px', border: '1px solid #000000', objectFit: 'cover' }} />
+                <div style={{ fontSize: '11px' }}>
+                  <p>Hometown: {profile.hometown || 'Unknown'}</p>
+                  <p>Status: <b>{profile.status || 'offline'}</b></p>
+                  <p>Views: <b>{viewCount}</b></p>
+                </div>
+              </div>
+            </div>
 
-          {/* Core Info Profile Details Table - Connected to real profile row variables */}
-          <div style={styles.box}>
-            <h2 style={styles.orangeHeader}>{profile.username}'s Profile Details</h2>
-            <div style={{ padding: '0px' }}>
+            {/* Functional Contact Triggers */}
+            <div style={{ ...styles.box, marginTop: '15px' }}>
+              <h2 style={styles.orangeHeader}>Contacting {profile.username}</h2>
+              <div style={{ ...styles.contentPadding, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '5px' }}>
+                <button style={styles.button} onClick={async () => {
+                  const msg = prompt("Enter private message body:");
+                  if (!msg || !user) return;
+                  const { error } = await supabase.from('user_messages').insert([{ sender_id: user.id, receiver_id: activeProfileId, content: msg }]);
+                  alert(!error ? "Message sent successfully!" : error.message);
+                }}>Send Message</button>
+                
+                <button style={styles.button} onClick={async () => {
+                  if (!user) return alert("Log in first.");
+                  if (user.id === activeProfileId) return alert("Cannot add yourself.");
+                  const { error } = await supabase.from('friends').insert([{ user_id: user.id, friend_id: activeProfileId }, { user_id: activeProfileId, friend_id: user.id }]);
+                  if (!error) { alert("Friend link added!"); fetchProfileData(); } else { alert("Already connected or error occurred."); }
+                }}>Add to Friends</button>
+                
+                <button style={styles.button} onClick={() => alert("Groups coming soon!")}>Add to Group</button>
+                <button style={styles.button} onClick={() => { navigator.clipboard.writeText(window.location.href); alert("Copied profile URL!"); }}>Forward to Friends</button>
+              </div>
+            </div>
+
+            <div style={styles.box}>
+              <h2 style={styles.orangeHeader}>Music Player</h2>
+              <div style={styles.contentPadding}>
+                <audio controls style={{ width: '100%' }} key={profile.mp3_url}>
+                  <source src={profile.mp3_url || "https://soundhelix.com"} type="audio/mpeg" />
+                </audio>
+              </div>
+            </div>
+
+            <div style={styles.box}>
+              <h2 style={styles.orangeHeader}>Interests</h2>
               <table style={styles.table}>
                 <tbody>
-                  <tr>
-                    <td style={styles.tableLabel}>Gender:</td>
-                    <td style={styles.tableValue}>{profile.gender || 'Not specified'}</td>
-                  </tr>
-                  <tr>
-                    <td style={styles.tableLabel}>Birthday:</td>
-                    <td style={styles.tableValue}>{profile.birthday ? new Date(profile.birthday).toLocaleDateString() : 'Not specified'}</td>
-                  </tr>
-                  <tr>
-                    <td style={styles.tableLabel}>Status:</td>
-                    <td style={styles.tableValue}>{profile.status || 'Offline'}</td>
-                  </tr>
-                  <tr>
-                    <td style={styles.tableLabel}>Hometown:</td>
-                    <td style={styles.tableValue}>{profile.hometown || 'Earth'}</td>
-                  </tr>
+                  <tr><td style={styles.tableLabel}>General</td><td style={styles.tableValue}>{profile.general_interests || 'None'}</td></tr>
+                  <tr><td style={styles.tableLabel}>Music</td><td style={styles.tableValue}>{profile.music_interests || 'None'}</td></tr>
                 </tbody>
               </table>
             </div>
+
+            {/* ⭐ DYNAMIC CUSTOM HTML STRING INJECTION MODULE */}
+            {profile.custom_html && (
+              <div style={styles.box}>
+                <h2 style={styles.orangeHeader}>Custom Blurbs Room</h2>
+                <div style={styles.contentPadding} dangerouslySetInnerHTML={{ __html: profile.custom_html }} />
+              </div>
+            )}
           </div>
 
-          {/* Classic Blurbs (About Me / Meet) */}
-          <div style={styles.box}>
-            <h2 style={styles.orangeHeader}>{profile.username}'s Blurbs</h2>
-            <div style={{ padding: '10px' }}>
-              <h3 style={{ color: '#FF6600', fontSize: '11px', margin: '0 0 5px 0', fontWeight: 'bold' }}>About me:</h3>
-              <p style={{ margin: '0 0 15px 0', fontSize: '11px' }}>{profile.about_me || 'Nothing written here yet.'}</p>
-              
-              <h3 style={{ color: '#FF6600', fontSize: '11px', margin: '0 0 5px 0', fontWeight: 'bold' }}>Who I'd like to meet:</h3>
-              <p style={{ margin: '0', fontSize: '11px' }}>{profile.meet || 'Looking for cool people using ProfileDig!'}</p>
+          {/* RIGHT COLUMN */}
+          <div style={styles.rightColumn}>
+            <div style={{ backgroundColor: '#ffe5d4', border: '1px solid #FF6600', padding: '8px', marginBottom: '15px', fontSize: '11px', fontWeight: 'bold' }}>
+              {profile.username} is in your Extended Network
             </div>
-          </div>
 
-          {/* Bulletins Section */}
-          <div style={styles.box}>
-            <h2 style={styles.orangeHeader}>{profile.username}'s Latest Bulletins</h2>
-            <div style={styles.contentPadding}>
-              {bulletins.length === 0 ? (
-                <p style={{ margin: 0, color: '#666666' }}>No active bulletins posted.</p>
-              ) : (
-                bulletins.map((bulletin) => (
-                  <div key={bulletin.id} style={{ borderBottom: '1px dotted #000000', paddingBottom: '5px', marginBottom: '5px' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <span style={{ fontWeight: 'bold', color: '#FF6600' }}>{bulletin.title}</span>
-                      {(currentUserId === activeProfileId || user?.id === activeProfileId) && (
-                        <button 
-                          onClick={() => handleDeleteBulletin(bulletin.id)}
-                          style={{ background: 'none', border: 'none', color: 'red', cursor: 'pointer', fontSize: '10px' }}
-                        >
-                          [x]
-                        </button>
-                      )}
-                    </div>
-                    <p style={{ margin: '3px 0 0 0' }}>{bulletin.body}</p>
-                  </div>
-                ))
-              )}
+            <div style={styles.box}>
+              <h2 style={styles.orangeHeader}>Profile Details</h2>
+              <table style={styles.table}>
+                <tbody>
+                  <tr><td style={styles.tableLabel}>Gender:</td><td style={styles.tableValue}>{profile.gender || 'Not specified'}</td></tr>
+                  <tr><td style={styles.tableLabel}>Birthday:</td><td style={styles.tableValue}>{profile.birthday || 'Not specified'}</td></tr>
+                </tbody>
+              </table>
             </div>
-          </div>
 
-          {/* Real MySpace-Style Blog Feed Box */}
-          <div style={styles.box}>
-            <h2 style={styles.orangeHeader}>{profile.username}'s Recent Blog Entries</h2>
-            <div style={styles.contentPadding}>
-              {blogs.length === 0 ? (
-                <p style={{ margin: 0, color: '#666666' }}>No blogs written yet.</p>
-              ) : (
-                blogs.map((post) => (
-                  <div key={post.id} style={{ marginBottom: '10px', paddingBottom: '5px', borderBottom: '1px dashed #CCCCCC' }}>
-                    <div style={{ fontWeight: 'bold', color: '#000000' }}>{post.title}</div>
-                    <div style={{ fontSize: '9px', color: '#666666', marginBottom: '4px' }}>Posted: {new Date(post.created_at).toLocaleDateString()}</div>
-                    <p style={{ margin: 0 }}>{post.content}</p>
-                  </div>
-                ))
-              )}
+            <div style={styles.box}>
+              <h2 style={styles.orangeHeader}>Bulletins</h2>
+              <div style={styles.contentPadding}>
+                {user?.id === activeProfileId && (
+                  <form onSubmit={async (e) => {
+                    e.preventDefault();
+                    const title = e.target.elements.t.value; const body = e.target.elements.b.value;
+                    const { data, error } = await supabase.from('bulletins').insert([{ user_id: user.id, title, body }]).select('*');
+                    if (!error) { setBulletins([data, ...bulletins]); e.target.reset(); fetchProfileData(); }
+                  }} style={{ marginBottom: '10px', background: '#ffe5d4', padding: '5px' }}>
+                    <input name="t" placeholder="Title" required style={{ width: '100%', marginBottom: '3px' }} />
+                    <textarea name="b" placeholder="Body" required style={{ width: '100%', height: '30px' }} />
+                    <button type="submit" style={styles.button}>Post Bulletin</button>
+                  </form>
+                )}
+                {bulletins.map(b => <div key={b.id} style={{ borderBottom: '1px dotted #ccc', padding: '4px' }}><b>{b.title}</b>: {b.body}</div>)}
+              </div>
             </div>
-          </div>
 
+            <div style={styles.box}>
+              <h2 style={styles.orangeHeader}>Blog Entries</h2>
+              <div style={styles.contentPadding}>
+                {user?.id === activeProfileId && (
+                  <form onSubmit={async (e) => {
+                    e.preventDefault();
+                    const title = e.target.elements.t.value; const content = e.target.elements.c.value;
+                    const { data, error } = await supabase.from('blogs').insert([{ author_id: user.id, title, content }]).select('*');
+                    if (!error) { setBlogs([data, ...blogs]); e.target.reset(); fetchProfileData(); }
+                  }} style={{ marginBottom: '10px', background: '#ffe5d4', padding: '5px' }}>
+                    <input name="t" placeholder="Blog Title" required style={{ width: '100%', marginBottom: '3px' }} />
+                    <textarea name="c" placeholder="Blog Content" required style={{ width: '100%', height: '30px' }} />
+                    <button type="submit" style={styles.button}>Publish Blog</button>
+                  </form>
+                )}
+                {blogs.map(bg => <div key={bg.id} style={{ borderBottom: '1px dashed #ccc', padding: '4px' }}><b>{bg.title}</b><p style={{ margin: '2px 0' }}>{bg.content}</p></div>)}
+              </div>
+            </div>
 
-                   {/* Dynamic Database Friends Space Box */}
-          <div style={styles.box}>
-            <h2 style={styles.orangeHeader}>{profile.username}'s Friend Space</h2>
-            <div style={styles.contentPadding}>
-              <p style={{ margin: '0 0 5px 0' }}><b>{profile.username} has <span style={{ color: '#FF6600' }}>{friends.length}</span> friends.</b></p>
-              {friends.length === 0 ? (
-                <p style={{ color: '#666666', fontStyle: 'italic', margin: '10px 0' }}>This user hasn't added any friends on ProfileDig yet.</p>
-              ) : (
+            <div style={styles.box}>
+              <h2 style={styles.orangeHeader}>Friend Space</h2>
+              <div style={styles.contentPadding}>
                 <div style={styles.friendGrid}>
-                  {friends.map((friend) => (
-                    <div key={friend.User_id} style={styles.friendCard}>
-                      <a href={`/profile/${friend.User_id}`} style={styles.orangeLink}>
-                        <div style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{friend.username || 'User'}</div>
-                        <img 
-                          src={friend.avatar_url || 'https://placehold.co'} 
-                          alt="friend avatar" 
-                          style={styles.friendImage} 
-                        />
+                  {friends.map(f => (
+                    <div key={f.User_id} style={styles.friendCard}>
+                      <a href={`/profile/${f.User_id}`} style={styles.orangeLink}>
+                        <div style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{f.username}</div>
+                        <img src={f.avatar_url || 'https://placehold.co'} alt="pic" style={styles.friendImage} />
                       </a>
                     </div>
                   ))}
                 </div>
-              )}
+              </div>
             </div>
-          </div>
 
-          {/* Interactive Comments Section */}
-          <div style={styles.box}>
-            <h2 style={styles.orangeHeader}>{profile.username}'s Comments</h2>
-            <div style={styles.contentPadding}>
-              {/* Comment submission form box */}
-              {(currentUserId || user?.id) ? (
-                <form onSubmit={handlePostComment} style={{ marginBottom: '15px', borderBottom: '1px solid #FF6600', paddingBottom: '10px' }}>
-                  <span style={{ display: 'block', fontWeight: 'bold', marginBottom: '4px' }}>Leave a comment:</span>
-                  <textarea 
-                    value={newComment} 
-                    onChange={(e) => setNewComment(e.target.value)} 
-                    placeholder="Write something retro..."
-                    style={styles.textarea}
-                    required
-                  />
-                  <button type="submit" style={styles.button}>Post Comment</button>
-                </form>
-              ) : (
-                <p style={{ color: '#666666', fontStyle: 'italic', margin: '0 0 10px 0' }}>Log in to leave a comment.</p>
-              )}
-
-              {/* Comments Feed list mapping */}
-              {comments.length === 0 ? (
-                <p style={{ margin: 0, color: '#666666' }}>Be the first to say something!</p>
-              ) : (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                  {comments.map((comment) => (
-                    <div key={comment.id} style={{ display: 'flex', gap: '10px', backgroundColor: '#ffe5d4', padding: '6px', border: '1px dashed #000000' }}>
-                      <div style={{ width: '70px', textAlign: 'center', flexShrink: 0 }}>
-                        <a href={`/profile/${comment.user_id}`} style={styles.orangeLink}>
-                          {comment.profiles?.username || 'User'}
-                        </a>
-                        <img 
-                          src={comment.profiles?.avatar_url || 'https://placehold.co'} 
-                          alt="avatar" 
-                          style={{ width: '60px', height: '60px', border: '1px solid #000000', objectFit: 'cover', marginTop: '3px' }}
-                        />
-                      </div>
-                      <div style={{ flexGrow: 1 }}>
-                        <div style={{ fontSize: '9px', color: '#666666', marginBottom: '3px' }}>
-                          {new Date(comment.created_at).toLocaleString()}
-                        </div>
-                        <div style={{ whiteSpace: 'pre-wrap' }}>{comment.content}</div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
+            <div style={styles.box}>
+              <h2 style={styles.orangeHeader}>Comments</h2>
+              <div style={styles.contentPadding}>
+                {(currentUserId || user?.id) && (
+                  <form onSubmit={handlePostComment} style={{ marginBottom: '10px' }}>
+                    <textarea value={newComment} onChange={e => setNewComment(e.target.value)} placeholder="Type comment..." style={styles.textarea} required />
+                    <button type="submit" style={styles.button}>Add Comment</button>
+                  </form>
+                )}
+                {comments.map(c => (
+                  <div key={c.id} style={{ display: 'flex', gap: '10px', background: '#ffe5d4', padding: '5px', marginBottom: '5px', border: '1px dashed #000' }}>
+                    <img src={c.profiles?.avatar_url || 'https://placehold.co'} alt="pic" style={{ width: '40px', height: '40px', objectFit: 'cover' }} />
+                    <div><b>{c.profiles?.username || 'User'}:</b> <p style={{ margin: 0 }}>{c.content}</p></div>
+                  </div>
+                ))}
+              </div>
             </div>
+
           </div>
-          
         </div>
       </div>
     </div>
