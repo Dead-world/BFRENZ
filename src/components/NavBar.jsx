@@ -31,7 +31,7 @@ export default function NavBar() {
           <>
             <a href="/dashboard" className="font-bold hover:text-orange-200">Dashboard</a>
             <a href={`/profile/${user.id}`} className="font-bold hover:text-orange-200">Profile</a>
-            <a href="/settings" className="font-bold hover:text-orange-200">Settings</a>
+            
 
             <button
               onClick={handleLogout}
