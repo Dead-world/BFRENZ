@@ -55,7 +55,8 @@ export default function App() {
       >
         <Route path="/profile/:id" element={<ProfilePage />} />
         <Route path="/friends" element={<FriendsPage />} />
-        <Route path="/messages" element={<MessagesPage />} />
+        <Route path="/messages/:id" element={<MessagesPage />} />
+
        <Route path="/dashboard" element={<Dashboard />} />
       </Route>
 
