@@ -311,16 +311,27 @@ export default function SettingsPage() {
           </form>
 
           {/* MP3 UPLOAD */}
-          <div className="mt-10">
-            <h3 className="text-xl font-bold text-orange-600 mb-2">Upload MP3 Song</h3>
+ export async function uploadSong(file: File) {
+  const fileName = `${crypto.randomUUID()}-${Date.now()}.mp3`;
 
-            <input
-              type="file"
-              accept="audio/mp3"
-              onChange={uploadSong}
-              className="text-black"
-            />
-          </div>
+  const { data, error } = await supabase.storage
+    .from("songs")
+    .upload(fileName, file, {
+      cacheControl: "3600",
+      upsert: false,
+      contentType: "audio/mpeg"
+    });
+
+  if (error) throw error;
+
+  const { data: urlData } = supabase.storage
+    .from("songs")
+    .getPublicUrl(fileName);
+
+  return urlData.publicUrl;
+}
+
+
 
           {/* AVATAR UPLOAD */}
           <div className="mt-10">

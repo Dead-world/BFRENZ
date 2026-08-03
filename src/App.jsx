@@ -8,8 +8,9 @@ import MessagesPage from "./pages/MessagesPage";
 import SettingsPage from "./pages/SettingsPage";
 import Dashboard from "./pages/Dashboard";
 import Notifications from "./components/Notifications";
-
-
+import BrowsePage from "./pages/BrowsePage";
+import MusicPage from "./pages/MusicPage";
+import VideosPage from "./pages/VideosPage.jsx";
 
 import { useAuth } from "./context/AuthContext";
 import { Navigate } from "react-router-dom";
@@ -39,6 +40,10 @@ export default function App() {
       <Route path="/" element={<LandingPage />} />
       <Route path="/login" element={<LoginPage />} />
       <Route path="/signup" element={<SignupPage />} />
+      <Route path="/browse" element={<BrowsePage />} />
+      <Route path="/music" element={<MusicPage />} />
+      <Route path="/videos" element={<VideosPage />} />
+
 
       {/* Protected routes */}
       <Route
