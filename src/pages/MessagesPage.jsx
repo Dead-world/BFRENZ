@@ -1,7 +1,7 @@
 // src/pages/MessagesPage.jsx
 import { useEffect, useState, useRef } from "react";
 import { supabase } from "../supabaseClient";
-import { useParams } from "react-router-dom";
+import { useParams, Link } from "react-router-dom";
 import Notifications from "../components/Notifications";
 
 export default function MessagesPage() {
@@ -9,6 +9,9 @@ export default function MessagesPage() {
   const [user, setUser] = useState(null);
   const [otherUser, setOtherUser] = useState(null);
   const [messages, setMessages] = useState([]);
+  const [isOtherTyping, setIsOtherTyping] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
+  const [showNewMessageModal, setShowNewMessageModal] = useState(false);
   const messageEndRef = useRef(null);
 
   // Load logged-in user
@@ -57,7 +60,39 @@ export default function MessagesPage() {
     loadMessages();
   }, [user, id]);
 
-  // Real-time subscription
+  // Mark messages as read
+  useEffect(() => {
+    if (!user) return;
+
+    async function markRead() {
+      await supabase
+        .from("messages")
+        .update({ read: true })
+        .eq("receiver_id", user.id)
+        .eq("sender_id", id);
+    }
+
+    markRead();
+  }, [user, id]);
+
+  // Load unread count for sidebar widget
+  useEffect(() => {
+    async function loadUnread() {
+      if (!user) return;
+
+      const { data } = await supabase
+        .from("messages")
+        .select("id")
+        .eq("receiver_id", user.id)
+        .eq("read", false);
+
+      setUnreadCount(data?.length || 0);
+    }
+
+    loadUnread();
+  }, [user]);
+
+  // Real-time subscription for messages
   useEffect(() => {
     if (!user) return;
 
@@ -69,6 +104,17 @@ export default function MessagesPage() {
         (payload) => {
           const m = payload.new;
 
+          // Push notification
+          if (
+            m.receiver_id === user.id &&
+            "Notification" in window &&
+            Notification.permission === "granted"
+          ) {
+            new Notification("New message on ProfileDig", {
+              body: m.content?.slice(0, 80) || "New message",
+            });
+          }
+
           if (
             (m.sender_id === user.id && m.receiver_id === id) ||
             (m.sender_id === id && m.receiver_id === user.id)
@@ -77,6 +123,23 @@ export default function MessagesPage() {
           }
         }
       )
+      .subscribe();
+
+    return () => supabase.removeChannel(channel);
+  }, [user, id]);
+
+  // Typing indicator subscription
+  useEffect(() => {
+    if (!user) return;
+
+    const channel = supabase
+      .channel("typing")
+      .on("broadcast", { event: "typing" }, (payload) => {
+        if (payload.payload.from === id && payload.payload.to === user.id) {
+          setIsOtherTyping(true);
+          setTimeout(() => setIsOtherTyping(false), 2000);
+        }
+      })
       .subscribe();
 
     return () => supabase.removeChannel(channel);
@@ -98,7 +161,21 @@ export default function MessagesPage() {
     });
   }
 
-  // ⭐ FIX: Add logout function
+  // Typing broadcast
+  function broadcastTyping() {
+    supabase.channel("typing").send({
+      type: "broadcast",
+      event: "typing",
+      payload: { from: user.id, to: id },
+    });
+  }
+
+  // Online/offline status
+  const isOnline =
+    otherUser?.last_online &&
+    Date.now() - new Date(otherUser.last_online).getTime() < 60000;
+
+  // Logout
   async function handleLogout() {
     await supabase.auth.signOut();
     setUser(null);
@@ -153,6 +230,14 @@ export default function MessagesPage() {
             )}
           </nav>
 
+          {/* Sidebar widget */}
+          <Link
+            to="/inbox"
+            className="bg-white text-black px-3 py-1 rounded hover:bg-orange-500 hover:text-white transition"
+          >
+            Inbox ({unreadCount})
+          </Link>
+
           <Notifications />
 
           {user && (
@@ -166,8 +251,6 @@ export default function MessagesPage() {
         </div>
       </header>
 
-
-
       {/* CHAT HEADER */}
       <div className="bg-white text-black p-4 border-b border-orange-600">
         <div className="flex items-center gap-4">
@@ -177,7 +260,9 @@ export default function MessagesPage() {
           />
           <div>
             <h2 className="text-xl font-bold">{otherUser.username}</h2>
-            <p className="text-sm text-gray-700">Chatting on ProfileDig</p>
+            <p className="text-sm text-gray-700">
+              {isOnline ? "🟢 Online" : "⚫ Offline"}
+            </p>
           </div>
         </div>
       </div>
@@ -199,9 +284,20 @@ export default function MessagesPage() {
               }`}
             >
               {m.content}
+
+              {/* Read receipts */}
+              {m.sender_id === user.id && (
+                <div className="text-xs mt-1 text-gray-400">
+                  {m.read ? "✓ Read" : "Sent"}
+                </div>
+              )}
             </div>
           </div>
         ))}
+
+        {isOtherTyping && (
+          <div className="text-gray-400 text-sm px-4">Typing...</div>
+        )}
 
         <div ref={messageEndRef}></div>
       </div>
@@ -221,6 +317,7 @@ export default function MessagesPage() {
             name="message"
             placeholder="Type a message..."
             className="flex-1 px-3 py-2 rounded bg-gray-200 text-black"
+            onChange={broadcastTyping}
           />
           <button className="bg-orange-600 text-white px-6 py-2 rounded hover:bg-orange-700">
             Send
