@@ -181,15 +181,16 @@ export default function ProfilePage() {
       content,
     })
     .select(`
-      id,
-      content,
-      created_at,
-      user_id,
-      profiles:User_id (
-        username,
-        avatar_url
-      )
-    `);
+  id,
+  content,
+  created_at,
+  user_id,
+  profiles:user_id (
+    username,
+    avatar_url
+  )
+`)
+
 
   if (error) {
     console.error("COMMENT INSERT ERROR:", error);
