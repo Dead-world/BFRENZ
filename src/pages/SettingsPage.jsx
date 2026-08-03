@@ -1,8 +1,6 @@
-// src/pages/SettingsPage.jsx
 import { useEffect, useState } from "react";
 import { supabase } from "../supabaseClient";
 import Notifications from "../components/Notifications";
-import { v4 as uuidv4 } from "uuid";
 
 export default function SettingsPage() {
   const [user, setUser] = useState(null);
@@ -51,7 +49,7 @@ export default function SettingsPage() {
       general_interests: form.get("general_interests"),
       music_interests: form.get("music_interests"),
       custom_html: form.get("custom_html"),
-      profile_song: form.get("profile_song"), // ⭐ NEW FIELD
+      profile_song: form.get("profile_song"),
     };
 
     const { error } = await supabase
@@ -97,296 +95,135 @@ export default function SettingsPage() {
     window.location.reload();
   }
 
- // Upload MP3 song
-async function uploadSong(e) {
-  const file = e.target.files[0];
-  if (!file) return;
+  // Upload MP3 song (FINAL WORKING VERSION)
+  async function uploadSong(e) {
+    const file = e.target.files[0];
+    if (!file) return;
 
-  // Generate a simple filename (safe for Vite + Vercel)
-  const fileName = `${user.id}-song-${Date.now()}.mp3`;
+    const fileName = `${user.id}-song-${Date.now()}.mp3`;
 
-  // Upload to Supabase
-  const { error } = await supabase.storage
-    .from("songs")
-    .upload(fileName, file);
+    const { error } = await supabase.storage
+      .from("songs")
+      .upload(fileName, file);
 
-  if (error) {
-    alert("Song upload failed.");
-    return;
+    if (error) {
+      alert("Song upload failed.");
+      return;
+    }
+
+    const { data: urlData } = supabase.storage
+      .from("songs")
+      .getPublicUrl(fileName);
+
+    await supabase
+      .from("profiles")
+      .update({ profile_song: urlData.publicUrl })
+      .eq("User_id", user.id);
+
+    alert("Profile song updated!");
   }
 
-  // Get public URL
-  const { data: urlData } = supabase.storage
-    .from("songs")
-    .getPublicUrl(fileName);
-
-  // Save URL to profile
-  await supabase
-    .from("profiles")
-    .update({ profile_song: urlData.publicUrl })
-    .eq("User_id", user.id);
-
-  alert("Profile song updated!");
-}
-
-  // Logout
-  async function handleLogout() {
-    await supabase.auth.signOut();
-    setUser(null);
-    window.location.href = "/";
-  }
-
-  if (!profile) {
-    return (
-      <div className="min-h-screen bg-black text-white flex items-center justify-center">
-        <p className="text-orange-500 text-xl font-bold">Loading settings...</p>
-      </div>
-    );
-  }
+  if (!profile) return <div className="p-10 text-orange-600">Loading...</div>;
 
   return (
-    <div className="min-h-screen bg-black text-white font-sans">
+    <main className="p-10 text-orange-600">
+      <Notifications />
 
-      {/* HEADER */}
-      <header className="bg-orange-600 text-white py-4 px-6 flex justify-between items-center">
-        <div className="flex items-center gap-4">
-          <h1 className="text-3xl font-bold">ProfileDig</h1>
+      <h1 className="text-3xl font-bold mb-6">Settings</h1>
 
-          {user && (
-            <div className="flex items-center gap-3">
-              <img
-                src={user.user_metadata?.avatar_url || "/default-avatar.png"}
-                alt="Profile"
-                className="w-10 h-10 rounded-full border border-white object-cover"
-              />
-
-              <span className="font-semibold">
-                Welcome, {user.user_metadata?.username || "Member"}
-              </span>
-            </div>
-          )}
+      <form onSubmit={saveChanges} className="space-y-6">
+        <div>
+          <label className="block font-bold">Username</label>
+          <input
+            name="username"
+            defaultValue={profile.username}
+            className="text-black w-full p-2 rounded"
+          />
         </div>
 
-        <div className="flex items-center gap-6">
-          <nav className="space-x-4 flex items-center">
-            <a href="/" className="hover:underline">Home</a>
-            <a href="/browse" className="hover:underline">Browse</a>
-            <a href="/music" className="hover:underline">Music</a>
-            <a href="/videos" className="hover:underline">Videos</a>
-            <a href="/blogs" className="hover:underline">Blogs</a>
-
-            {user && (
-              <>
-                <a href="/dashboard" className="hover:underline font-bold">Dashboard</a>
-                <a href={`/profile/${user.id}`} className="hover:underline">Profile</a>
-                <a href="/settings" className="hover:underline">Settings</a>
-              </>
-            )}
-          </nav>
-
-          <Notifications />
-
-          {user && (
-            <button
-              onClick={handleLogout}
-              className="bg-white text-black px-3 py-1 rounded hover:bg-orange-500 hover:text-white transition"
-            >
-              Logout
-            </button>
-          )}
+        <div>
+          <label className="block font-bold">Status</label>
+          <input
+            name="status"
+            defaultValue={profile.status}
+            className="text-black w-full p-2 rounded"
+          />
         </div>
-      </header>
 
-      {/* SETTINGS FORM */}
-      <main className="max-w-3xl mx-auto p-6">
-        <div className="bg-white text-black rounded p-6">
-          <h2 className="text-2xl font-bold text-orange-600 mb-4">Edit Profile</h2>
-
-          <form onSubmit={saveChanges} className="space-y-6">
-
-            {/* USERNAME */}
-            <div>
-              <label className="font-semibold">Username</label>
-              <input
-                name="username"
-                defaultValue={profile.username}
-                className="w-full px-3 py-2 rounded bg-gray-200 text-black"
-              />
-            </div>
-
-            {/* STATUS */}
-            <div>
-              <label className="font-semibold">Mood / Status</label>
-              <input
-                name="status"
-                defaultValue={profile.status}
-                className="w-full px-3 py-2 rounded bg-gray-200 text-black"
-              />
-            </div>
-
-            {/* STATUS MESSAGE */}
-            <div>
-              <label className="font-semibold">Status Message</label>
-              <input
-                name="status_message"
-                defaultValue={profile.status_message}
-                className="w-full px-3 py-2 rounded bg-gray-200 text-black"
-              />
-            </div>
-
-            {/* ABOUT ME */}
-            <div>
-              <label className="font-semibold">About Me</label>
-              <textarea
-                name="about_me"
-                defaultValue={profile.about_me}
-                className="w-full px-3 py-2 rounded bg-gray-200 text-black h-24"
-              />
-            </div>
-
-            {/* WHO I'D LIKE TO MEET */}
-            <div>
-              <label className="font-semibold">Who I'd Like to Meet</label>
-              <textarea
-                name="meet"
-                defaultValue={profile.meet}
-                className="w-full px-3 py-2 rounded bg-gray-200 text-black h-24"
-              />
-            </div>
-
-            {/* GENERAL INTERESTS */}
-            <div>
-              <label className="font-semibold">General Interests</label>
-              <textarea
-                name="general_interests"
-                defaultValue={profile.general_interests}
-                className="w-full px-3 py-2 rounded bg-gray-200 text-black h-24"
-              />
-            </div>
-
-            {/* MUSIC INTERESTS */}
-            <div>
-              <label className="font-semibold">Music Interests</label>
-              <textarea
-                name="music_interests"
-                defaultValue={profile.music_interests}
-                className="w-full px-3 py-2 rounded bg-gray-200 text-black h-24"
-              />
-            </div>
-
-            {/* CUSTOM HTML */}
-            <div>
-              <label className="font-semibold text-orange-600 text-lg">
-                Custom Profile Code (HTML / CSS)
-              </label>
-
-              <textarea
-                name="custom_html"
-                defaultValue={profile.custom_html || ""}
-                className="w-full px-3 py-2 rounded bg-gray-200 text-black h-48 font-mono"
-                placeholder="<style>body { background: url('glitter.gif'); }</style>"
-              />
-            </div>
-
-            {/* ⭐ PROFILE SONG URL */}
-            <div>
-              <label className="font-semibold text-orange-600 text-lg">
-                Profile Song (YouTube, SoundCloud, MP3)
-              </label>
-
-              <input
-                name="profile_song"
-                defaultValue={profile.profile_song || ""}
-                className="w-full px-3 py-2 rounded bg-gray-200 text-black"
-                placeholder="Paste a YouTube link, SoundCloud link, or MP3 URL"
-              />
-
-              <p className="text-xs text-gray-600 mt-1">
-                Example: https://www.youtube.com/watch?v=dQw4w9WgXcQ
-              </p>
-            </div>
-
-            {/* SAVE BUTTON */}
-            <button
-              disabled={saving}
-              className="bg-orange-600 text-white px-6 py-2 rounded hover:bg-orange-700"
-            >
-              {saving ? "Saving..." : "Save Changes"}
-            </button>
-          </form>
-
-         {/* MP3 UPLOAD */}
-<div className="mt-10">
-  <h3 className="text-xl font-bold text-orange-600 mb-2">Upload Song</h3>
-
-  <input
-    type="file"
-    accept="audio/*"
-    onChange={async (e) => {
-      const file = e.target.files?.[0];
-      if (!file) return;
-
-      try {
-        const url = await uploadSong(file);
-        console.log("Uploaded song URL:", url);
-      } catch (error) {
-        console.error("Error uploading song:", error);
-      }
-    }}
-    className="text-black"
-  />
-</div>
-
+        <div>
+          <label className="block font-bold">Status Message</label>
+          <input
+            name="status_message"
+            defaultValue={profile.status_message}
+            className="text-black w-full p-2 rounded"
+          />
         </div>
-      </main>
 
-      {/* FOOTER */}
-      <footer className="bg-orange-600 text-black text-center py-3 mt-6">
-        © {new Date().getFullYear()} ProfileDig — Customize Your World
-      </footer>
-    </div>
-  );
-}
-
-      cacheControl: "3600",
-      upsert: false,
-      contentType: "audio/mpeg"
-    });
-
-  if (error) throw error;
-
-  const { data: urlData } = supabase.storage
-    .from("songs")
-    .getPublicUrl(fileName);
-
-  return urlData.publicUrl;
-}
-
-
-
-          {/* AVATAR UPLOAD */}
-          <div className="mt-10">
-            <h3 className="text-xl font-bold text-orange-600 mb-2">Avatar</h3>
-
-            <img
-              src={profile.avatar_url || "/default-avatar.png"}
-              className="w-32 h-32 rounded border-2 border-orange-600 mb-3"
-            />
-
-            <input
-              type="file"
-              accept="image/*"
-              onChange={uploadAvatar}
-              className="text-black"
-            />
-          </div>
+        <div>
+          <label className="block font-bold">About Me</label>
+          <textarea
+            name="about_me"
+            defaultValue={profile.about_me}
+            className="text-black w-full p-2 rounded"
+          />
         </div>
-      </main>
 
-      {/* FOOTER */}
-      <footer className="bg-orange-600 text-black text-center py-3 mt-6">
-        © {new Date().getFullYear()} ProfileDig — Customize Your World
-      </footer>
-    </div>
+        <div>
+          <label className="block font-bold">Meet</label>
+          <textarea
+            name="meet"
+            defaultValue={profile.meet}
+            className="text-black w-full p-2 rounded"
+          />
+        </div>
+
+        <div>
+          <label className="block font-bold">General Interests</label>
+          <textarea
+            name="general_interests"
+            defaultValue={profile.general_interests}
+            className="text-black w-full p-2 rounded"
+          />
+        </div>
+
+        <div>
+          <label className="block font-bold">Music Interests</label>
+          <textarea
+            name="music_interests"
+            defaultValue={profile.music_interests}
+            className="text-black w-full p-2 rounded"
+          />
+        </div>
+
+        <div>
+          <label className="block font-bold">Custom HTML</label>
+          <textarea
+            name="custom_html"
+            defaultValue={profile.custom_html}
+            className="text-black w-full p-2 rounded"
+          />
+        </div>
+
+        <button
+          type="submit"
+          disabled={saving}
+          className="bg-orange-600 text-white px-4 py-2 rounded"
+        >
+          {saving ? "Saving..." : "Save Changes"}
+        </button>
+      </form>
+
+      {/* Avatar Upload */}
+      <div className="mt-10">
+        <h3 className="text-xl font-bold mb-2">Upload Avatar</h3>
+        <input type="file" accept="image/*" onChange={uploadAvatar} />
+      </div>
+
+      {/* MP3 Upload */}
+      <div className="mt-10">
+        <h3 className="text-xl font-bold mb-2">Upload Song</h3>
+        <input type="file" accept="audio/*" onChange={uploadSong} />
+      </div>
+    </main>
   );
 }
