@@ -35,16 +35,10 @@ export default function LandingPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
-  // Logged-in user
   const [user, setUser] = useState(null);
 
-  // Dynamic Videos
   const [videos, setVideos] = useState([]);
-
-  // Featured Artist
   const [artist, setArtist] = useState(null);
-
-  // Rotating Featured Users
   const [featuredUsers, setFeaturedUsers] = useState([]);
   const [index, setIndex] = useState(0);
 
@@ -121,65 +115,15 @@ export default function LandingPage() {
       {/* MAIN CONTENT */}
       <main className="flex-grow max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-4 p-4">
 
-        {/* LEFT COLUMN */}
+        {/* LEFT COLUMN — MUSIC */}
         <section className="space-y-4">
-
-          {/* Categories */}
-          <div className="border border-orange-600 bg-black p-3 text-sm text-white">
-            <h3 className="font-bold text-orange-400 mb-2">Explore</h3>
-            <div className="grid grid-cols-2 gap-1">
-              {[
-                "Books",
-                "Comedy",
-                "Filmmakers",
-                "Jobs",
-                "MySpaceIM",
-                "Schools",
-                "TV On Demand",
-                "Blogs",
-                "ChatRooms",
-                "Classifieds",
-                "Games",
-                "Horoscopes",
-                "Movies",
-                "Music",
-                "Music Videos",
-                "Videos",
-              ].map((item) => (
-                <span key={item} className="hover:text-orange-400 cursor-pointer">
-                  {item}
-                </span>
-              ))}
-            </div>
-          </div>
-
-          {/* Movies */}
-          <div className="border border-orange-600 bg-black p-3 text-white">
-            <h3 className="font-bold text-orange-400 mb-2">ProfileDig Movies</h3>
-            <ul className="text-sm list-disc list-inside">
-              <li>Find Movie Showtimes</li>
-              <li>Read Movie News</li>
-              <li>Get Movie Tickets</li>
-            </ul>
-            <button className="mt-3 bg-orange-600 text-black font-bold px-3 py-1 rounded hover:bg-orange-400 transition">
-              Check Out Movies Now
-            </button>
-          </div>
-        </section>
-
-        {/* CENTER COLUMN */}
-        <section className="space-y-4">
-
-          {/* Featured Artist */}
           <div className="border border-orange-600 bg-black p-3 text-white">
             <h3 className="font-bold text-orange-400 mb-2">ProfileDig Music</h3>
 
-            {artist && (
+            {artist ? (
               <div className="bg-orange-600 text-black p-2 rounded">
                 <h4 className="font-bold">Featured Artist: {artist.name}</h4>
-                <p className="text-sm mt-1">
-                  {artist.genre} — {artist.location}
-                </p>
+                <p className="text-sm mt-1">{artist.genre} — {artist.location}</p>
                 <p className="text-xs mt-2">{artist.description}</p>
 
                 <button
@@ -189,22 +133,39 @@ export default function LandingPage() {
                   ▶ Listen Now
                 </button>
               </div>
+            ) : (
+              <p className="text-sm text-gray-400">Loading artist...</p>
             )}
           </div>
+        </section>
 
-          {/* Specials */}
+        {/* CENTER COLUMN — VIDEOS */}
+        <section className="space-y-4">
           <div className="border border-orange-600 bg-black p-3 text-white">
-            <h3 className="font-bold text-orange-400 mb-2">ProfileDig Specials</h3>
-            <p className="text-sm">
-              Discover exclusive content, community events, and featured creators.
+            <h3 className="font-bold text-orange-400 mb-2">ProfileDig Videos</h3>
+
+            <div className="grid grid-cols-2 gap-2 text-sm text-white">
+              {videos.map((v) => (
+                <div
+                  key={v.id}
+                  className="bg-orange-600 text-black rounded p-2 hover:bg-orange-400 transition cursor-pointer"
+                  onClick={() => window.location.href = v.video_url}
+                >
+                  {v.title}
+                </div>
+              ))}
+            </div>
+
+            <p className="text-xs mt-2 text-orange-400">
+              {videos.length} featured today!
             </p>
           </div>
         </section>
 
-        {/* RIGHT COLUMN */}
+        {/* RIGHT COLUMN — LOGIN + COOL NEW PEOPLE */}
         <aside className="space-y-4">
 
-          {/* Member Login — ONLY when logged OUT */}
+          {/* Member Login — only when logged OUT */}
           {!user && (
             <div className="border border-orange-600 bg-black p-3 text-white">
               <h3 className="font-bold text-orange-400 mb-2">Member Login</h3>
@@ -258,7 +219,7 @@ export default function LandingPage() {
             </div>
           )}
 
-          {/* Rotating Featured Users */}
+          {/* Cool New People */}
           <div className="border border-orange-600 bg-black p-3 text-white">
             <h3 className="font-bold text-orange-400 mb-2">Cool New People</h3>
 
@@ -273,20 +234,6 @@ export default function LandingPage() {
                 </p>
               </div>
             )}
-          </div>
-
-          {/* Videos */}
-          <div className="border border-orange-600 bg-black p-3 text-white">
-            <h3 className="font-bold text-orange-400 mb-2">Videos</h3>
-            <div className="bg-orange-600 text-black p-2 rounded">
-              <h4 className="font-bold">Kiwi</h4>
-              <p className="text-xs mt-1">
-                Created using Maya, After Effects, and rigged with The Setup Machine.
-              </p>
-              <button className="mt-2 bg-black text-orange-500 px-3 py-1 rounded hover:bg-orange-400 hover:text-black transition">
-                ▶ Watch It Now
-              </button>
-            </div>
           </div>
         </aside>
       </main>
