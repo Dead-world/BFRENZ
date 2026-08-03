@@ -185,7 +185,7 @@ export default function ProfilePage() {
   const isYouTube =
     songURL.includes("youtube.com") || songURL.includes("youtu.be");
   const isSoundCloud = songURL.includes("soundcloud.com");
-  const isMP3 = songURL.endsWith(".mp3");
+ const isMP3 = songURL.includes(".mp3");
 
   return (
     <div className="min-h-screen bg-black text-orange-500 font-[Verdana]">

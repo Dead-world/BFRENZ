@@ -80,7 +80,7 @@ export default function Dashboard() {
       custom_css: form.get("custom_css"),
       youtube_url: form.get("youtube_url"),
       avatar_url,
-      profile_song: mp3_url, // 👈 change this line
+      mp3_url, 
     };
 
     await supabase
