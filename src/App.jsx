@@ -1,27 +1,28 @@
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, Navigate } from "react-router-dom";
+
 import LandingPage from "./pages/LandingPage";
 import LoginPage from "./pages/LoginPage";
 import SignupPage from "./pages/SignupPage";
+import BrowsePage from "./pages/BrowsePage";
+import MusicPage from "./pages/MusicPage";
+import VideosPage from "./pages/VideosPage";
+
 import ProfilePage from "./pages/ProfilePage";
 import FriendsPage from "./pages/FriendsPage";
 import MessagesPage from "./pages/MessagesPage";
 import SettingsPage from "./pages/SettingsPage";
 import Dashboard from "./pages/Dashboard";
-import Notifications from "./components/Notifications";
-import BrowsePage from "./pages/BrowsePage";
-import MusicPage from "./pages/MusicPage";
-import VideosPage from "./pages/VideosPage.jsx";
 
+import MainLayout from "./layouts/MainLayout";
 import { useAuth } from "./context/AuthContext";
-import { Navigate } from "react-router-dom";
 
 function ProtectedRoute({ children }) {
   const { user, loading } = useAuth();
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background text-text flex items-center justify-center">
-        <p className="text-primary text-xl font-bold">Loading...</p>
+      <div className="min-h-screen bg-black text-orange-500 flex items-center justify-center">
+        <p className="text-xl font-bold">Loading...</p>
       </div>
     );
   }
@@ -36,7 +37,8 @@ function ProtectedRoute({ children }) {
 export default function App() {
   return (
     <Routes>
-      {/* Public routes */}
+
+      {/* PUBLIC ROUTES */}
       <Route path="/" element={<LandingPage />} />
       <Route path="/login" element={<LoginPage />} />
       <Route path="/signup" element={<SignupPage />} />
@@ -44,54 +46,24 @@ export default function App() {
       <Route path="/music" element={<MusicPage />} />
       <Route path="/videos" element={<VideosPage />} />
 
-
-      {/* Protected routes */}
+      {/* AUTHENTICATED ROUTES WITH MAIN LAYOUT */}
       <Route
-        path="/profile/:id"
         element={
           <ProtectedRoute>
-            <ProfilePage />
+            <MainLayout />
           </ProtectedRoute>
         }
-      />
+      >
+        <Route path="/profile/:id" element={<ProfilePage />} />
+        <Route path="/friends" element={<FriendsPage />} />
+        <Route path="/messages" element={<MessagesPage />} />
+        <Route path="/settings" element={<SettingsPage />} />
+        <Route path="/dashboard" element={<Dashboard />} />
+      </Route>
 
-      <Route
-        path="/friends"
-        element={
-          <ProtectedRoute>
-            <FriendsPage />
-          </ProtectedRoute>
-        }
-      />
-
-      <Route
-        path="/messages"
-        element={
-          <ProtectedRoute>
-            <MessagesPage />
-          </ProtectedRoute>
-        }
-      />
-
-      <Route
-        path="/settings"
-        element={
-          <ProtectedRoute>
-            <SettingsPage />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/dashboard"
-        element={
-          <ProtectedRoute>
-            <Dashboard />
-          </ProtectedRoute>
-        }
-      />
-
-      {/* Catch-all */}
+      {/* CATCH-ALL */}
       <Route path="*" element={<Navigate to="/" replace />} />
+
     </Routes>
   );
 }
