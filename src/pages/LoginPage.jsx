@@ -1,91 +1,157 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { supabase } from "../supabaseClient";
-import Notifications from "../components/Notifications";
+import { Link, useNavigate } from "react-router-dom";
+import NavBar from "../components/NavBar";
 
-export default function LoginPage() {
+export default function LandingPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
+  const [user, setUser] = useState(null);
+  const [featuredUsers, setFeaturedUsers] = useState([]);
+  const [index, setIndex] = useState(0);
+  const navigate = useNavigate();
+
+  // Load logged-in user
+  useEffect(() => {
+    async function loadUser() {
+      const { data } = await supabase.auth.getUser();
+      setUser(data.user);
+    }
+    loadUser();
+  }, []);
+
+  // Load featured users
+  useEffect(() => {
+    async function loadUsers() {
+      const { data } = await supabase
+        .from("profiles")
+        .select("username, avatar_url")
+        .limit(10);
+      if (data) setFeaturedUsers(data);
+    }
+    loadUsers();
+  }, []);
+
+  // Rotate featured users
+  useEffect(() => {
+    if (featuredUsers.length === 0) return;
+    const interval = setInterval(() => {
+      setIndex((prev) => (prev + 1) % featuredUsers.length);
+    }, 3000);
+    return () => clearInterval(interval);
+  }, [featuredUsers]);
 
   async function handleLogin(e) {
     e.preventDefault();
-
-    if (!email || !password) {
-      setError("Email and password are required.");
-      return;
-    }
-
-    const { error: loginError } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
-
-    if (loginError) {
-      setError(loginError.message);
-      return;
-    }
-
-    window.location.href = "/dashboard";
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    if (error) alert(error.message);
+    else window.location.href = "/dashboard";
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-gradient-to-b from-black via-gray-900 to-black text-white font-sans">
-      {/* HEADER */}
-      <header className="bg-orange-600 text-white py-4 px-6 flex justify-between items-center shadow-lg">
-        <h1 className="text-3xl font-bold tracking-wide">ProfileDig</h1>
-        <Notifications />
-      </header>
+    <div className="flex flex-col min-h-screen bg-gradient-to-b from-black via-[#0a0a0a] to-[#1a1a1a] text-white font-[Verdana]">
+      {/* NAVBAR */}
+      <NavBar />
 
-      {/* MAIN LOGIN CARD */}
-      <main className="flex-grow flex items-center justify-center p-6">
-        <div className="bg-gray-950 border border-orange-600 rounded-xl shadow-2xl p-8 w-full max-w-md">
-          <h2 className="text-2xl font-bold text-center mb-6 text-orange-500">
-            Member Login
-          </h2>
+      {/* MAIN CONTENT */}
+      <main className="flex-grow flex flex-col items-center justify-center text-center px-4">
+        {/* INTRO */}
+        <h1 className="text-3xl font-bold text-orange-500 mb-2">
+          A Modern Spin on the Classic MySpace
+        </h1>
+        <p className="text-sm text-gray-300 leading-relaxed max-w-xl mb-10">
+          Customize your profile, share your vibe, and connect through music, videos, and creativity.
+          ProfileDig brings back the nostalgia — with a fresh, modern twist.
+        </p>
 
-          <form onSubmit={handleLogin} className="space-y-4">
-            <input
-              type="email"
-              placeholder="Email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="w-full px-3 py-2 rounded bg-white text-black border border-orange-600 focus:outline-none focus:ring-2 focus:ring-orange-500 transition"
-            />
+        {/* LOGIN BOX — disappears when logged in */}
+        {!user && (
+          <div className="bg-[#0f0f0f] border border-orange-600 rounded-lg p-6 w-80 text-center shadow-lg mb-10">
+            <h2 className="text-orange-500 font-bold mb-3">Member Login</h2>
 
-            <input
-              type="password"
-              placeholder="Password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full px-3 py-2 rounded bg-white text-black border border-orange-600 focus:outline-none focus:ring-2 focus:ring-orange-500 transition"
-            />
+            <form onSubmit={handleLogin} className="space-y-3 text-sm">
+              <input
+                type="email"
+                placeholder="Email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="w-full p-2 rounded bg-gray-200 text-black"
+              />
+              <input
+                type="password"
+                placeholder="Password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="w-full p-2 rounded bg-gray-200 text-black"
+              />
+              <button
+                type="submit"
+                className="w-full bg-orange-600 text-black font-bold py-2 rounded hover:bg-orange-400 transition"
+              >
+                Login
+              </button>
+            </form>
 
+            <p className="text-xs mt-3 text-gray-400">
+              Don’t have an account?{" "}
+              <Link to="/signup" className="text-orange-400 hover:text-orange-300 font-bold">
+                Sign up here
+              </Link>
+            </p>
+          </div>
+        )}
+
+        {/* COOL NEW PEOPLE */}
+        <div className="mb-10">
+          <h3 className="text-orange-400 font-bold mb-3">Cool New People</h3>
+          {featuredUsers.length > 0 ? (
+            <div className="flex flex-col items-center gap-3">
+              <img
+                src={featuredUsers[index].avatar_url}
+                alt="User avatar"
+                className="w-16 h-16 rounded border border-orange-600"
+              />
+              <p className="text-lg font-bold text-orange-400">
+                {featuredUsers[index].username}
+              </p>
+            </div>
+          ) : (
+            <p className="text-sm text-gray-400">Loading users...</p>
+          )}
+        </div>
+
+        {/* MUSIC + VIDEOS */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl w-full">
+          <div className="border border-orange-600 bg-black p-4 rounded text-white">
+            <h3 className="font-bold text-orange-400 mb-2">ProfileDig Music</h3>
+            <p className="text-sm text-gray-300">
+              Stream tracks from independent artists and share your own playlists.
+            </p>
             <button
-              type="submit"
-              className="w-full bg-orange-600 hover:bg-orange-700 text-white font-semibold py-2 rounded transition-transform transform hover:scale-[1.02]"
+              onClick={() => navigate("/music")}
+              className="mt-3 bg-orange-600 text-black font-bold px-3 py-1 rounded hover:bg-orange-400 transition"
             >
-              Login
+              ▶ Explore Music
             </button>
+          </div>
 
-            {error && (
-              <p className="text-red-500 text-sm text-center mt-2">{error}</p>
-            )}
-          </form>
-
-          <div className="text-center mt-6 text-sm text-gray-400">
-            Don’t have an account?{" "}
-            <a
-              href="/signup"
-              className="text-orange-500 hover:underline font-semibold"
+          <div className="border border-orange-600 bg-black p-4 rounded text-white">
+            <h3 className="font-bold text-orange-400 mb-2">ProfileDig Videos</h3>
+            <p className="text-sm text-gray-300">
+              Watch creative videos, short films, and community highlights — all in one place.
+            </p>
+            <button
+              onClick={() => navigate("/videos")}
+              className="mt-3 bg-orange-600 text-black font-bold px-3 py-1 rounded hover:bg-orange-400 transition"
             >
-              Sign up here
-            </a>
+              ▶ Watch Videos
+            </button>
           </div>
         </div>
       </main>
 
       {/* FOOTER */}
-      <footer className="bg-orange-600 text-black text-center py-3 text-sm">
+      <footer className="bg-orange-600 text-black text-center py-3 text-xs border-t border-orange-400">
         © {new Date().getFullYear()} ProfileDig — A Place for Friends
       </footer>
     </div>
