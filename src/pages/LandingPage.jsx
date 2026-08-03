@@ -1,4 +1,4 @@
-iimport { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { supabase } from "../supabaseClient";
 import NavBar from "../components/NavBar";
@@ -121,8 +121,7 @@ export default function LandingPage() {
 
       {/* MAIN CONTENT */}
       <main className="flex-grow max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-4 p-4">
-
-
+        <section className="space-y-4">
           {/* Categories */}
           <div className="border border-orange-600 bg-black p-3 text-sm text-white">
             <h3 className="font-bold text-orange-400 mb-2">Explore</h3>
