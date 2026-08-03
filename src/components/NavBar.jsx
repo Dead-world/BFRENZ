@@ -1,32 +1,27 @@
-import Notifications from "./Notifications";
-
-export default function NavBar({ user }) {
+export default function NavBar() {
   return (
-    <header className="bg-orange-600 text-white py-4 px-4 flex flex-wrap justify-between items-center gap-4 shadow-lg">
-      <div className="flex items-center gap-3">
-        <img 
-  src="/ProfileDigLogo.png" 
-  alt="ProfileDig Logo" 
-  className="h-28 object-contain"
-/>
-
-
-  
+    <nav className="bg-orange-600 border-b border-orange-400 p-3 text-black flex justify-between items-center">
+      <div className="flex items-center gap-2">
+        <img
+          src="/ProfileDigLogo.png"
+          alt="ProfileDig Logo"
+          className="h-12 md:h-16 object-contain"
+        />
       </div>
 
-      <div className="flex flex-wrap items-center gap-4 w-full md:w-auto">
-        <nav className="flex flex-wrap gap-3 text-sm md:text-base">
-          <a href="/" className="hover:underline">Home</a>
-          <a href="/browse" className="hover:underline">Browse</a>
-          <a href="/music" className="hover:underline">Music</a>
-          <a href="/videos" className="hover:underline">Videos</a>
-          <a href="/blogs" className="hover:underline">Blogs</a>
-          <a href="/dashboard" className="hover:underline">Dashboard</a>
-          <a href={`/profile/${user?.id}`} className="hover:underline">Profile</a>
-        </nav>
-
-        <Notifications />
+      <div className="flex gap-4">
+        <a href="/home" className="font-bold hover:text-orange-200">Home</a>
+        <a href="/browse" className="font-bold hover:text-orange-200">Browse</a>
+        <a href="/music" className="font-bold hover:text-orange-200">Music</a>
+        <a href="/videos" className="font-bold hover:text-orange-200">Videos</a>
+        <a href="/blogs" className="font-bold hover:text-orange-200">Blogs</a>
+        <a href="/dashboard" className="font-bold hover:text-orange-200">Dashboard</a>
+        <a href="/profile" className="font-bold hover:text-orange-200">Profile</a>
+        <a href="/settings" className="font-bold hover:text-orange-200">Settings</a>
+        <button className="bg-white text-black font-bold px-3 py-1 rounded hover:bg-orange-200">
+          Logout
+        </button>
       </div>
-    </header>
+    </nav>
   );
 }
