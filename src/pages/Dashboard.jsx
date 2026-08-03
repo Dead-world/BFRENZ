@@ -13,7 +13,7 @@ export default function Dashboard() {
       const { data } = await supabase
         .from("profiles")
         .select("*")
-        .eq("User_id", user.id)
+        .eq("user_id", user.id)
         .single();
 
       setProfile(data);
@@ -86,7 +86,7 @@ export default function Dashboard() {
     await supabase
       .from("profiles")
       .update(updates)
-      .eq("User_id", user.id);
+      .eq("user_id", user.id);
 
     setSaving(false);
     alert("Dashboard updated!");
