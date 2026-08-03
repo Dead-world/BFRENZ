@@ -97,33 +97,37 @@ export default function SettingsPage() {
     window.location.reload();
   }
 
-  // Upload MP3 song
-  async function uploadSong(e) {
-    const file = e.target.files[0];
-    if (!file) return;
+ // Upload MP3 song
+async function uploadSong(e) {
+  const file = e.target.files[0];
+  if (!file) return;
 
-    const fileName = `${user.id}-song-${Date.now()}.mp3`;
+  // Generate a simple filename (safe for Vite + Vercel)
+  const fileName = `${user.id}-song-${Date.now()}.mp3`;
 
-    const { error } = await supabase.storage
-      .from("songs")
-      .upload(fileName, file);
+  // Upload to Supabase
+  const { error } = await supabase.storage
+    .from("songs")
+    .upload(fileName, file);
 
-    if (error) {
-      alert("Song upload failed.");
-      return;
-    }
-
-    const { data: urlData } = supabase.storage
-      .from("songs")
-      .getPublicUrl(fileName);
-
-    await supabase
-      .from("profiles")
-      .update({ profile_song: urlData.publicUrl })
-      .eq("User_id", user.id);
-
-    alert("Profile song updated!");
+  if (error) {
+    alert("Song upload failed.");
+    return;
   }
+
+  // Get public URL
+  const { data: urlData } = supabase.storage
+    .from("songs")
+    .getPublicUrl(fileName);
+
+  // Save URL to profile
+  await supabase
+    .from("profiles")
+    .update({ profile_song: urlData.publicUrl })
+    .eq("User_id", user.id);
+
+  alert("Profile song updated!");
+}
 
   // Logout
   async function handleLogout() {
