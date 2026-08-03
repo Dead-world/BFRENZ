@@ -170,21 +170,37 @@ export default function ProfilePage() {
 
   // Post comment
   async function postComment(e) {
-    e.preventDefault();
-    const content = e.target.comment.value;
+  e.preventDefault();
+  const content = e.target.comment.value;
 
-    const { data } = await supabase
-      .from("comments")
-      .insert({
-        user_id: currentUser.id,
-        profile_id: id,
-        content,
-      })
-      .select("*, profiles:user_id(username, avatar_url)");
+  const { data, error } = await supabase
+    .from("comments")
+    .insert({
+      user_id: currentUser.id,
+      profile_id: id,
+      content,
+    })
+    .select(`
+      id,
+      content,
+      created_at,
+      user_id,
+      profiles:User_id (
+        username,
+        avatar_url
+      )
+    `);
 
-    if (data) setComments((prev) => [...prev, data[0]]);
-    e.target.reset();
+  if (error) {
+    console.error("COMMENT INSERT ERROR:", error);
+    alert("Comment failed: " + error.message);
+    return;
   }
+
+  setComments((prev) => [...prev, data[0]]);
+  e.target.reset();
+}
+
 
   if (!profile) {
     return (
