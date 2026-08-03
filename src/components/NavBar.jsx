@@ -7,7 +7,7 @@ export default function NavBar({ user }) {
         <img 
   src="/ProfileDigLogo.png" 
   alt="ProfileDig Logo" 
-  className="h-20 object-contain"
+  className="h-28 object-contain"
 />
 
 
