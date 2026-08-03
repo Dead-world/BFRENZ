@@ -1,10 +1,48 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { supabase } from "../supabaseClient";
+
+// Sparkles overlay
+function Sparkles() {
+  const sparkles = Array.from({ length: 20 });
+
+  return (
+    <div className="absolute inset-0 pointer-events-none">
+      {sparkles.map((_, i) => (
+        <div
+          key={i}
+          className="sparkle"
+          style={{
+            position: "absolute",
+            width: "4px",
+            height: "4px",
+            background: "white",
+            borderRadius: "50%",
+            top: `${Math.random() * 100}%`,
+            left: `${Math.random() * 100}%`,
+            animation: "sparkle 1.5s infinite ease-in-out",
+            animationDelay: `${Math.random() * 2}s`,
+            opacity: 0.8,
+          }}
+        />
+      ))}
+    </div>
+  );
+}
 
 export default function LandingPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+
+  // Dynamic Videos
+  const [videos, setVideos] = useState([]);
+
+  // Featured Artist
+  const [artist, setArtist] = useState(null);
+
+  // Rotating Featured Users
+  const [featuredUsers, setFeaturedUsers] = useState([]);
+  const [index, setIndex] = useState(0);
 
   async function handleLogin(e) {
     e.preventDefault();
@@ -13,11 +51,61 @@ export default function LandingPage() {
     else window.location.href = "/dashboard";
   }
 
+  // Load Videos
+  useEffect(() => {
+    async function loadVideos() {
+      const { data } = await supabase.from("videos").select("*").limit(4);
+      if (data) setVideos(data);
+    }
+    loadVideos();
+  }, []);
+
+  // Load Featured Artist
+  useEffect(() => {
+    async function loadArtist() {
+      const { data } = await supabase
+        .from("artists")
+        .select("*")
+        .order("id", { ascending: false })
+        .limit(1)
+        .single();
+
+      setArtist(data);
+    }
+    loadArtist();
+  }, []);
+
+  // Load Featured Users
+  useEffect(() => {
+    async function loadUsers() {
+      const { data } = await supabase
+        .from("profiles")
+        .select("username, avatar_url")
+        .limit(10);
+
+      if (data) setFeaturedUsers(data);
+    }
+    loadUsers();
+  }, []);
+
+  // Auto-rotate users
+  useEffect(() => {
+    if (featuredUsers.length === 0) return;
+
+    const interval = setInterval(() => {
+      setIndex((prev) => (prev + 1) % featuredUsers.length);
+    }, 3000);
+
+    return () => clearInterval(interval);
+  }, [featuredUsers]);
+
   return (
     <div className="min-h-screen w-full bg-black text-orange-500 font-[Verdana] flex flex-col">
 
       {/* HEADER */}
-      <header className="bg-orange-600 text-black border-b border-orange-400">
+      <header className="relative bg-orange-600 text-black border-b border-orange-400">
+        <Sparkles />
+
         <div className="max-w-6xl mx-auto flex justify-between items-center p-3">
           <h1 className="text-3xl font-bold">ProfileDig</h1>
           <p className="italic text-sm">a place for friends</p>
@@ -54,26 +142,22 @@ export default function LandingPage() {
 
           {/* Cool New Videos */}
           <div className="border border-orange-600 bg-black p-3">
-            <h2 className="text-lg font-bold mb-2 text-orange-400">
-              Cool New Videos
-            </h2>
+            <h2 className="text-lg font-bold mb-2 text-orange-400">Cool New Videos</h2>
+
             <div className="grid grid-cols-2 gap-2 text-sm text-white">
-              {[
-                "Funny Ticket Short",
-                "Be Safe This Holiday",
-                "93 Head Spins!",
-                "Get Familiar - Skate",
-              ].map((title) => (
+              {videos.map((v) => (
                 <div
-                  key={title}
-                  className="bg-orange-600 text-black rounded p-2 hover:bg-orange-400 transition"
+                  key={v.id}
+                  className="bg-orange-600 text-black rounded p-2 hover:bg-orange-400 transition cursor-pointer"
+                  onClick={() => window.location.href = v.video_url}
                 >
-                  {title}
+                  {v.title}
                 </div>
               ))}
             </div>
+
             <p className="text-xs mt-2 text-orange-400">
-              41,347 uploaded today!
+              {videos.length} featured today!
             </p>
           </div>
 
@@ -99,10 +183,7 @@ export default function LandingPage() {
                 "Music Videos",
                 "Videos",
               ].map((item) => (
-                <span
-                  key={item}
-                  className="hover:text-orange-400 cursor-pointer"
-                >
+                <span key={item} className="hover:text-orange-400 cursor-pointer">
                   {item}
                 </span>
               ))}
@@ -126,21 +207,26 @@ export default function LandingPage() {
         {/* CENTER COLUMN */}
         <section className="space-y-4">
 
-          {/* Music Feature */}
+          {/* Featured Artist */}
           <div className="border border-orange-600 bg-black p-3 text-white">
             <h3 className="font-bold text-orange-400 mb-2">ProfileDig Music</h3>
-            <div className="bg-orange-600 text-black p-2 rounded">
-              <h4 className="font-bold">Featured Artist: Clipse</h4>
-              <p className="text-sm mt-1">
-                Hip Hop / Rap — Virginia Beach, VA
-              </p>
-              <p className="text-xs mt-2">
-                “Provocative,” “Lyrical Grandeur,” and “Classic.” Listen now!
-              </p>
-              <button className="mt-2 bg-black text-orange-500 px-3 py-1 rounded hover:bg-orange-400 hover:text-black transition">
-                ▶ Listen Now
-              </button>
-            </div>
+
+            {artist && (
+              <div className="bg-orange-600 text-black p-2 rounded">
+                <h4 className="font-bold">Featured Artist: {artist.name}</h4>
+                <p className="text-sm mt-1">
+                  {artist.genre} — {artist.location}
+                </p>
+                <p className="text-xs mt-2">{artist.description}</p>
+
+                <button
+                  className="mt-2 bg-black text-orange-500 px-3 py-1 rounded hover:bg-orange-400 hover:text-black transition"
+                  onClick={() => window.location.href = artist.song_url}
+                >
+                  ▶ Listen Now
+                </button>
+              </div>
+            )}
           </div>
 
           {/* Specials */}
@@ -207,19 +293,21 @@ export default function LandingPage() {
             </form>
           </div>
 
-          {/* Cool New People */}
+          {/* Rotating Featured Users */}
           <div className="border border-orange-600 bg-black p-3 text-white">
             <h3 className="font-bold text-orange-400 mb-2">Cool New People</h3>
-            <div className="grid grid-cols-3 gap-2">
-              {["Joe", "Embi", "Jason"].map((name) => (
-                <div
-                  key={name}
-                  className="bg-orange-600 text-black p-2 rounded text-center font-bold hover:bg-orange-400 transition"
-                >
-                  {name}
-                </div>
-              ))}
-            </div>
+
+            {featuredUsers.length > 0 && (
+              <div className="flex items-center gap-3">
+                <img
+                  src={featuredUsers[index].avatar_url}
+                  className="w-16 h-16 rounded border border-orange-600"
+                />
+                <p className="text-lg font-bold text-orange-400">
+                  {featuredUsers[index].username}
+                </p>
+              </div>
+            )}
           </div>
 
           {/* Videos */}
@@ -242,6 +330,15 @@ export default function LandingPage() {
       <footer className="bg-orange-600 text-black text-center py-3 text-xs border-t border-orange-400 mt-auto">
         © {new Date().getFullYear()} ProfileDig — A Place for Friends
       </footer>
+
+      {/* Sparkle Animation CSS */}
+      <style>{`
+        @keyframes sparkle {
+          0% { transform: scale(1); opacity: 0.8; }
+          50% { transform: scale(2); opacity: 1; }
+          100% { transform: scale(1); opacity: 0.8; }
+        }
+      `}</style>
     </div>
   );
 }

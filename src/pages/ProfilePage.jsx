@@ -3,6 +3,160 @@ import { useParams } from "react-router-dom";
 import { supabase } from "../supabaseClient";
 import NavBar from "../components/NavBar";
 
+/* Retro Music Player */
+function RetroPlayer({ url, cover }) {
+  const [bars, setBars] = useState([5, 10, 7, 12, 8]);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setBars(bars.map(() => Math.floor(Math.random() * 15) + 5));
+    }, 200);
+    return () => clearInterval(interval);
+  }, []);
+
+  if (!url) return null;
+
+  return (
+    <div className="border border-orange-600 bg-black p-3 text-white rounded">
+      <h3 className="font-bold text-orange-400 mb-2">Now Playing</h3>
+
+      <div className="flex gap-3 items-center">
+        <img
+          src={cover}
+          className="w-20 h-20 border border-orange-600 rounded"
+        />
+
+        <audio controls className="w-full accent-orange-600">
+          <source src={url} type="audio/mpeg" />
+        </audio>
+      </div>
+
+      <div className="flex gap-1 mt-3">
+        {bars.map((h, i) => (
+          <div
+            key={i}
+            style={{ height: `${h}px` }}
+            className="w-2 bg-orange-600"
+          />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+/* Top 8 Friends */
+function TopEight({ userId }) {
+  const [friends, setFriends] = useState([]);
+
+  useEffect(() => {
+    async function loadFriends() {
+      const { data } = await supabase
+        .from("friends")
+        .select("friend_id, profiles(username, avatar_url)")
+        .eq("user_id", userId)
+        .limit(8);
+
+      setFriends(data || []);
+    }
+    loadFriends();
+  }, [userId]);
+
+  return (
+    <div className="border border-orange-600 bg-black p-3 text-white">
+      <h3 className="font-bold text-orange-400 mb-2">Top 8 Friends</h3>
+
+      <div className="grid grid-cols-4 gap-3">
+        {friends.map((f) => (
+          <div key={f.friend_id} className="text-center">
+            <img
+              src={f.profiles.avatar_url}
+              className="w-16 h-16 rounded border border-orange-600 mx-auto"
+            />
+            <p className="text-xs mt-1 text-orange-400">
+              {f.profiles.username}
+            </p>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+/* Bulletin Board */
+function BulletinBoard() {
+  const [bulletins, setBulletins] = useState([]);
+
+  useEffect(() => {
+    async function loadBulletins() {
+      const { data } = await supabase
+        .from("bulletins")
+        .select("*, profiles(username)")
+        .order("created_at", { ascending: false })
+        .limit(10);
+
+      setBulletins(data || []);
+    }
+    loadBulletins();
+  }, []);
+
+  return (
+    <div className="border border-orange-600 bg-black p-3 text-white">
+      <h3 className="font-bold text-orange-400 mb-2">Bulletin Board</h3>
+
+      {bulletins.map((b) => (
+        <div key={b.id} className="mb-4 p-2 border border-orange-600 rounded">
+          <p className="text-orange-400 font-bold">{b.title}</p>
+          <p className="text-xs text-orange-500">
+            Posted by {b.profiles.username} —{" "}
+            {new Date(b.created_at).toLocaleString()}
+          </p>
+          <p className="text-sm mt-1">{b.body}</p>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+/* Who's Online */
+function WhosOnline() {
+  const [online, setOnline] = useState([]);
+
+  useEffect(() => {
+    async function loadOnline() {
+      const since = new Date(Date.now() - 5 * 60 * 1000).toISOString();
+
+      const { data } = await supabase
+        .from("profiles")
+        .select("username, avatar_url, last_online")
+        .gte("last_online", since);
+
+      setOnline(data || []);
+    }
+
+    loadOnline();
+    const interval = setInterval(loadOnline, 10000);
+    return () => clearInterval(interval);
+  }, []);
+
+  return (
+    <div className="border border-orange-600 bg-black p-3 text-white">
+      <h3 className="font-bold text-orange-400 mb-2">Who's Online</h3>
+
+      <div className="grid grid-cols-3 gap-3">
+        {online.map((u) => (
+          <div key={u.username} className="text-center">
+            <img
+              src={u.avatar_url}
+              className="w-14 h-14 rounded border border-orange-600 mx-auto"
+            />
+            <p className="text-xs mt-1 text-orange-400">{u.username}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 export default function ProfilePage() {
   const { id } = useParams();
   const [profile, setProfile] = useState(null);
@@ -60,7 +214,9 @@ export default function ProfilePage() {
               32 years old <br />
               Michigan, United States
             </p>
-            <p className="text-xs mt-2 text-orange-400">Last Login: 08/03/2026</p>
+            <p className="text-xs mt-2 text-orange-400">
+              Last Login: {profile.last_online || "Unknown"}
+            </p>
           </div>
 
           {/* Contacting Section */}
@@ -93,6 +249,7 @@ export default function ProfilePage() {
           {songURL && (
             <div className="border border-orange-600 bg-black p-2">
               <h3 className="font-bold mb-1 text-orange-400">Profile Song</h3>
+
               {isYouTube && (
                 <iframe
                   width="100%"
@@ -102,6 +259,7 @@ export default function ProfilePage() {
                   className="rounded"
                 ></iframe>
               )}
+
               {isSoundCloud && (
                 <iframe
                   width="100%"
@@ -115,13 +273,24 @@ export default function ProfilePage() {
                   )}&auto_play=true`}
                 ></iframe>
               )}
+
               {isMP3 && (
-                <audio controls autoPlay className="w-full mt-2 accent-orange-600">
+                <audio
+                  controls
+                  autoPlay
+                  className="w-full mt-2 accent-orange-600"
+                >
                   <source src={songURL} type="audio/mpeg" />
                 </audio>
               )}
             </div>
           )}
+
+          {/* Retro Player */}
+          <RetroPlayer url={songURL} cover={profile.avatar_url} />
+
+          {/* Who's Online */}
+          <WhosOnline />
         </aside>
 
         {/* RIGHT CONTENT */}
@@ -152,6 +321,12 @@ export default function ProfilePage() {
               <strong>Music:</strong> {profile.music_interests || "None"}
             </p>
           </div>
+
+          {/* Top 8 Friends */}
+          <TopEight userId={id} />
+
+          {/* Bulletin Board */}
+          <BulletinBoard />
 
           {/* Custom HTML */}
           {profile.custom_html && (
