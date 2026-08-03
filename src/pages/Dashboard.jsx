@@ -56,7 +56,7 @@ export default function Dashboard() {
 
     const mp3File = form.get("mp3");
     if (mp3File && mp3File.size > 0) {
-      mp3_url = await uploadFile(mp3File, "music");
+      mp3_url = await uploadFile(mp3File, "songs");
     }
 
     const updates = {

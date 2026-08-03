@@ -93,45 +93,47 @@ export default function ProfilePage() {
             </h2>
           </div>
 
-          {/* PROFILE SONG PLAYER */}
-          {songURL && (
-            <div className="bg-white text-black rounded p-4">
-              <h3 className="font-bold text-lg mb-2 text-orange-600">Profile Song</h3>
+         {/* PROFILE SONG PLAYER */}
+{profile.mp3_url && (
+  <div className="bg-white text-black rounded p-4">
+    <h3 className="font-bold text-lg mb-2 text-orange-600">Profile Song</h3>
 
-              {/* YOUTUBE */}
-              {isYouTube && (
-                <iframe
-                  width="100%"
-                  height="200"
-                  src={songURL.replace("watch?v=", "embed/")}
-                  allow="autoplay"
-                  className="rounded"
-                ></iframe>
-              )}
+    {/* MP3 */}
+    {profile.mp3_url.endsWith(".mp3") && (
+      <audio controls autoPlay className="w-full mt-2">
+        <source src={profile.mp3_url} type="audio/mpeg" />
+      </audio>
+    )}
 
-              {/* SOUNDCLOUD */}
-              {isSoundCloud && (
-                <iframe
-                  width="100%"
-                  height="200"
-                  scrolling="no"
-                  frameBorder="no"
-                  allow="autoplay"
-                  className="rounded"
-                  src={`https://w.soundcloud.com/player/?url=${encodeURIComponent(
-                    songURL
-                  )}&auto_play=true`}
-                ></iframe>
-              )}
+    {/* YOUTUBE */}
+    {(profile.mp3_url.includes("youtube.com") ||
+      profile.mp3_url.includes("youtu.be")) && (
+      <iframe
+        width="100%"
+        height="200"
+        src={profile.mp3_url.replace("watch?v=", "embed/")}
+        allow="autoplay"
+        className="rounded"
+      ></iframe>
+    )}
 
-              {/* MP3 */}
-              {isMP3 && (
-                <audio controls autoPlay className="w-full mt-2">
-                  <source src={songURL} type="audio/mpeg" />
-                </audio>
-              )}
-            </div>
-          )}
+    {/* SOUNDCLOUD */}
+    {profile.mp3_url.includes("soundcloud.com") && (
+      <iframe
+        width="100%"
+        height="200"
+        scrolling="no"
+        frameBorder="no"
+        allow="autoplay"
+        className="rounded"
+        src={`https://w.soundcloud.com/player/?url=${encodeURIComponent(
+          profile.mp3_url
+        )}&auto_play=true`}
+      ></iframe>
+    )}
+  </div>
+)}
+
 
           {/* CUSTOM HTML */}
           {profile.custom_html && (
