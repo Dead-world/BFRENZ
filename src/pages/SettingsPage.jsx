@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import { supabase } from "../supabaseClient";
 import Notifications from "../components/Notifications";
+import { v4 as uuidv4 } from "uuid";
 
 export default function SettingsPage() {
   const [user, setUser] = useState(null);
@@ -311,12 +312,36 @@ export default function SettingsPage() {
           </form>
 
           {/* MP3 UPLOAD */}
- export async function uploadSong(file: File) {
-  const fileName = `${crypto.randomUUID()}-${Date.now()}.mp3`;
+          <div className="mt-10">
+            <h3 className="text-xl font-bold text-orange-600 mb-2">Upload Song</h3>
+            <input
+              type="file"
+              accept="audio/*"
+              onChange={async (e) => {
+                const file = e.target.files[0];
+                if (!file) return;
 
-  const { data, error } = await supabase.storage
-    .from("songs")
-    .upload(fileName, file, {
+                try {
+                  const url = await uploadSong(file);
+                  // Do something with the uploaded song URL, e.g., save it to the user's profile
+                } catch (error) {
+                  console.error("Error uploading song:", error);
+                }
+              }}
+              className="text-black"
+            />
+          </div>
+        </div>
+      </main>
+
+      {/* FOOTER */}
+      <footer className="bg-orange-600 text-black text-center py-3 mt-6">
+        © {new Date().getFullYear()} ProfileDig — Customize Your World
+      </footer>
+    </div>
+  );
+}
+
       cacheControl: "3600",
       upsert: false,
       contentType: "audio/mpeg"
