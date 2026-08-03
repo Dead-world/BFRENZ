@@ -311,26 +311,28 @@ export default function SettingsPage() {
             </button>
           </form>
 
-          {/* MP3 UPLOAD */}
-          <div className="mt-10">
-            <h3 className="text-xl font-bold text-orange-600 mb-2">Upload Song</h3>
-            <input
-              type="file"
-              accept="audio/*"
-              onChange={async (e) => {
-                const file = e.target.files[0];
-                if (!file) return;
+         {/* MP3 UPLOAD */}
+<div className="mt-10">
+  <h3 className="text-xl font-bold text-orange-600 mb-2">Upload Song</h3>
 
-                try {
-                  const url = await uploadSong(file);
-                  // Do something with the uploaded song URL, e.g., save it to the user's profile
-                } catch (error) {
-                  console.error("Error uploading song:", error);
-                }
-              }}
-              className="text-black"
-            />
-          </div>
+  <input
+    type="file"
+    accept="audio/*"
+    onChange={async (e) => {
+      const file = e.target.files?.[0];
+      if (!file) return;
+
+      try {
+        const url = await uploadSong(file);
+        console.log("Uploaded song URL:", url);
+      } catch (error) {
+        console.error("Error uploading song:", error);
+      }
+    }}
+    className="text-black"
+  />
+</div>
+
         </div>
       </main>
 
