@@ -1,8 +1,21 @@
-import NavBar from "../components/NavBar";
+import { useState } from "react";
+import { Link } from "react-router-dom";
+import { supabase } from "../supabaseClient";
 
 export default function LandingPage() {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+
+  async function handleLogin(e) {
+    e.preventDefault();
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    if (error) alert(error.message);
+    else window.location.href = "/dashboard";
+  }
+
   return (
-    <div className="min-h-screen bg-black text-orange-500 font-[Verdana]">
+    <div className="min-h-screen w-full bg-black text-orange-500 font-[Verdana] flex flex-col">
+
       {/* HEADER */}
       <header className="bg-orange-600 text-black border-b border-orange-400">
         <div className="max-w-6xl mx-auto flex justify-between items-center p-3">
@@ -14,27 +27,19 @@ export default function LandingPage() {
         <nav className="bg-black text-orange-500 border-t border-orange-400">
           <ul className="flex flex-wrap justify-center text-xs font-bold">
             {[
-              "Home",
-              "Browse",
-              "Search",
-              "Invite",
-              "Film",
-              "Mail",
-              "Blog",
-              "Favorites",
-              "Forum",
-              "Groups",
-              "Events",
-              "Videos",
-              "Music",
-              "Comedy",
-              "Classifieds",
+              { name: "Home", path: "/" },
+              { name: "Browse", path: "/browse" },
+              { name: "Search", path: "/search" },
+              { name: "Mail", path: "/messages" },
+              { name: "Blog", path: "/blog" },
+              { name: "Profile", path: "/profile" },
+              { name: "Dashboard", path: "/dashboard" },
             ].map((item) => (
               <li
-                key={item}
+                key={item.name}
                 className="px-3 py-2 hover:bg-orange-600 hover:text-black transition"
               >
-                {item}
+                <Link to={item.path}>{item.name}</Link>
               </li>
             ))}
           </ul>
@@ -42,9 +47,11 @@ export default function LandingPage() {
       </header>
 
       {/* MAIN CONTENT */}
-      <main className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-4 p-4">
+      <main className="flex-grow max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-4 p-4">
+
         {/* LEFT COLUMN */}
         <section className="space-y-4">
+
           {/* Cool New Videos */}
           <div className="border border-orange-600 bg-black p-3">
             <h2 className="text-lg font-bold mb-2 text-orange-400">
@@ -102,7 +109,7 @@ export default function LandingPage() {
             </div>
           </div>
 
-          {/* MySpace Movies */}
+          {/* Movies */}
           <div className="border border-orange-600 bg-black p-3 text-white">
             <h3 className="font-bold text-orange-400 mb-2">ProfileDig Movies</h3>
             <ul className="text-sm list-disc list-inside">
@@ -118,6 +125,7 @@ export default function LandingPage() {
 
         {/* CENTER COLUMN */}
         <section className="space-y-4">
+
           {/* Music Feature */}
           <div className="border border-orange-600 bg-black p-3 text-white">
             <h3 className="font-bold text-orange-400 mb-2">ProfileDig Music</h3>
@@ -146,36 +154,53 @@ export default function LandingPage() {
 
         {/* RIGHT COLUMN */}
         <aside className="space-y-4">
+
           {/* Member Login */}
           <div className="border border-orange-600 bg-black p-3 text-white">
             <h3 className="font-bold text-orange-400 mb-2">Member Login</h3>
-            <form className="space-y-2 text-sm">
+
+            <form onSubmit={handleLogin} className="space-y-2 text-sm">
               <div>
                 <label>Email:</label>
                 <input
                   type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
                   className="w-full p-1 rounded bg-white text-black"
                 />
               </div>
+
               <div>
                 <label>Password:</label>
                 <input
                   type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
                   className="w-full p-1 rounded bg-white text-black"
                 />
               </div>
+
               <div className="flex items-center gap-2">
                 <input type="checkbox" />
                 <span>Remember Me</span>
               </div>
+
               <div className="flex gap-2">
-                <button className="bg-orange-600 text-black font-bold px-3 py-1 rounded hover:bg-orange-400 transition">
+                <button
+                  type="submit"
+                  className="bg-orange-600 text-black font-bold px-3 py-1 rounded hover:bg-orange-400 transition"
+                >
                   LOGIN
                 </button>
-                <button className="bg-orange-600 text-black font-bold px-3 py-1 rounded hover:bg-orange-400 transition">
+
+                <Link
+                  to="/signup"
+                  className="bg-orange-600 text-black font-bold px-3 py-1 rounded hover:bg-orange-400 transition"
+                >
                   SIGN UP
-                </button>
+                </Link>
               </div>
+
               <p className="text-xs mt-1 text-orange-400 cursor-pointer hover:text-orange-300">
                 Forgot your password?
               </p>
@@ -214,7 +239,7 @@ export default function LandingPage() {
       </main>
 
       {/* FOOTER */}
-      <footer className="bg-orange-600 text-black text-center py-3 text-xs border-t border-orange-400">
+      <footer className="bg-orange-600 text-black text-center py-3 text-xs border-t border-orange-400 mt-auto">
         © {new Date().getFullYear()} ProfileDig — A Place for Friends
       </footer>
     </div>
