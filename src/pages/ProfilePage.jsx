@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { createClient } from "@supabase/supabase-js";
 import { useAuth } from '../hooks/useAuth';
 
-// Initialize Supabase Client directly using your component scope environment variables
+// Initialize Supabase Client using exact repository variables
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
 export const supabase = createClient(supabaseUrl, supabaseAnonKey);
@@ -19,6 +19,7 @@ if (typeof document !== 'undefined') {
   `;
   document.head.appendChild(styleEl);
 }
+
 
 
 const styles = {
@@ -143,26 +144,17 @@ const styles = {
 export default function ProfilePage({ profileId, currentUserId }) {
   const { user } = useAuth();
   
-  // Fall back to current session token if router parameters are unassigned
+  // Resolve target identifier context paths
   const activeProfileId = profileId || currentUserId || user?.id;
 
   const [profile, setProfile] = useState(null);
   const [bulletins, setBulletins] = useState([]);
   const [comments, setComments] = useState([]);
+  const [blogs, setBlogs] = useState([]);
+  const [friends, setFriends] = useState([]);
   const [viewCount, setViewCount] = useState(0);
   const [newComment, setNewComment] = useState('');
   const [loading, setLoading] = useState(true);
-
-  const top8Friends = [
-    { id: '1', username: 'Tom', avatar_url: 'https://placehold.co' },
-    { id: '2', username: 'Sk8rBoi', avatar_url: 'https://placehold.co' },
-    { id: '3', username: 'NeonGlow', avatar_url: 'https://placehold.co' },
-    { id: '4', username: 'PixelQueen', avatar_url: 'https://placehold.co' },
-    { id: '5', username: 'RetroFan', avatar_url: 'https://placehold.co' },
-    { id: '6', username: 'SynthWave', avatar_url: 'https://placehold.co' },
-    { id: '7', username: 'EmoKid05', avatar_url: 'https://placehold.co' },
-    { id: '8', username: 'Glitch', avatar_url: 'https://placehold.co' },
-  ];
 
   useEffect(() => {
     if (activeProfileId) {
@@ -177,27 +169,38 @@ export default function ProfilePage({ profileId, currentUserId }) {
     try {
       setLoading(true);
       
-      // Fixed: Swapped lowercase 'user_id' with correct case constraint 'User_id'
+      // 1. Fetch Profile Info targeting case-sensitive "User_id" primary key
       const { data: prof, error: pErr } = await supabase.from('profiles').select('*').eq('User_id', activeProfileId).single();
       if (pErr) throw pErr;
       setProfile(prof);
 
-      // Fetch Bulletins mapped to standard foreign key
+      // 2. Fetch Bulletins mapped to standard lowercase fields
       const { data: bulls } = await supabase.from('bulletins').select('*').eq('user_id', activeProfileId).order('created_at', { ascending: false });
       setBulletins(bulls || []);
 
-      // Fetch Comments combined with user info profile relationships
+      // 3. Fetch Blogs written by this author
+      const { data: blogPosts } = await supabase.from('blogs').select('*').eq('author_id', activeProfileId).order('created_at', { ascending: false });
+      setBlogs(blogPosts || []);
+
+      // 4. Fetch Comments combined with exact foreign key constraint references
       const { data: comms } = await supabase.from('comments')
         .select('*, profiles!comments_user_id_fkey(username, avatar_url)')
         .eq('profile_id', activeProfileId)
         .order('created_at', { ascending: false });
       setComments(comms || []);
 
-      // Fetch View Count metrics
+      // 5. Fetch Profile View Count metrics
       const { count } = await supabase.from('profile_views').select('*', { count: 'exact', head: true }).eq('profile_id', activeProfileId);
       setViewCount(count || 0);
+
+      // 6. Fetch Real Dynamic Friends List (Fetches the related profiles matching friend rows)
+      const { data: friendRows } = await supabase.from('friends').select('friend_id, profiles!friends_friend_id_fkey(User_id, username, avatar_url)').eq('user_id', activeProfileId).limit(8);
+      if (friendRows) {
+        const structuralFriends = friendRows.map(f => f.profiles).filter(Boolean);
+        setFriends(structuralFriends);
+      }
     } catch (err) {
-      console.error("Error loading profile data:", err);
+      console.error("Error loading profile data safely:", err);
     } finally {
       setLoading(false);
     }
@@ -236,6 +239,7 @@ export default function ProfilePage({ profileId, currentUserId }) {
   if (!profile) {
     return <div style={{ color: '#FF6600', textAlign: 'center', padding: '50px', fontSize: '14px', fontWeight: 'bold' }}>PROFILE NOT FOUND</div>;
   }
+
 
      return (
     <div style={styles.container}>
@@ -288,13 +292,15 @@ export default function ProfilePage({ profileId, currentUserId }) {
             </div>
           </div>
 
-          {/* Retro Music Player Block */}
+          {/* Real Audio Player connected to your schema's mp3_url field */}
           <div style={styles.box}>
             <h2 style={styles.orangeHeader}>{profile.username}'s Music Player</h2>
             <div style={{ ...styles.contentPadding, backgroundColor: '#000000', color: '#FF6600', textAlign: 'center' }}>
-              <div style={{ fontSize: '10px', marginBottom: '5px', fontWeight: 'bold', letterSpacing: '1px' }}>DIGITAL AUDIO STREAM</div>
-              <audio controls style={{ width: '100%', height: '30px', borderRadius: '0px' }}>
-                <source src="https://soundhelix.com" type="audio/mpeg" />
+              <div style={{ fontSize: '10px', marginBottom: '5px', fontWeight: 'bold', letterSpacing: '1px' }}>
+                {profile.mp3_url ? "NOW STREAMING PROFILE AUDIO" : "DEFAULT RETRO STREAM"}
+              </div>
+              <audio controls style={{ width: '100%', height: '30px', borderRadius: '0px' }} key={profile.mp3_url}>
+                <source src={profile.mp3_url || "https://soundhelix.com"} type="audio/mpeg" />
                 Your browser does not support the audio element.
               </audio>
             </div>
@@ -320,35 +326,34 @@ export default function ProfilePage({ profileId, currentUserId }) {
           </div>
         </div>
 
-
-               {/* RIGHT COLUMN */}
+        {/* RIGHT COLUMN */}
         <div style={styles.rightColumn}>
           {/* Headline Display Text */}
           <div style={{ backgroundColor: '#ffe5d4', border: '1px solid #FF6600', padding: '8px', marginBottom: '15px', fontSize: '12px' }}>
             <span style={{ fontWeight: 'bold', color: '#000000' }}>{profile.username} is in your extended network!</span>
           </div>
 
-          {/* Core Info Profile Details Table */}
+          {/* Core Info Profile Details Table - Connected to real profile row variables */}
           <div style={styles.box}>
             <h2 style={styles.orangeHeader}>{profile.username}'s Profile Details</h2>
             <div style={{ padding: '0px' }}>
               <table style={styles.table}>
                 <tbody>
                   <tr>
+                    <td style={styles.tableLabel}>Gender:</td>
+                    <td style={styles.tableValue}>{profile.gender || 'Not specified'}</td>
+                  </tr>
+                  <tr>
+                    <td style={styles.tableLabel}>Birthday:</td>
+                    <td style={styles.tableValue}>{profile.birthday ? new Date(profile.birthday).toLocaleDateString() : 'Not specified'}</td>
+                  </tr>
+                  <tr>
                     <td style={styles.tableLabel}>Status:</td>
-                    <td style={styles.tableValue}>Single</td>
+                    <td style={styles.tableValue}>{profile.status || 'Offline'}</td>
                   </tr>
                   <tr>
-                    <td style={styles.tableLabel}>Orientation:</td>
-                    <td style={styles.tableValue}>Straight</td>
-                  </tr>
-                  <tr>
-                    <td style={styles.tableLabel}>Body Type:</td>
-                    <td style={styles.tableValue}>Average</td>
-                  </tr>
-                  <tr>
-                    <td style={styles.tableLabel}>Ethnicity:</td>
-                    <td style={styles.tableValue}>Mixed</td>
+                    <td style={styles.tableLabel}>Hometown:</td>
+                    <td style={styles.tableValue}>{profile.hometown || 'Earth'}</td>
                   </tr>
                 </tbody>
               </table>
@@ -358,7 +363,7 @@ export default function ProfilePage({ profileId, currentUserId }) {
           {/* Classic Blurbs (About Me / Meet) */}
           <div style={styles.box}>
             <h2 style={styles.orangeHeader}>{profile.username}'s Blurbs</h2>
-            <div style={{ ...styles.contentPadding, padding: '10px' }}>
+            <div style={{ padding: '10px' }}>
               <h3 style={{ color: '#FF6600', fontSize: '11px', margin: '0 0 5px 0', fontWeight: 'bold' }}>About me:</h3>
               <p style={{ margin: '0 0 15px 0', fontSize: '11px' }}>{profile.about_me || 'Nothing written here yet.'}</p>
               
@@ -394,22 +399,48 @@ export default function ProfilePage({ profileId, currentUserId }) {
             </div>
           </div>
 
+          {/* Real MySpace-Style Blog Feed Box */}
+          <div style={styles.box}>
+            <h2 style={styles.orangeHeader}>{profile.username}'s Recent Blog Entries</h2>
+            <div style={styles.contentPadding}>
+              {blogs.length === 0 ? (
+                <p style={{ margin: 0, color: '#666666' }}>No blogs written yet.</p>
+              ) : (
+                blogs.map((post) => (
+                  <div key={post.id} style={{ marginBottom: '10px', paddingBottom: '5px', borderBottom: '1px dashed #CCCCCC' }}>
+                    <div style={{ fontWeight: 'bold', color: '#000000' }}>{post.title}</div>
+                    <div style={{ fontSize: '9px', color: '#666666', marginBottom: '4px' }}>Posted: {new Date(post.created_at).toLocaleDateString()}</div>
+                    <p style={{ margin: 0 }}>{post.content}</p>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
 
-                   {/* Top 8 Friends Grid Module */}
+
+                   {/* Dynamic Database Friends Space Box */}
           <div style={styles.box}>
             <h2 style={styles.orangeHeader}>{profile.username}'s Friend Space</h2>
             <div style={styles.contentPadding}>
-              <p style={{ margin: '0 0 5px 0' }}><b>{profile.username} has <span style={{ color: '#FF6600' }}>8</span> friends.</b></p>
-              <div style={styles.friendGrid}>
-                {top8Friends.map((friend) => (
-                  <div key={friend.id} style={styles.friendCard}>
-                    <a href={`/profile/${friend.id}`} style={styles.orangeLink}>
-                      <div>{friend.username}</div>
-                      <img src={friend.avatar_url} alt={friend.username} style={styles.friendImage} />
-                    </a>
-                  </div>
-                ))}
-              </div>
+              <p style={{ margin: '0 0 5px 0' }}><b>{profile.username} has <span style={{ color: '#FF6600' }}>{friends.length}</span> friends.</b></p>
+              {friends.length === 0 ? (
+                <p style={{ color: '#666666', fontStyle: 'italic', margin: '10px 0' }}>This user hasn't added any friends on ProfileDig yet.</p>
+              ) : (
+                <div style={styles.friendGrid}>
+                  {friends.map((friend) => (
+                    <div key={friend.User_id} style={styles.friendCard}>
+                      <a href={`/profile/${friend.User_id}`} style={styles.orangeLink}>
+                        <div style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{friend.username || 'User'}</div>
+                        <img 
+                          src={friend.avatar_url || 'https://placehold.co'} 
+                          alt="friend avatar" 
+                          style={styles.friendImage} 
+                        />
+                      </a>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
 
