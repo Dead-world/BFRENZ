@@ -83,10 +83,16 @@ export default function Dashboard() {
       mp3_url, 
     };
 
-    await supabase
-      .from("profiles")
-      .update(updates)
-      .eq("User_id", user.id);
+   const { error } = await supabase
+  .from("profiles")
+  .update(updates)
+  .eq("User_id", user.id);
+
+if (error) {
+  console.error("UPDATE ERROR:", error);
+  alert("Failed to save profile: " + error.message);
+}
+
 
     setSaving(false);
     alert("Dashboard updated!");
