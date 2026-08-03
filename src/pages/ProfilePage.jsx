@@ -4,7 +4,7 @@ import { useParams } from "react-router-dom";
 import Navbar from "../components/NavBar";
 
 export default function ProfilePage() {
-  const { id } = useParams(); // This is profiles.User_id
+  const { id } = useParams(); // profiles.User_id from URL
 
   const [profile, setProfile] = useState(null);
   const [currentUser, setCurrentUser] = useState(null);
@@ -22,7 +22,7 @@ export default function ProfilePage() {
     loadUser();
   }, []);
 
-  // Load profile data (MATCHES YOUR SCHEMA)
+  // Load profile data
   useEffect(() => {
     async function loadProfile() {
       setLoading(true);
@@ -75,10 +75,14 @@ export default function ProfilePage() {
   // Load view count
   useEffect(() => {
     async function loadViews() {
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from("profile_views")
         .select("id")
         .eq("profile_id", id);
+
+      if (error) {
+        console.error("PROFILE VIEWS LOAD ERROR:", error);
+      }
 
       setViews(data?.length || 0);
     }
@@ -86,7 +90,7 @@ export default function ProfilePage() {
     loadViews();
   }, [id]);
 
-  // Load bulletins (MATCHES YOUR SCHEMA)
+  // Load bulletins
   useEffect(() => {
     async function loadBulletins() {
       const { data, error } = await supabase
@@ -111,7 +115,7 @@ export default function ProfilePage() {
     setBulletins((prev) => prev.filter((b) => b.id !== bulletinId));
   }
 
-  // Load comments (MATCHES YOUR FOREIGN KEYS)
+  // Load comments (using FK name)
   useEffect(() => {
     async function loadComments() {
       const { data, error } = await supabase
@@ -139,6 +143,10 @@ export default function ProfilePage() {
     loadComments();
   }, [id]);
 
+  const isOnline = profile?.last_online
+    ? (Date.now() - new Date(profile.last_online).getTime()) < 5 * 60 * 1000
+    : false;
+
   if (loading) {
     return (
       <>
@@ -161,44 +169,54 @@ export default function ProfilePage() {
     <>
       <Navbar />
 
-      <div className="profile-page">
-
-        {/* Header */}
-        <div className="profile-header">
-          <img
-            src={profile.avatar_url}
-            alt="Avatar"
-            className="profile-avatar"
-          />
-          <h1 className="profile-username">{profile.username}</h1>
+      <div className="profile-page myspace-layout">
+        {/* TOP BAR / TITLE */}
+        <div className="profile-top-bar">
+          <h1 className="profile-name">{profile.username}</h1>
         </div>
 
-        {/* Location & Mood */}
-        <div className="profile-info">
-          <div className="profile-location">
-            <strong>Location:</strong> {profile.hometown || "Not set"}
+        {/* MAIN LAYOUT: LEFT PHOTO / RIGHT INFO */}
+        <div className="profile-main">
+          {/* LEFT: PROFILE PIC */}
+          <div className="profile-left">
+            <div className="profile-photo-box">
+              <img
+                src={profile.avatar_url}
+                alt="Avatar"
+                className="profile-photo"
+              />
+            </div>
           </div>
 
-          <div className="profile-mood">
-            <strong>Mood:</strong> {profile.status_message || "Not set"}
+          {/* RIGHT: BASIC INFO */}
+          <div className="profile-right">
+            <div className="profile-basic-box">
+              <p>
+                <strong>{profile.username}</strong>
+              </p>
+              <p>
+                <strong>Location:</strong>{" "}
+                {profile.hometown || "Not set"}
+              </p>
+              <p>
+                <strong>Mode:</strong>{" "}
+                {isOnline ? "Online" : "Offline"}
+              </p>
+              <p>
+                <strong>Profile Views:</strong> {views}
+              </p>
+            </div>
           </div>
         </div>
 
-        {/* Views */}
-        <div className="profile-views">
-          <strong>Profile Views:</strong> {views}
-        </div>
-
-        {/* Bulletins */}
-        <div className="profile-bulletins">
+        {/* BULLETINS */}
+        <div className="profile-section">
           <h2>Bulletins</h2>
-
           {bulletins.length === 0 && <p>No bulletins yet.</p>}
-
           {bulletins.map((b) => (
             <div key={b.id} className="bulletin-item">
               <div className="bulletin-header">
-                <h3>{b.title}</h3>
+                <strong>{b.title}</strong>
                 {currentUser?.id === id && (
                   <button onClick={() => deleteBulletin(b.id)}>
                     Delete
@@ -211,12 +229,10 @@ export default function ProfilePage() {
           ))}
         </div>
 
-        {/* Comments */}
-        <div className="profile-comments">
+        {/* COMMENTS */}
+        <div className="profile-section">
           <h2>Comments</h2>
-
           {comments.length === 0 && <p>No comments yet.</p>}
-
           {comments.map((c) => (
             <div key={c.id} className="comment-item">
               <div className="comment-header">
@@ -228,13 +244,14 @@ export default function ProfilePage() {
                 <span className="comment-username">
                   {c.profiles?.username || "Unknown"}
                 </span>
-                <small>{new Date(c.created_at).toLocaleString()}</small>
+                <small>
+                  {new Date(c.created_at).toLocaleString()}
+                </small>
               </div>
               <p>{c.content}</p>
             </div>
           ))}
         </div>
-
       </div>
     </>
   );
