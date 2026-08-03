@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, Link } from "react-router-dom";
 import { supabase } from "../supabaseClient";
 import NavBar from "../components/NavBar";
 
@@ -9,7 +9,7 @@ function RetroPlayer({ url, cover }) {
 
   useEffect(() => {
     const interval = setInterval(() => {
-      setBars(bars.map(() => Math.floor(Math.random() * 15) + 5));
+      setBars((prev) => prev.map(() => Math.floor(Math.random() * 15) + 5));
     }, 200);
     return () => clearInterval(interval);
   }, []);
@@ -17,7 +17,7 @@ function RetroPlayer({ url, cover }) {
   if (!url) return null;
 
   return (
-    <div className="border border-orange-600 bg-black p-3 text-white rounded">
+    <div className="border border-orange-600 bg-black p-3 text-white rounded profile-container">
       <h3 className="font-bold text-orange-400 mb-2">Now Playing</h3>
 
       <div className="flex gap-3 items-center">
@@ -37,7 +37,7 @@ function RetroPlayer({ url, cover }) {
   );
 }
 
-/* Top 8 Friends */
+/* Top 8 Friends (clickable) */
 function TopEight({ userId }) {
   const [friends, setFriends] = useState([]);
 
@@ -55,17 +55,21 @@ function TopEight({ userId }) {
   }, [userId]);
 
   return (
-    <div className="border border-orange-600 bg-black p-3 text-white">
+    <div className="border border-orange-600 bg-black p-3 text-white profile-container">
       <h3 className="font-bold text-orange-400 mb-2">Top 8 Friends</h3>
 
       <div className="grid grid-cols-4 gap-3">
         {friends.map((f) => (
           <div key={f.friend_id} className="text-center">
-            <img
-              src={f.profiles.avatar_url}
-              className="w-16 h-16 rounded border border-orange-600 mx-auto"
-            />
-            <p className="text-xs mt-1 text-orange-400">{f.profiles.username}</p>
+            <Link to={`/profile/${f.friend_id}`}>
+              <img
+                src={f.profiles.avatar_url}
+                className="w-16 h-16 rounded border border-orange-600 mx-auto hover:opacity-80 transition"
+              />
+              <p className="text-xs mt-1 text-orange-400 hover:text-orange-200">
+                {f.profiles.username}
+              </p>
+            </Link>
           </div>
         ))}
       </div>
@@ -73,7 +77,7 @@ function TopEight({ userId }) {
   );
 }
 
-/* Bulletin Board — FIXED to show only THIS user's bulletins */
+/* Bulletin Board — per-profile */
 function BulletinBoard({ userId }) {
   const [bulletins, setBulletins] = useState([]);
 
@@ -91,7 +95,7 @@ function BulletinBoard({ userId }) {
   }, [userId]);
 
   return (
-    <div className="border border-orange-600 bg-black p-3 text-white">
+    <div className="border border-orange-600 bg-black p-3 text-white profile-container">
       <h3 className="font-bold text-orange-400 mb-2">Bulletin Board</h3>
 
       {bulletins.length === 0 && (
@@ -111,10 +115,12 @@ function BulletinBoard({ userId }) {
   );
 }
 
-/* Comments Section — NEW */
+/* Comments Section with notifications, delete, replies */
 function CommentsSection({ profileId, user }) {
   const [comments, setComments] = useState([]);
   const [newComment, setNewComment] = useState("");
+  const [replyText, setReplyText] = useState({});
+  const [profileOwner, setProfileOwner] = useState(null);
 
   async function loadComments() {
     const { data } = await supabase
@@ -123,16 +129,47 @@ function CommentsSection({ profileId, user }) {
       .eq("profile_id", profileId)
       .order("created_at", { ascending: false });
 
-    setComments(data || []);
+    // load replies for each comment
+    const ids = (data || []).map((c) => c.id);
+    let repliesMap = {};
+    if (ids.length > 0) {
+      const { data: replies } = await supabase
+        .from("replies")
+        .select("*")
+        .in("comment_id", ids)
+        .order("created_at", { ascending: true });
+
+      repliesMap = (replies || []).reduce((acc, r) => {
+        acc[r.comment_id] = acc[r.comment_id] || [];
+        acc[r.comment_id].push(r);
+        return acc;
+      }, {});
+    }
+
+    setComments(
+      (data || []).map((c) => ({
+        ...c,
+        replies: repliesMap[c.id] || [],
+      }))
+    );
   }
 
   useEffect(() => {
+    async function loadOwner() {
+      const { data } = await supabase
+        .from("profiles")
+        .select("User_id, username")
+        .eq("User_id", profileId)
+        .single();
+      setProfileOwner(data);
+    }
+    loadOwner();
     loadComments();
   }, [profileId]);
 
   async function addComment(e) {
     e.preventDefault();
-    if (!newComment.trim()) return;
+    if (!newComment.trim() || !user) return;
 
     await supabase.from("comments").insert({
       profile_id: profileId,
@@ -140,12 +177,43 @@ function CommentsSection({ profileId, user }) {
       content: newComment,
     });
 
+    // notification to profile owner
+    if (profileOwner) {
+      await supabase.from("notifications").insert({
+        user_id: profileId,
+        from_user: user.id,
+        type: "comment",
+        message: `${user.username || "Someone"} commented on your profile.`,
+      });
+    }
+
     setNewComment("");
     loadComments();
   }
 
+  async function deleteComment(id, commentUserId) {
+    if (!user) return;
+    if (commentUserId !== user.id && profileId !== user.id) return;
+
+    await supabase.from("comments").delete().eq("id", id);
+    loadComments();
+  }
+
+  async function addReply(commentId) {
+    if (!user || !replyText[commentId]?.trim()) return;
+
+    await supabase.from("replies").insert({
+      comment_id: commentId,
+      user_id: user.id,
+      content: replyText[commentId],
+    });
+
+    setReplyText((prev) => ({ ...prev, [commentId]: "" }));
+    loadComments();
+  }
+
   return (
-    <div className="border border-orange-600 bg-black p-3 text-white rounded">
+    <div className="border border-orange-600 bg-black p-3 text-white rounded profile-container">
       <h3 className="font-bold text-orange-400 mb-3">Comments</h3>
 
       {user && (
@@ -167,12 +235,23 @@ function CommentsSection({ profileId, user }) {
       ) : (
         comments.map((c) => (
           <div key={c.id} className="bg-orange-600 text-black p-3 rounded mb-3">
-            <div className="flex items-center gap-3">
-              <img
-                src={c.profiles.avatar_url}
-                className="w-10 h-10 rounded-full border border-black"
-              />
-              <span className="font-bold">{c.profiles.username}</span>
+            <div className="flex items-center gap-3 justify-between">
+              <div className="flex items-center gap-3">
+                <img
+                  src={c.profiles.avatar_url}
+                  className="w-10 h-10 rounded-full border border-black"
+                />
+                <span className="font-bold">{c.profiles.username}</span>
+              </div>
+
+              {(c.user_id === user?.id || profileId === user?.id) && (
+                <button
+                  onClick={() => deleteComment(c.id, c.user_id)}
+                  className="text-xs bg-black text-orange-400 px-2 py-1 rounded border border-orange-600 hover:bg-orange-600 hover:text-black transition"
+                >
+                  Delete
+                </button>
+              )}
             </div>
 
             <p className="mt-2">{c.content}</p>
@@ -180,6 +259,39 @@ function CommentsSection({ profileId, user }) {
             <p className="text-xs mt-2 text-black/70">
               {new Date(c.created_at).toLocaleString()}
             </p>
+
+            {/* Replies */}
+            {c.replies?.map((r) => (
+              <div
+                key={r.id}
+                className="ml-6 mt-2 bg-black text-orange-400 p-2 rounded border border-orange-600"
+              >
+                <p className="text-sm">{r.content}</p>
+                <p className="text-xs text-orange-600">
+                  {new Date(r.created_at).toLocaleString()}
+                </p>
+              </div>
+            ))}
+
+            {/* Reply form */}
+            {user && (
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  addReply(c.id);
+                }}
+                className="ml-6 mt-2"
+              >
+                <input
+                  value={replyText[c.id] || ""}
+                  onChange={(e) =>
+                    setReplyText((prev) => ({ ...prev, [c.id]: e.target.value }))
+                  }
+                  className="w-full p-1 rounded bg-gray-200 text-black"
+                  placeholder="Reply..."
+                />
+              </form>
+            )}
           </div>
         ))
       )}
@@ -209,7 +321,7 @@ function WhosOnline() {
   }, []);
 
   return (
-    <div className="border border-orange-600 bg-black p-3 text-white">
+    <div className="border border-orange-600 bg-black p-3 text-white profile-container">
       <h3 className="font-bold text-orange-400 mb-2">Who's Online</h3>
 
       <div className="grid grid-cols-3 gap-3">
@@ -226,6 +338,22 @@ function WhosOnline() {
     </div>
   );
 }
+
+/* Themes */
+const themes = {
+  neon: `
+    .profile-container { border-color: #0ff; color: #0ff; }
+    body { background: #000; }
+  `,
+  pastel: `
+    .profile-container { border-color: #f8a; color: #f8a; }
+    body { background: #fff7f0; }
+  `,
+  matrix: `
+    .profile-container { border-color: #0f0; color: #0f0; }
+    body { background: #000; }
+  `,
+};
 
 export default function ProfilePage() {
   const { id } = useParams();
@@ -258,15 +386,17 @@ export default function ProfilePage() {
 
   return (
     <div className="min-h-screen bg-black text-orange-500 font-[Verdana]">
+      {/* Theme CSS */}
+      {profile.theme && themes[profile.theme] && <style>{themes[profile.theme]}</style>}
+      {profile.custom_css && <style>{profile.custom_css}</style>}
+
       <NavBar user={{ id }} />
 
-      {/* MAIN GRID */}
       <main className="max-w-5xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-4 p-4">
-
         {/* LEFT SIDEBAR */}
         <aside className="space-y-4">
           {/* Avatar */}
-          <div className="border border-orange-600 p-2 bg-black text-center">
+          <div className="border border-orange-600 p-2 bg-black text-center profile-container">
             <h1 className="text-2xl font-bold text-orange-400 mb-2">
               {profile.username}
             </h1>
@@ -293,7 +423,7 @@ export default function ProfilePage() {
           </div>
 
           {/* Contacting Section */}
-          <div className="border border-orange-600 bg-black p-2">
+          <div className="border border-orange-600 bg-black p-2 profile-container">
             <h3 className="font-bold mb-2 text-orange-400">
               Contacting {profile.username}
             </h3>
@@ -320,7 +450,7 @@ export default function ProfilePage() {
 
           {/* Song Player */}
           {songURL && (
-            <div className="border border-orange-600 bg-black p-2">
+            <div className="border border-orange-600 bg-black p-2 profile-container">
               <h3 className="font-bold mb-1 text-orange-400">Profile Song</h3>
 
               {isYouTube && (
@@ -362,14 +492,14 @@ export default function ProfilePage() {
         {/* RIGHT CONTENT */}
         <section className="md:col-span-2 space-y-4">
           {/* Status */}
-          <div className="border border-orange-600 bg-black p-3">
+          <div className="border border-orange-600 bg-black p-3 profile-container">
             <h2 className="text-xl font-bold mb-2 text-orange-400">
               {profile.status_message || "Testing out the new status"}
             </h2>
           </div>
 
           {/* About Me */}
-          <div className="border border-orange-600 bg-black p-3">
+          <div className="border border-orange-600 bg-black p-3 profile-container">
             <h3 className="font-bold text-orange-400 mb-1">About Me</h3>
             <p className="text-sm text-white whitespace-pre-line">
               {profile.about_me ||
@@ -378,7 +508,7 @@ export default function ProfilePage() {
           </div>
 
           {/* Interests */}
-          <div className="border border-orange-600 bg-black p-3">
+          <div className="border border-orange-600 bg-black p-3 profile-container">
             <h3 className="font-bold text-orange-400 mb-1">Interests</h3>
             <p className="text-sm text-white">
               <strong>General:</strong> {profile.general_interests || "None"}
@@ -400,17 +530,13 @@ export default function ProfilePage() {
           {/* Custom HTML */}
           {profile.custom_html && (
             <div
-              className="border border-orange-600 bg-black p-3 text-white"
+              className="border border-orange-600 bg-black p-3 text-white profile-container"
               dangerouslySetInnerHTML={{ __html: profile.custom_html }}
             />
           )}
-
-          {/* Custom CSS */}
-          {profile.custom_css && <style>{profile.custom_css}</style>}
         </section>
       </main>
 
-      {/* FOOTER */}
       <footer className="bg-orange-600 border-t border-orange-400 text-center py-3 text-xs text-black">
         © {new Date().getFullYear()} ProfileDig — A Place for Friends
       </footer>
