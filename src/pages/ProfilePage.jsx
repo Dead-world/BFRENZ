@@ -5,11 +5,12 @@ import Notifications from "../components/Notifications";
 
 export default function ProfilePage() {
   const { id } = useParams(); // profile being viewed
+
   const [profile, setProfile] = useState(null);
   const [currentUser, setCurrentUser] = useState(null);
-  const [bulletins, setBulletins] = useState([]);
-  const [comments, setComments] = useState([]);
-  const [friends, setFriends] = useState([]);
+  const [bulletins, setBulletins] = useState([]);   // ✅ array
+  const [comments, setComments] = useState([]);     // ✅ array
+  const [friends, setFriends] = useState([]);       // ✅ array
   const [views, setViews] = useState(0);
 
   // Load logged-in user
@@ -57,7 +58,7 @@ export default function ProfilePage() {
         .select("id")
         .eq("profile_id", id);
 
-      setViews(data.length);
+      setViews(data?.length || 0);
     }
     loadViews();
   }, [id]);
@@ -65,13 +66,13 @@ export default function ProfilePage() {
   // Load bulletins
   useEffect(() => {
     async function loadBulletins() {
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from("bulletins")
         .select("*")
         .eq("user_id", id)
         .order("created_at", { ascending: false });
 
-      setBulletins(data);
+      if (!error && Array.isArray(data)) setBulletins(data);
     }
     loadBulletins();
   }, [id]);
@@ -79,13 +80,13 @@ export default function ProfilePage() {
   // Load comments
   useEffect(() => {
     async function loadComments() {
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from("comments")
         .select("*, profiles:user_id(username, avatar_url)")
         .eq("profile_id", id)
         .order("created_at", { ascending: true });
 
-      setComments(data);
+      if (!error && Array.isArray(data)) setComments(data);
     }
     loadComments();
   }, [id]);
@@ -93,13 +94,13 @@ export default function ProfilePage() {
   // Load friends (Top 8)
   useEffect(() => {
     async function loadFriends() {
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from("friends")
         .select("friend_id, profiles:friend_id(username, avatar_url)")
         .eq("user_id", id)
         .limit(8);
 
-      setFriends(data);
+      if (!error && Array.isArray(data)) setFriends(data);
     }
     loadFriends();
   }, [id]);
@@ -107,30 +108,43 @@ export default function ProfilePage() {
   // Post bulletin
   async function postBulletin(e) {
     e.preventDefault();
+    if (!currentUser) return;
+
     const title = e.target.title.value;
     const body = e.target.body.value;
 
-    await supabase.from("bulletins").insert({
+    if (!title.trim() || !body.trim()) return;
+
+    const { data, error } = await supabase.from("bulletins").insert({
       user_id: currentUser.id,
       title,
       body,
-    });
+    }).select("*");
 
-    e.target.reset();
+    if (!error && Array.isArray(data)) {
+      setBulletins(prev => [data[0], ...prev]);
+      e.target.reset();
+    }
   }
 
   // Post comment
   async function postComment(e) {
     e.preventDefault();
-    const content = e.target.comment.value;
+    if (!currentUser) return;
 
-    await supabase.from("comments").insert({
+    const content = e.target.comment.value;
+    if (!content.trim()) return;
+
+    const { data, error } = await supabase.from("comments").insert({
       user_id: currentUser.id,
       profile_id: id,
       content,
-    });
+    }).select("*, profiles:user_id(username, avatar_url)");
 
-    e.target.reset();
+    if (!error && Array.isArray(data)) {
+      setComments(prev => [...prev, data[0]]);
+      e.target.reset();
+    }
   }
 
   if (!profile) {
@@ -160,7 +174,7 @@ export default function ProfilePage() {
                 className="w-10 h-10 rounded-full border border-white"
               />
               <span className="font-semibold">
-                Welcome, {currentUser.user_metadata?.username}
+                Welcome, {currentUser.user_metadata?.username || "Member"}
               </span>
             </div>
           )}
@@ -202,7 +216,6 @@ export default function ProfilePage() {
           </div>
         </div>
 
-        {/* DM BUTTON */}
         {currentUser && currentUser.id !== id && (
           <Link
             to={`/messages/${id}`}
@@ -230,7 +243,7 @@ export default function ProfilePage() {
       <div className="p-4 bg-black text-white border-b border-orange-600">
         <h3 className="text-xl font-bold mb-4">Top Friends</h3>
         <div className="grid grid-cols-4 gap-4">
-          {friends.map((f) => (
+          {Array.isArray(friends) && friends.map((f) => (
             <Link key={f.friend_id} to={`/profile/${f.friend_id}`}>
               <div className="text-center">
                 <img
@@ -241,6 +254,9 @@ export default function ProfilePage() {
               </div>
             </Link>
           ))}
+          {friends.length === 0 && (
+            <p className="text-sm text-gray-400">No friends yet.</p>
+          )}
         </div>
       </div>
 
@@ -266,30 +282,35 @@ export default function ProfilePage() {
           </form>
         )}
 
-        {bulletins.map((b) => (
+        {Array.isArray(bulletins) && bulletins.map((b) => (
           <div key={b.id} className="p-3 bg-white text-black rounded mb-3">
             <h4 className="font-bold">{b.title}</h4>
             <p>{b.body}</p>
           </div>
         ))}
+        {bulletins.length === 0 && (
+          <p className="text-sm text-gray-400">No bulletins yet.</p>
+        )}
       </div>
 
       {/* COMMENTS */}
       <div className="p-4 bg-black text-white border-b border-orange-600">
         <h3 className="text-xl font-bold mb-4">Comments</h3>
 
-        <form onSubmit={postComment} className="mb-4 flex gap-3">
-          <input
-            name="comment"
-            placeholder="Write a comment..."
-            className="flex-1 p-2 rounded bg-gray-200 text-black"
-          />
-          <button className="bg-orange-600 text-white px-4 py-2 rounded">
-            Post
-          </button>
-        </form>
+        {currentUser && (
+          <form onSubmit={postComment} className="mb-4 flex gap-3">
+            <input
+              name="comment"
+              placeholder="Write a comment..."
+              className="flex-1 p-2 rounded bg-gray-200 text-black"
+            />
+            <button className="bg-orange-600 text-white px-4 py-2 rounded">
+              Post
+            </button>
+          </form>
+        )}
 
-        {comments.map((c) => (
+        {Array.isArray(comments) && comments.map((c) => (
           <div key={c.id} className="p-3 bg-white text-black rounded mb-3">
             <div className="flex items-center gap-3">
               <img
@@ -301,6 +322,9 @@ export default function ProfilePage() {
             <p className="mt-2">{c.content}</p>
           </div>
         ))}
+        {comments.length === 0 && (
+          <p className="text-sm text-gray-400">No comments yet.</p>
+        )}
       </div>
 
       {/* MUSIC */}
