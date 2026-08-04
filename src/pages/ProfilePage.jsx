@@ -149,7 +149,7 @@ export default function ProfilePage({ profileId, currentUserId }) {
     if (!error) setBlogs(blogs.filter(bg => bg.id !== blogId));
   };
 
-   // ⭐ FIXED: Targets capture group array index 2 and cleans trailing tracking tokens safely
+  // ⭐ FIXED AND CLOSED: Safely parses array fragments and formats embed URLs natively
   const getYouTubeEmbedUrl = (urlStr) => {
     if (!urlStr) return null;
     try {
@@ -157,15 +157,10 @@ export default function ProfilePage({ profileId, currentUserId }) {
       const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|shorts\/|watch\?v=|\&v=)([^#\&\?]*).*/;
       const match = cleanUrl.match(regExp);
       
-      // Index 2 cleanly isolates the 11-character video ID token (e.g. 77nB_9uIcN4)
       if (match && match[2]) {
         let videoId = match[2].trim();
-        
-        // Strip down any trailing arguments like ?si= tracking chains
         if (videoId.includes('&')) videoId = videoId.split('&')[0];
         if (videoId.includes('?')) videoId = videoId.split('?')[0];
-        
-        // Formats embed payload outputs with unbreakable direct concatenation
         return "https://youtube.com" + videoId;
       }
     } catch (e) {
@@ -185,7 +180,7 @@ export default function ProfilePage({ profileId, currentUserId }) {
       {profile.custom_css && <style>{profile.custom_css}</style>}
 
       <div style={styles.container}>
-        {/* TOP MARQUEE TICKER BANNER */}
+        {/* TOP STATUS MARQUEE */}
         <div style={{ backgroundColor: '#000', color: '#FF6600', border: '1px solid #FF6600', padding: '6px', marginBottom: '15px', overflow: 'hidden' }}>
           <marquee scrollamount="5" style={{ fontSize: '11px', fontWeight: 'bold' }}>
             <span className="retro-blink" style={{ marginRight: '10px', color: '#fff' }}>⚡ STATUS TRANSMISSION:</span> 
@@ -234,7 +229,6 @@ export default function ProfilePage({ profileId, currentUserId }) {
               </div>
             </div>
 
-            {/* ⭐ AUTOPLAY MUSIC MIXER */}
             <div style={styles.box}>
               <h2 style={styles.orangeHeader}>Music Player</h2>
               <div style={styles.contentPadding}>
@@ -287,86 +281,28 @@ export default function ProfilePage({ profileId, currentUserId }) {
                 <p style={{ margin: '0', fontSize: '11px', whiteSpace: 'pre-wrap' }}>{profile.meet || 'Looking for cool people using ProfileDig!'}</p>
               </div>
             </div>
-{/* ⭐ FIXED — FULLY WORKING YOUTUBE SHOWCASE GATEWAY */}
-{profile.youtube_url && (
-  <div style={styles.box} id="youtube-showcase-window">
-    <h2 style={styles.orangeHeader}>{profile.username}'s Featured Showcase Video</h2>
 
-    <div style={{ padding: '10px', backgroundColor: '#000000', textAlign: 'center' }}>
-
-      {profile.youtube_url.includes('supabase.co') ? (
-        /* 1. Supabase-hosted MP4 playback */
-        <video
-          controls
-          autoPlay
-          style={{
-            width: '100%',
-            height: 'auto',
-            maxHeight: '340px',
-            border: '1px solid #FF6600'
-          }}
-          key={profile.youtube_url}
-        >
-          <source src={profile.youtube_url} type="video/mp4" />
-        </video>
-      ) : (
-        /* 2. YouTube Embed Mode (FULLY FIXED) */
-        <div
-          style={{
-            position: 'relative',
-            width: '100%',
-            paddingBottom: '56.25%',
-            height: 0,
-            border: '1px solid #FF6600'
-          }}
-        >
-          <iframe
-            title={`${profile.username}'s Showcase Video`}
-            src={(() => {
-              try {
-                const raw = profile.youtube_url.trim();
-
-                // Universal YouTube ID extractor
-                const rx =
-                  /^.*(?:(?:youtu\.be\/|v\/|vi\/|u\/\w\/|embed\/|shorts\/)|(?:(?:watch)?\?v(?:i)?=|\&v(?:i)?=))([^#\&\?]*).*/;
-
-                const match = raw.match(rx);
-
-                if (match && match[1]) {
-                  let id = match[1].trim();
-
-                  // Remove trailing junk
-                  if (id.includes('&')) id = id.split('&')[0];
-                  if (id.includes('?')) id = id.split('?')[0];
-
-                  // Return proper embed URL
-                  return `https://www.youtube.com/embed/${id}`;
-                }
-              } catch (e) {
-                console.error("YouTube Embed Parser Error:", e);
-              }
-
-              // Fallback video ID (your royalty-free clip)
-              return "https://www.youtube.com/embed/77nB_9uIcN4";
-            })()}
-            style={{
-              position: 'absolute',
-              top: 0,
-              left: 0,
-              width: '100%',
-              height: '100%',
-              border: 0
-            }}
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-            allowFullScreen
-          />
-        </div>
-      )}
-
-    </div>
-  </div>
-)}
-
+            {/* ⭐ SMART MULTI-MODE VIDEO PLAYER NODE */}
+            {profile.youtube_url && (
+              <div style={styles.box} id="youtube-showcase-window">
+                <h2 style={styles.orangeHeader}>{profile.username}'s Featured Showcase Video</h2>
+                <div style={{ padding: '10px', backgroundColor: '#000000', textAlign: 'center' }}>
+                  {profile.youtube_url.includes('supabase.co') ? (
+                    <video controls autoPlay style={{ width: '100%', height: 'auto', maxHeight: '340px', border: '1px solid #FF6600' }} key={profile.youtube_url}>
+                      <source src={profile.youtube_url} type="video/mp4" />
+                    </video>
+                  ) : youtubeEmbed ? (
+                    <div style={{ position: 'relative', width: '100%', paddingBottom: '56.25%', height: 0, border: '1px solid #FF6600' }}>
+                      <iframe title="Showcase Video Frame" src={youtubeEmbed} style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', border: 0 }} allowFullScreen />
+                    </div>
+                  ) : (
+                    <div style={{ padding: '10px', color: 'red', fontSize: '11px', backgroundColor: '#ffe5d4', textAlign: 'left' }}>
+                      ⚠ LINK SYSTEM FAULT: Check the link settings inside your dashboard.
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
 
             <div style={styles.box}>
               <h2 style={styles.orangeHeader}>Bulletins</h2>
@@ -424,19 +360,32 @@ export default function ProfilePage({ profileId, currentUserId }) {
               </div>
             </div>
 
+            {/* ⭐ RETRO MYSPACE TOP 8 FRIENDS GRID MAP */}
             <div style={styles.box}>
-              <h2 style={styles.orangeHeader}>Friend Space</h2>
+              <h2 style={styles.orangeHeader}>{profile.username}'s Space // Top 8 Friends</h2>
               <div style={styles.contentPadding}>
-                <div style={styles.friendGrid}>
-                  {friends.map(f => (
-                    <div key={f.User_id} style={styles.friendCard}>
-                      <a href={`/profile/${f.User_id}`} style={styles.orangeLink}>
-                        <div style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{f.username}</div>
-                        <img src={f.avatar_url || 'https://placehold.co'} alt="pic" style={styles.friendImage} />
-                      </a>
-                    </div>
-                  ))}
-                </div>
+                {friends.length === 0 ? (
+                  <p style={{ margin: 0, color: '#666666', fontStyle: 'italic' }}>No friends linked to this profile yet.</p>
+                ) : (
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '12px', textAlign: 'center' }}>
+                    {friends.slice(0, 8).map((f) => (
+                      <div key={f.User_id} style={styles.friendCard}>
+                        <a href={`/profile/${f.User_id}`} style={styles.orangeLink}>
+                          <div style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', marginBottom: '2px', fontWeight: 'bold', fontSize: '10px' }}>
+                            {f.username}
+                          </div>
+                          <div style={{ padding: '3px', backgroundColor: '#ffffff', border: '1px solid #000000', display: 'inline-block', width: '100%' }}>
+                            <img 
+                              src={f.avatar_url || 'https://placehold.co'} 
+                              alt="pic" 
+                              style={{ width: '100%', aspectRatio: '1/1', objectFit: 'cover', display: 'block' }} 
+                            />
+                          </div>
+                        </a>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
 
