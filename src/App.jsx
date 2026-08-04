@@ -10,6 +10,7 @@ import BrowsePage from "./pages/BrowsePage";
 import MusicPage from "./pages/MusicPage";
 import VideosPage from "./pages/VideosPage";
 import NotificationsPage from "./pages/NotificationsPage";
+import AlbumPage from "./pages/AlbumPage";
 
 export default function App() {
   return (
@@ -26,6 +27,7 @@ export default function App() {
       <Route path="/profile/:id" element={<ProfilePage />} />
       <Route path="/dashboard" element={<Dashboard />} />
       <Route path="/inbox" element={<MessagesInbox />} />
+      <Route path="/album/:id/:type" element={<AlbumPage />} />
       
       {/* Catch-all Fallback Redirection Route (Fixed typo) */}
       <Route path="*" element={<LandingPage />} />
