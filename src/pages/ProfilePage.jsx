@@ -50,9 +50,6 @@ export default function ProfilePage({ profileId, currentUserId }) {
   const [newComment, setNewComment] = useState('');
   const [loading, setLoading] = useState(true);
 
-  // Structural Debug State Logger parameters
-  const [debugLog, setDebugLog] = useState([]);
-
   useEffect(() => {
     if (authLoading) return;
     if (profileId) {
@@ -151,33 +148,31 @@ export default function ProfilePage({ profileId, currentUserId }) {
     const { error } = await supabase.from('blogs').delete().eq('id', blogId);
     if (!error) setBlogs(blogs.filter(bg => bg.id !== blogId));
   };
-     // 🛰️ HIGH-PERFORMANCE VIDEO ID FORMATTER ENGINE (URL STRINGS SANITIZED)
+
+   // ⭐ FIXED: Targets capture group array index 2 and cleans trailing tracking tokens safely
   const getYouTubeEmbedUrl = (urlStr) => {
     if (!urlStr) return null;
     try {
       const cleanUrl = urlStr.trim();
-      
-      // Powerful regex parsing watch links, shorts, shares, and trailing tracker parameters
-      const regExp = /^.*(?:(?:youtu\.be\/|v\/|vi\/|u\/\w\/|embed\/|shorts\/)|(?:(?:watch)?\?v(?:i)?=|\&v(?:i)?=))([^#\&\?]*).*/;
+      const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|shorts\/|watch\?v=|\&v=)([^#\&\?]*).*/;
       const match = cleanUrl.match(regExp);
       
-      // Index 1 securely holds the raw alphanumeric video ID token string
-      if (match && match[1]) {
-        const videoId = match[1].trim();
+      // Index 2 cleanly isolates the 11-character video ID token (e.g. 77nB_9uIcN4)
+      if (match && match[2]) {
+        let videoId = match[2].trim();
         
-        // Safety boundary check to ensure a true YouTube video ID token length
-        if (videoId.length === 11) {
-          // ⭐ FIXED: Injects the dot and the exact embed subdirectory path using unbreakable concatenation
-          return "https://youtube.com" + videoId;
-        }
+        // Strip down any trailing arguments like ?si= tracking chains
+        if (videoId.includes('&')) videoId = videoId.split('&')[0];
+        if (videoId.includes('?')) videoId = videoId.split('?')[0];
+        
+        // Formats embed payload outputs with unbreakable direct concatenation
+        return "https://youtube.com" + videoId;
       }
     } catch (e) {
-      console.error("YouTube URL Extraction Critical Failure: ", e);
+      console.error("YouTube Parser Error:", e);
     }
     return null;
   };
-
-
 
     if (loading || authLoading) return <div style={{ color: '#FF6600', textAlign: 'center', padding: '50px', fontSize: '14px', fontWeight: 'bold', backgroundColor: '#000', minHeight: '100vh' }}>LOADING RETRO CANVAS...</div>;
   if (!profile) return <div style={{ color: '#FF6600', textAlign: 'center', padding: '50px', fontSize: '14px', fontWeight: 'bold', backgroundColor: '#000', minHeight: '100vh' }}>PROFILE NOT FOUND</div>;
@@ -190,6 +185,7 @@ export default function ProfilePage({ profileId, currentUserId }) {
       {profile.custom_css && <style>{profile.custom_css}</style>}
 
       <div style={styles.container}>
+        {/* TOP MARQUEE TICKER BANNER */}
         <div style={{ backgroundColor: '#000', color: '#FF6600', border: '1px solid #FF6600', padding: '6px', marginBottom: '15px', overflow: 'hidden' }}>
           <marquee scrollamount="5" style={{ fontSize: '11px', fontWeight: 'bold' }}>
             <span className="retro-blink" style={{ marginRight: '10px', color: '#fff' }}>⚡ STATUS TRANSMISSION:</span> 
@@ -198,7 +194,7 @@ export default function ProfilePage({ profileId, currentUserId }) {
         </div>
 
         <div style={styles.mainLayout}>
-          {/* LEFT COLUMN */}
+          {/* LEFT SIDEBAR GRID COLUMNS */}
           <div style={styles.leftColumn}>
             <div>
               <h1 style={{ fontSize: '18px', margin: '0 0 5px 0', fontWeight: 'bold' }}>{profile.username}</h1>
@@ -238,7 +234,7 @@ export default function ProfilePage({ profileId, currentUserId }) {
               </div>
             </div>
 
-            {/* FIXED AUDIO CONTAINER */}
+            {/* ⭐ AUTOPLAY MUSIC MIXER */}
             <div style={styles.box}>
               <h2 style={styles.orangeHeader}>Music Player</h2>
               <div style={styles.contentPadding}>
@@ -266,7 +262,7 @@ export default function ProfilePage({ profileId, currentUserId }) {
             )}
           </div>
 
-          {/* RIGHT COLUMN */}
+          {/* RIGHT COLUMN MAIN LAYOUT PANELS */}
           <div style={styles.rightColumn}>
             <div style={{ backgroundColor: '#ffe5d4', border: '1px solid #FF6600', padding: '8px', marginBottom: '15px', fontSize: '11px', fontWeight: 'bold' }}>
               {profile.username} is in your Extended Network
@@ -291,39 +287,41 @@ export default function ProfilePage({ profileId, currentUserId }) {
                 <p style={{ margin: '0', fontSize: '11px', whiteSpace: 'pre-wrap' }}>{profile.meet || 'Looking for cool people using ProfileDig!'}</p>
               </div>
             </div>
-
-{/* ⭐ FIXED: SAFE HANDSHAKE MATRIX FOR VIDEO SHOWCASE INTERFACES */}
+{/* ⭐ FAIL-SAFE HARDCODED VIDEO SHOWCASE GATEWAY */}
 {profile.youtube_url && (
   <div style={styles.box} id="youtube-showcase-window">
     <h2 style={styles.orangeHeader}>{profile.username}'s Featured Showcase Video</h2>
     <div style={{ padding: '10px', backgroundColor: '#000000', textAlign: 'center' }}>
       {profile.youtube_url.includes('supabase.co') ? (
-        /* Video File Playback Mode */
-        <video controls autoPlay style={{ width: '100%', height: 'auto', maxHeight: '340px', border: '1px solid #00ffff' }} key={profile.youtube_url}>
+        /* 1. Video File Playback Mode */
+        <video controls autoPlay style={{ width: '100%', height: 'auto', maxHeight: '340px', border: '1px solid #FF6600' }} key={profile.youtube_url}>
           <source src={profile.youtube_url} type="video/mp4" />
         </video>
       ) : (
-        /* External Link Stream Embed Mode */
-        <div style={{ position: 'relative', width: '100%', paddingBottom: '56.25%', height: 0, border: '1px solid #00ffff' }}>
+        /* 2. External Link Stream Embed Mode */
+        <div style={{ position: 'relative', width: '100%', paddingBottom: '56.25%', height: 0, border: '1px solid #FF6600' }}>
           <iframe 
             title={`${profile.username}'s Showcase Video`}
-            /* ⭐ FIXED: Safely targets match array index [1] to extract the raw 11-char string cleanly */
+            /* ⭐ FIXED HARDCODED PATH: Forces the full web address with /embed/ directly into the element source */
             src={"https://youtube.com" + (() => {
               try {
                 const cleanUrl = profile.youtube_url.trim();
+                // Matches standard watch addresses, shortened shared paths, and shorts columns
                 const rx = /^.*(?:(?:youtu\.be\/|v\/|vi\/|u\/\w\/|embed\/|shorts\/)|(?:(?:watch)?\?v(?:i)?=|\&v(?:i)?=))([^#\&\?]*).*/;
                 const m = cleanUrl.match(rx);
+                
                 if (m && m[1]) {
-                  let vId = m[1].trim();
-                  // Clean out secondary tracking parameters safely without string exceptions
-                  if (vId.includes('&')) vId = vId.split('&')[0];
-                  if (vId.includes('?')) vId = vId.split('?')[0];
-                  return vId;
+                  let idToken = m[1].trim();
+                  // Safely chop off trailing share codes or tracking lists
+                  if (idToken.includes('&')) idToken = idToken.split('&')[0];
+                  if (idToken.includes('?')) idToken = idToken.split('?')[0];
+                  return idToken;
                 }
               } catch (e) {
-                console.error("IFrame Inline Parse Failure:", e);
+                console.error("IFrame Inline Parser Crash:", e);
               }
-              return "77nB_9uIcN4"; // Fallback directly to your active car video if parsing drops
+              // Explicit 11-character absolute fallback key matching your royalty-free project clip
+              return "77nB_9uIcN4"; 
             })()} 
             style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', border: 0 }} 
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
@@ -334,6 +332,7 @@ export default function ProfilePage({ profileId, currentUserId }) {
     </div>
   </div>
 )}
+
 
             <div style={styles.box}>
               <h2 style={styles.orangeHeader}>Bulletins</h2>
