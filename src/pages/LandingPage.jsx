@@ -12,6 +12,7 @@ export default function LandingPage() {
   const [index, setIndex] = useState(0);
   const navigate = useNavigate();
 
+  // Load active authenticated session context
   useEffect(() => {
     async function loadUser() {
       const { data } = await supabase.auth.getUser();
@@ -20,6 +21,7 @@ export default function LandingPage() {
     loadUser();
   }, []);
 
+  // Fetch real user profiles containing avatar pictures to showcase
   useEffect(() => {
     async function loadUsers() {
       const { data } = await supabase
@@ -32,6 +34,7 @@ export default function LandingPage() {
     loadUsers();
   }, []);
 
+  // Set up the automated image rotation ticker loop
   useEffect(() => {
     if (featuredUsers.length === 0) return;
     const interval = setInterval(() => {
@@ -51,27 +54,28 @@ export default function LandingPage() {
     <div style={{ backgroundColor: "#000000", minHeight: "100vh", color: "#FFFFFF", display: "flex", flexDirection: "column", fontFamily: "Verdana, Arial, sans-serif" }}>
       <NavBar />
 
+      {/* MAIN CONTAINER PANEL */}
       <main style={{ flexGrow: 1, width: "100%", maxWidth: "1000px", margin: "20px auto", padding: "15px", backgroundColor: "#ffffff", border: "2px solid #FF6600", color: "#000000" }}>
         
-        {/* HERO BANNER SECTION */}
+        {/* RETRO HERO BANNER */}
         <div style={{ border: "1px solid #000000", padding: "20px", marginBottom: "20px", backgroundColor: "#ffe5d4", textAlign: "center" }}>
           <h1 style={{ fontSize: "22px", fontWeight: "bold", color: "#FF6600", margin: "0 0 10px 0" }}>
             A Modern Spin on the Classic MySpace //
           </h1>
           <p style={{ fontSize: "11px", color: "#000000", lineHeight: "1.5", margin: 0 }}>
-            Customize your profile canvas, share your network vibe, and connect through loose track uploads, video frames, and complete digital layouts. 
+            Customize your profile canvas, share your network vibe, and connect through track uploads, video frames, and complete digital layouts. 
             ProfileDig brings back authentic nostalgia — with a clean supersonic speed engine.
           </p>
         </div>
 
         <div style={{ display: "flex", flexWrap: "wrap", gap: "20px" }}>
-          {/* LEFT CONTAINER GRID SECTION */}
+          {/* LEFT SIDEBAR WRAPPER */}
           <div style={{ flex: "1 1 300px" }}>
             
-            {/* AUTH LOGIN BOX CARD */}
+            {/* CONDITIONAL AUTH LOGIN CONTROLS BLOCK */}
             {!user ? (
               <div style={{ border: "1px solid #000000", marginBottom: "15px", backgroundColor: "#ffffff" }}>
-                <h2 style={{ backgroundColor: "#FF6600", color: "#ffffff", padding: "4px 8px", fontSize: "12px", fontWeight: "bold", margin: 0 }}>Member Login</h2>
+                <h2 style={{ backgroundColor: "#FF6600", color: "#ffffff", padding: "4px 8px", fontSize: "12px", fontWeight: "bold", margin: 0, borderBottom: "1px solid #000" }}>Member Login</h2>
                 <form onSubmit={handleLogin} style={{ padding: "10px", display: "flex", flexDirection: "column", gap: "8px" }}>
                   <input type="email" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} required style={{ width: "100%", padding: "5px", fontSize: "11px", border: "1px solid #000000" }} />
                   <input type="password" placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} required style={{ width: "100%", padding: "5px", fontSize: "11px", border: "1px solid #000000" }} />
@@ -84,13 +88,13 @@ export default function LandingPage() {
             ) : (
               <div style={{ border: "1px solid #000000", marginBottom: "15px", padding: "10px", backgroundColor: "#ffe5d4", fontSize: "11px" }}>
                 You are logged in as: <b>{user.email}</b><br />
-                <button onClick={() => navigate("/dashboard")} style={{ backgroundColor: "#000", color: "#fff", border: "none", padding: "4px 8px", marginTop: "8px", fontSize: "10px", cursor: "pointer" }}>Go to Dashboard</button>
+                <button onClick={() => navigate("/dashboard")} style={{ backgroundColor: "#000", color: "#fff", border: "none", padding: "4px 8px", marginTop: "8px", fontSize: "10px", cursor: "pointer", fontWeight: "bold" }}>Go to Dashboard</button>
               </div>
             )}
 
-            {/* ROTATING ROTATOR CARD: COOL NEW PEOPLE */}
+            {/* DYNAMIC ROTATING USER BOX */}
             <div style={{ border: "1px solid #000000", backgroundColor: "#ffffff" }}>
-              <h3 style={{ backgroundColor: "#FF6600", color: "#ffffff", padding: "4px 8px", fontSize: "12px", fontWeight: "bold", margin: 0 }}>Cool New People Space</h3>
+              <h3 style={{ backgroundColor: "#FF6600", color: "#ffffff", padding: "4px 8px", fontSize: "12px", fontWeight: "bold", margin: 0, borderBottom: "1px solid #000" }}>Cool New People Space</h3>
               <div style={{ padding: "15px", textAlign: "center" }}>
                 {featuredUsers.length > 0 ? (
                   <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "6px" }}>
@@ -99,7 +103,7 @@ export default function LandingPage() {
                     </Link>
                     <img src={featuredUsers[index].avatar_url} alt="User Avatar" style={{ width: "110px", height: "110px", objectFit: "cover", border: "1px solid #000000" }} />
                     <Link to={`/profile/${featuredUsers[index].User_id}`}>
-                      <button style={{ backgroundColor: "#FF6600", color: "#fff", border: "1px solid #00", padding: "2px 6px", fontSize: "10px", cursor: "pointer", fontWeight: "bold" }}>View Space »</button>
+                      <button style={{ backgroundColor: "#FF6600", color: "#fff", border: "1px solid #000000", padding: "2px 6px", fontSize: "10px", cursor: "pointer", fontWeight: "bold" }}>View Space »</button>
                     </Link>
                   </div>
                 ) : (
@@ -109,27 +113,32 @@ export default function LandingPage() {
             </div>
           </div>
 
-          {/* RIGHT CONTAINER FEATURE MEDIA LINKS ROW */}
+          {/* RIGHT CONTAINER MEDIA PANELS */}
           <div style={{ flex: "1 1 500px", display: "flex", flexDirection: "column", gap: "15px" }}>
+            
+            {/* MUSIC SECTION BLOCK */}
             <div style={{ border: "1px solid #000000", backgroundColor: "#ffffff" }}>
-              <h3 style={{ backgroundColor: "#FF6600", color: "#ffffff", padding: "4px 8px", fontSize: "12px", fontWeight: 'bold', margin: 0 }}>ProfileDig Music System</h3>
+              <h3 style={{ backgroundColor: "#FF6600", color: "#ffffff", padding: "4px 8px", fontSize: "12px", fontWeight: 'bold', margin: 0, borderBottom: "1px solid #000" }}>ProfileDig Music System</h3>
               <div style={{ padding: "10px", fontSize: "11px" }}>
                 <p style={{ margin: "0 0 8px 0" }}>Stream custom background audio mp3 tracks directly uploaded by network users. Sync songs to your profile wall room.</p>
                 <button onClick={() => navigate("/music")} style={{ backgroundColor: "#FF6600", color: "#ffffff", border: "1px solid #000000", padding: "4px 10px", fontSize: "11px", cursor: "pointer", fontWeight: "bold" }}>▶ Explore Music Channel</button>
               </div>
             </div>
 
+            {/* VIDEOS SECTION BLOCK */}
             <div style={{ border: "1px solid #000000", backgroundColor: "#ffffff" }}>
-              <h3 style={{ backgroundColor: "#FF6600", color: "#ffffff", padding: "4px 8px", fontSize: "12px", fontWeight: "bold", margin: 0 }}>ProfileDig Featured Videos</h3>
+              <h3 style={{ backgroundColor: "#FF6600", color: "#ffffff", padding: "4px 8px", fontSize: "12px", fontWeight: "bold", margin: 0, borderBottom: "1px solid #000" }}>ProfileDig Featured Videos</h3>
               <div style={{ padding: "10px", fontSize: "11px" }}>
                 <p style={{ margin: "0 0 8px 0" }}>Watch customized community highlights, interactive media clips, and spotlight profiles. Embed custom streams into your profile layout room grids.</p>
                 <button onClick={() => navigate("/videos")} style={{ backgroundColor: "#FF6600", color: "#ffffff", border: "1px solid #000000", padding: "4px 10px", fontSize: "11px", cursor: "pointer", fontWeight: "bold" }}>▶ Explore Video Channels</button>
               </div>
             </div>
+
           </div>
         </div>
       </main>
 
+      {/* FOOTER */}
       <footer style={{ backgroundColor: "#FF6600", color: "#000000", textAlign: "center", padding: "8px", fontSize: "10px", fontWeight: "bold", borderTop: "1px solid #ffffff", width: "100%" }}>
         © {new Date().getFullYear()} ProfileDig — A Place for Friends
       </footer>

@@ -44,15 +44,15 @@ const styles = {
   friendGrid: { display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '8px', textAlign: 'center', marginTop: '10px' },
   friendCard: { fontSize: '10px', fontWeight: 'bold' },
   friendImage: { width: '100%', aspectRatio: '1/1', objectFit: 'cover', border: '1px solid #000000', display: 'block', marginBottom: '4px' },
-  orangeLink: { color: '#FF6600', textDecoration: 'none', fontWeight: 'bold' },
+  orangeLink: { color: '#FF6600', textDecoration: 'none', fontWeight: 'bold', fontSize: '12px' },
   button: { backgroundColor: '#FF6600', color: '#ffffff', border: '1px solid #000000', padding: '4px 8px', fontSize: '11px', cursor: 'pointer', fontWeight: 'bold' },
   textarea: { width: '100%', height: '60px', border: '1px solid #000000', fontSize: '11px', padding: '5px', marginBottom: '5px', resize: 'vertical' }
 };
 
 export default function ProfilePage({ profileId, currentUserId }) {
-  const { user } = useAuth();
-  const activeProfileId = profileId || currentUserId || user?.id;
-
+  const { user, loading: authLoading } = useAuth();
+  
+  const [activeProfileId, setActiveProfileId] = useState(profileId || currentUserId);
   const [profile, setProfile] = useState(null);
   const [bulletins, setBulletins] = useState([]);
   const [comments, setComments] = useState([]);
@@ -63,12 +63,34 @@ export default function ProfilePage({ profileId, currentUserId }) {
   const [newComment, setNewComment] = useState('');
   const [loading, setLoading] = useState(true);
 
+  // ⭐ DYNAMIC ROUTING realign helper
+  useEffect(() => {
+    if (authLoading) return;
+
+    if (profileId) {
+      setActiveProfileId(profileId);
+    } else if (currentUserId) {
+      setActiveProfileId(currentUserId);
+    } else if (user?.id) {
+      setActiveProfileId(user.id);
+    } else {
+      // Logged out & no route param fallback: Fetch the first profile in the system to act as 'Tom'
+      const fetchGlobalHostFallback = async () => {
+        const { data } = await supabase.from('profiles').select('User_id').limit(1);
+        if (data && data.length > 0) {
+          setActiveProfileId(data[0].User_id);
+        } else {
+          setLoading(false);
+        }
+      };
+      fetchGlobalHostFallback();
+    }
+  }, [profileId, currentUserId, user, authLoading]);
+
   useEffect(() => {
     if (activeProfileId) {
       fetchProfileData();
       recordProfileView();
-    } else {
-      setLoading(false);
     }
   }, [activeProfileId, user?.id]);
 
@@ -82,8 +104,7 @@ export default function ProfilePage({ profileId, currentUserId }) {
       const { data: bulls } = await supabase.from('bulletins').select('*').eq('user_id', activeProfileId).order('created_at', { ascending: false });
       setBulletins(bulls || []);
 
-      const { data: blogPosts, error: bErr } = await supabase.from('blogs').select('*').eq('author_id', activeProfileId).order('created_at', { ascending: false });
-      if (bErr) console.error("Blog extraction crash logged:", bErr.message);
+      const { data: blogPosts } = await supabase.from('blogs').select('*').eq('author_id', activeProfileId).order('created_at', { ascending: false });
       setBlogs(blogPosts || []);
 
       const { data: comms } = await supabase.from('comments')
@@ -154,24 +175,15 @@ export default function ProfilePage({ profileId, currentUserId }) {
   const handleDeleteBulletin = async (bulletinId) => {
     const confirmDel = window.confirm("Delete this bulletin blast from your space?");
     if (!confirmDel) return;
-    
     const { error } = await supabase.from('bulletins').delete().eq('id', bulletinId);
-    if (!error) {
-      setBulletins(bulletins.filter(b => b.id !== bulletinId));
-    }
+    if (!error) setBulletins(bulletins.filter(b => b.id !== bulletinId));
   };
 
-  // ⭐ OPERATIONAL DELETION MUTATION HOOK FOR BLOG ENTIRES
   const handleDeleteBlog = async (blogId) => {
     const confirmDel = window.confirm("Are you sure you want to delete this blog entry permanently?");
     if (!confirmDel) return;
-    
     const { error } = await supabase.from('blogs').delete().eq('id', blogId);
-    if (!error) {
-      setBlogs(blogs.filter(bg => bg.id !== blogId));
-    } else {
-      alert("Failed to drop blog row record: " + error.message);
-    }
+    if (!error) setBlogs(blogs.filter(bg => bg.id !== blogId));
   };
 
   const getYouTubeEmbedUrl = (urlStr) => {
@@ -179,14 +191,14 @@ export default function ProfilePage({ profileId, currentUserId }) {
     try {
       let regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
       let match = urlStr.match(regExp);
-      if (match && match[2].length === 11) {
-        return `https://youtube.com{match[2]}`;
+      if (match && match.length === 11) {
+        return `https://youtube.com{match}`;
       }
     } catch (e) {}
     return null;
   };
 
-    if (loading) return <div style={{ color: '#FF6600', textAlign: 'center', padding: '50px', fontSize: '14px', fontWeight: 'bold', backgroundColor: '#000', minHeight: '100vh' }}>LOADING RETRO CANVAS...</div>;
+    if (loading || authLoading) return <div style={{ color: '#FF6600', textAlign: 'center', padding: '50px', fontSize: '14px', fontWeight: 'bold', backgroundColor: '#000', minHeight: '100vh' }}>LOADING RETRO CANVAS...</div>;
   if (!profile) return <div style={{ color: '#FF6600', textAlign: 'center', padding: '50px', fontSize: '14px', fontWeight: 'bold', backgroundColor: '#000', minHeight: '100vh' }}>PROFILE NOT FOUND</div>;
 
   const youtubeEmbed = getYouTubeEmbedUrl(profile.youtube_url);
@@ -223,8 +235,9 @@ export default function ProfilePage({ profileId, currentUserId }) {
               <h2 style={styles.orangeHeader}>Contacting {profile.username}</h2>
               <div style={{ ...styles.contentPadding, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '5px' }}>
                 <button style={styles.button} onClick={async () => {
+                  if (!user) return alert("Please log in to transmit secure private messages.");
                   const msg = prompt("Enter private message body:");
-                  if (!msg || !user) return;
+                  if (!msg) return;
                   await supabase.from('user_messages').insert([{ sender_id: user.id, receiver_id: activeProfileId, content: msg }]);
                   alert("Message transmitted successfully!");
                 }}>Send Message</button>
@@ -235,7 +248,7 @@ export default function ProfilePage({ profileId, currentUserId }) {
                   </button>
                 ) : (
                   <button style={styles.button} onClick={async () => {
-                    if (!user) return alert("Log in first.");
+                    if (!user) return alert("Log in first to connect with friends.");
                     await supabase.from('friends').insert([{ user_id: user.id, friend_id: activeProfileId }, { user_id: activeProfileId, friend_id: user.id }]);
                     alert("Friend link added!"); fetchProfileData();
                   }}>Add to Friends</button>
@@ -290,7 +303,7 @@ export default function ProfilePage({ profileId, currentUserId }) {
             </div>
 
             <div style={styles.box}>
-              <h2 style={styles.orangeHeaderContainer || styles.orangeHeader}>{profile.username}'s Blurbs</h2>
+              <h2 style={styles.orangeHeader}>{profile.username}'s Blurbs</h2>
               <div style={styles.contentPadding}>
                 <h3 style={{ color: '#FF6600', fontSize: '11px', margin: '0 0 5px 0', fontWeight: 'bold' }}>About me:</h3>
                 <p style={{ margin: '0 0 15px 0', fontSize: '11px', whiteSpace: 'pre-wrap' }}>{profile.about_me || 'Nothing written here yet.'}</p>
@@ -354,7 +367,7 @@ export default function ProfilePage({ profileId, currentUserId }) {
                   </form>
                 )}
                 {blogs.map(bg => (
-                  <div key={bg.id} style={{ borderBottom: '1px dashed #ccc', padding: '6px', marginBottom: '8px' }}>
+                  <div key={bg.id} style={{ borderBottom: '1px dashed #ccc', padding: '4px', marginBottom: '8px' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                       <div style={{ fontWeight: 'bold', color: '#000000', fontSize: '11px' }}>{bg.title}</div>
                       {user?.id === activeProfileId && (
@@ -389,11 +402,13 @@ export default function ProfilePage({ profileId, currentUserId }) {
             <div style={styles.box}>
               <h2 style={styles.orangeHeader}>Comments</h2>
               <div style={styles.contentPadding}>
-                {(currentUserId || user?.id) && (
+                {(currentUserId || user?.id) ? (
                   <form onSubmit={handlePostComment} style={{ marginBottom: '10px' }}>
                     <textarea value={newComment} onChange={e => setNewComment(e.target.value)} placeholder="Type comment..." style={styles.textarea} required />
                     <button type="submit" style={styles.button}>Add Comment</button>
                   </form>
+                ) : (
+                  <p style={{ color: '#666666', fontStyle: 'italic', margin: '5px 0' }}>Log in to post a comment on this user's profile wall.</p>
                 )}
                 {comments.map(c => (
                   <div key={c.id} style={{ display: 'flex', gap: '10px', background: '#ffe5d4', padding: '5px', marginBottom: '5px', border: '1px dashed #000', flexDirection: 'column' }}>
