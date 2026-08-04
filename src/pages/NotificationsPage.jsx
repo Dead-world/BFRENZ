@@ -35,16 +35,16 @@ export default function NotificationsPage() {
 
       if (!error && data) setAlerts(data);
     } catch (err) {
-      console.error(err);
+      console.error("Failed to load notification assets:", err);
     } finally {
       setLoading(false);
     }
   };
 
-  // ⭐ THE ACTION DRIVER: Accepts a friend request and connects both users
+  // ⭐ FIXED: Adds permanent two-way friend connection insertion AND absolute row purge
   const handleAcceptFriend = async (alertItem) => {
     try {
-      // 1. Establish mutual layout connections in your friends list table rows schema
+      // 1. Establish mutual layout connections inside your database friends table
       const { error: fErr } = await supabase
         .from('friends')
         .insert([
@@ -54,29 +54,55 @@ export default function NotificationsPage() {
 
       if (fErr) throw fErr;
 
-      // 2. Clear out the alert record log permanently from your dashboard layout tree
-      await supabase.from('notifications').delete().eq('id', alertItem.id);
+      // 2. ⭐ DATABASE SYNC FIX: Erase the notification row permanently so it stays accepted
+      const { error: dErr } = await supabase
+        .from('notifications')
+        .delete()
+        .eq('id', alertItem.id);
+
+      if (dErr) throw dErr;
       
-      alert("Friend connection established successfully!");
-      setAlerts(alerts.filter(a => a.id !== alertItem.id));
+      alert("Friend link connected successfully!");
+      setAlerts(prevAlerts => prevAlerts.filter(a => a.id !== alertItem.id));
     } catch (err) {
-      alert("Verification exception: " + err.message);
+      console.error(err);
+      alert("Verification Exception: " + err.message);
     }
   };
 
+  // ⭐ FIXED: Transmits persistent UPDATE command targeting your exact row token index
   const handleMarkAsRead = async (alertId) => {
-    await supabase.from('notifications').update({ is_read: true }).eq('id', alertId);
-    setAlerts(alerts.map(a => a.id === alertId ? { ...a, is_read: true } : a));
+    try {
+      const { error } = await supabase
+        .from('notifications')
+        .update({ is_read: true })
+        .eq('id', alertId);
+
+      if (error) throw error;
+      setAlerts(prevAlerts => prevAlerts.map(a => a.id === alertId ? { ...a, is_read: true } : a));
+    } catch (err) {
+      console.error("Failed to persist unread update flags: ", err.message);
+    }
   };
 
+  // ⭐ FIXED: Transmits persistent DELETE payload parameters straight to Supabase
   const handleDismissNotification = async (alertId) => {
-    await supabase.from('notifications').delete().eq('id', alertId);
-    setAlerts(alerts.filter(a => a.id !== alertId));
+    try {
+      const { error } = await supabase
+        .from('notifications')
+        .delete()
+        .eq('id', alertId);
+
+      if (error) throw error;
+      setAlerts(prevAlerts => prevAlerts.filter(a => a.id !== alertId));
+    } catch (err) {
+      console.error("Failed to run persistent clear: ", err.message);
+    }
   };
 
   if (loading) return <div style={{ color: '#FF6600', padding: '20px', backgroundColor: '#000', minHeight: '100vh', textAlign: 'center', fontWeight: 'bold' }}>Reading notification signals...</div>;
 
-  return (
+    return (
     <div style={styles.pageWrapper}>
       <NavBar user={user} />
       <div style={styles.container}>
@@ -87,7 +113,7 @@ export default function NotificationsPage() {
           ) : (
             <div>
               {alerts.map((item) => (
-                <div key={item.id} style={{ ...styles.alertRow, opacity: item.is_read ? 0.7 : 1 }}>
+                <div key={item.id} style={{ ...styles.alertRow, opacity: item.is_read ? 0.6 : 1 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '11px' }}>
                     <img src={item.profiles?.avatar_url || 'https://placehold.co'} alt="Pic" style={{ width: '35px', height: '34px', objectFit: 'cover', border: '1px solid #000' }} />
                     <div>
