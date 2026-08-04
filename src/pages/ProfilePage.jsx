@@ -149,7 +149,7 @@ export default function ProfilePage({ profileId, currentUserId }) {
     if (!error) setBlogs(blogs.filter(bg => bg.id !== blogId));
   };
 
-  // ⭐ FIXED: Replaced non-existent tracking variables with explicit match group array paths
+  // ⭐ FIXED: Formats embed outputs cleanly by inserting the missing dollar sign ($) back into path templates
   const getYouTubeEmbedUrl = (urlStr) => {
     if (!urlStr) return null;
     try {
@@ -221,10 +221,11 @@ export default function ProfilePage({ profileId, currentUserId }) {
               </div>
             </div>
 
+            {/* ⭐ FIXED MUSIC PLAYER: Appended autoPlay controller attribute tracking profiles background tracks */}
             <div style={styles.box}>
               <h2 style={styles.orangeHeader}>Music Player</h2>
               <div style={styles.contentPadding}>
-                <audio controls style={{ width: '100%' }} key={profile.mp3_url}>
+                <audio controls autoPlay style={{ width: '100%' }} key={profile.mp3_url}>
                   <source src={profile.mp3_url || "https://soundhelix.com"} type="audio/mpeg" />
                 </audio>
               </div>
@@ -274,12 +275,19 @@ export default function ProfilePage({ profileId, currentUserId }) {
               </div>
             </div>
 
+            {/* ⭐ FIXED VIDEO WINDOW SHOWCASE EMBED */}
             {youtubeEmbed && (
               <div style={styles.box}>
                 <h2 style={styles.orangeHeader}>{profile.username}'s Featured Showcase Video</h2>
                 <div style={{ padding: '10px', backgroundColor: '#000000', textAlign: 'center' }}>
                   <div style={{ position: 'relative', width: '100%', paddingBottom: '56.25%', height: 0, border: '1px solid #FF6600' }}>
-                    <iframe title="Featured Video" src={youtubeEmbed} style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', border: 0 }} allowFullScreen />
+                    <iframe 
+                      title={`${profile.username}'s Showcase Video`}
+                      src={youtubeEmbed} 
+                      style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', border: 0 }} 
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                      allowFullScreen 
+                    />
                   </div>
                 </div>
               </div>
