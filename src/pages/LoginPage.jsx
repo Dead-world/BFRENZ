@@ -61,7 +61,7 @@ export default function LandingPage() {
         </h1>
         <p className="text-sm text-gray-300 leading-relaxed max-w-xl mb-10">
           Customize your profile, share your vibe, and connect through music, videos, and creativity.
-          ProfileDig brings back the nostalgia — with a fresh, modern twist.
+          bfrenz brings back the nostalgia — with a fresh, modern twist.
         </p>
 
         {/* LOGIN BOX — disappears when logged in */}
@@ -152,7 +152,7 @@ export default function LandingPage() {
 
       {/* FOOTER */}
       <footer className="bg-orange-600 text-black text-center py-3 text-xs border-t border-orange-400">
-        © {new Date().getFullYear()} ProfileDig — A Place for Friends
+        © {new Date().getFullYear()} BFRENZ — A Place for Friends
       </footer>
     </div>
   );

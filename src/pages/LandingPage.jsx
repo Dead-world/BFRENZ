@@ -76,7 +76,7 @@ export default function LandingPage() {
         
         {/* PREMIUM NETWORK STATISTICAL TRACKER BAR */}
         <div style={styles.statsHeader}>
-          <span style={{ color: "#888888" }}>NETWORK ADDRESS: <b style={{ color: "#ffffff" }}>PROFILEDIG // GLOBAL</b></span>
+          <span style={{ color: "#888888" }}>NETWORK ADDRESS: <b style={{ color: "#ffffff" }}>BFRENZ // GLOBAL</b></span>
           <span style={{ color: "#FF6600", fontWeight: "bold" }}>PROFILES ENROLLED: <span style={{ color: "#ffffff" }}>{totalCount || "2,114"}</span></span>
         </div>
         
@@ -86,7 +86,7 @@ export default function LandingPage() {
             The Nostalgic Web, Re-Engineered.
           </h1>
           <p style={{ fontSize: "11px", color: "#b3b3b3", lineHeight: "1.6", margin: 0 }}>
-            Welcome back to your blank slate. Customize your full-screen profile canvas with raw markup styles, share your aesthetic timeline, and interface across independent music tracks, custom text bulletins, and community visual highlights. ProfileDig preserves the authentic boxy soul of 2005 MySpace—accelerated inside a professional ultra-fast deployment node.
+            Welcome back to your blank slate. Customize your full-screen profile canvas with raw markup styles, share your aesthetic timeline, and interface across independent music tracks, custom text bulletins, and community visual highlights. bfrenz preserves the authentic boxy soul of 2005 MySpace—accelerated inside a professional ultra-fast deployment node.
           </p>
         </div>
 
@@ -180,7 +180,7 @@ export default function LandingPage() {
 
       {/* SOLID HIGH-CONTRAST FOOTER BLOCK */}
       <footer style={{ backgroundColor: "#111111", color: "#888888", textAlign: "center", padding: "12px", fontSize: "10px", borderTop: "1px solid #FF6600", width: "100%", letterSpacing: "1px" }}>
-        © {new Date().getFullYear()} PROFILEDIG NETWORK — <span style={{ color: "#FF6600", fontWeight: "bold" }}>A PLACE FOR FRIENDS</span>
+        © {new Date().getFullYear()} BFRENZ — <span style={{ color: "#FF6600", fontWeight: "bold" }}>A PLACE FOR FRIENDS</span>
       </footer>
     </div>
   );
