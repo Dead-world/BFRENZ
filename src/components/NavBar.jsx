@@ -123,7 +123,7 @@ export default function NavBar() {
       {/* Brand Anchor Logo */}
       <div>
         <Link to="/" onClick={() => setIsOpen(false)}>
-          <img src="/ProfileDigLogo.png" alt="ProfileDig" style={styles.logoImage} onError={(e) => { e.target.style.display = 'none'; e.target.parentNode.innerHTML = '<span style="color:#FF6600; font-weight:bold; font-size:14px;">ProfileDig</span>'; }} />
+          <img src="/bfrenzlogo.png" alt="bfrenz" style={styles.logoImage} onError={(e) => { e.target.style.display = 'none'; e.target.parentNode.innerHTML = '<span style="color:#FF6600; font-weight:bold; font-size:14px;">ProfileDig</span>'; }} />
         </Link>
       </div>
 
