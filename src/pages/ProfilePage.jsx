@@ -303,7 +303,7 @@ export default function ProfilePage({ profileId, currentUserId }) {
           <iframe 
             title={`${profile.username}'s Showcase Video`}
             /* ⭐ FIXED HARDCODED PATH: Forces the full web address with /embed/ directly into the element source */
-            src={"https://youtube.com/" + (() => {
+            src={"https://www.youtube.com/embed/xxxx" + (() => {
               try {
                 const cleanUrl = profile.youtube_url.trim();
                 // Matches standard watch addresses, shortened shared paths, and shorts columns
