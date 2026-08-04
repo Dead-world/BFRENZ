@@ -314,7 +314,18 @@ export default function Dashboard() {
         <form onSubmit={saveChanges}>
           <table style={styles.table}>
             <tbody>
-                            {/* SECTION 1: ACCOUNT IDENTITY & AESTHETICS (CONTINUED) */}
+                       {/* SECTION 1: ACCOUNT IDENTITY & AESTHETICS */}
+          <h3 style={styles.sectionTitle}>Account Identity & Aesthetics</h3>
+          <table style={styles.table}>
+            <tbody>
+              <tr>
+                <td style={styles.tdLabel}>Profile Image</td>
+                <td style={styles.tdValue}>
+                  <img src={profile.avatar_url || "/default-avatar.png"} style={{ width: '90px', height: '90px', objectFit: 'cover', border: '1px solid #000000', display: 'block', marginBottom: '8px' }} alt="Preview" />
+                  <input type="file" name="avatar" accept="image/*" style={{ fontSize: '11px' }} />
+                  <p className="help-text">JPG, GIF, or PNG. Max size 2MB. Crops automatically to a box grid.</p>
+                </td>
+              </tr>
               <tr>
                 <td style={styles.tdLabel}>Display Name</td>
                 <td style={styles.tdValue}>
@@ -322,7 +333,7 @@ export default function Dashboard() {
                   <p className="help-text">This is the bold name text printed right above your profile picture photo.</p>
                 </td>
               </tr>
-              {/* ⭐ FIXED HOMETOWN CONFIGURATION GRID ROW ENTRY INPUT */}
+              {/* ⭐ FIXED: Hometown Location input box row restored completely */}
               <tr>
                 <td style={styles.tdLabel}>Hometown Location</td>
                 <td style={styles.tdValue}>
@@ -335,6 +346,48 @@ export default function Dashboard() {
                   <p className="help-text">This will display directly inside the info block right next to your avatar picture.</p>
                 </td>
               </tr>
+              <tr>
+                <td style={styles.tdLabel}>Age Gate / Birthdate</td>
+                <td style={styles.tdValue}>
+                  <input type="date" value={birthday} onChange={(e) => setBirthday(e.target.value)} className="myspace-input" style={{ width: 'auto' }} required />
+                  {birthdayError && <p style={{ color: '#cc0000', fontWeight: 'bold', margin: '3px 0 0 0', fontSize: '10px' }}>{birthdayError}</p>}
+                  <p className="help-text">Required verification. bfrenz requires profile space owners to be 16 or older.</p>
+                </td>
+              </tr>
+              {/* ⭐ FIXED: Gender Identity selection dropdown row retained perfectly */}
+              <tr>
+                <td style={styles.tdLabel}>Gender Identity</td>
+                <td style={styles.tdValue}>
+                  <select 
+                    name="gender" 
+                    defaultValue={profile.gender || "Not specified"}
+                    style={{ width: 'auto', padding: '4px', fontSize: '11px', border: '1px solid #000000', backgroundColor: '#ffffff', fontFamily: 'Verdana' }}
+                  >
+                    <option value="Not specified">Not specified</option>
+                    <option value="Male">Male</option>
+                    <option value="Female">Female</option>
+                    <option value="Non-binary">Non-binary</option>
+                    <option value="Other">Other</option>
+                  </select>
+                  <p className="help-text">This details block updates your identity label display matrix on public walls.</p>
+                </td>
+              </tr>
+              <tr>
+                <td style={styles.tdLabel}>Network Status Tag</td>
+                <td style={styles.tdValue}>
+                  <input name="status" defaultValue={profile.status} className="myspace-input" />
+                </td>
+              </tr>
+              <tr>
+                <td style={styles.tdLabel}>Ticker Status Message</td>
+                <td style={styles.tdValue}>
+                  <input name="status_message" defaultValue={profile.status_message} className="myspace-input" />
+                  <p className="help-text">This animates across the scrolling blinking marquee tracker bar on your public wall.</p>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+
 
             </tbody>
           </table>
