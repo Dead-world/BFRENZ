@@ -17,7 +17,9 @@ const styles = {
   textarea: { width: '100%', height: '50px', border: '1px solid #000000', fontSize: '11px', padding: '5px', marginBottom: '4px', resize: 'none', backgroundColor: '#ffffff', color: '#000000' },
   emojiRow: { display: 'flex', gap: '6px', marginBottom: '6px', flexWrap: 'wrap' },
   emojiBtn: { background: 'none', border: 'none', fontSize: '14px', cursor: 'pointer', padding: '2px' },
-  button: { backgroundColor: '#FF6600', color: '#ffffff', border: '1px solid #000000', padding: '3px 8px', fontSize: '11px', cursor: 'pointer', fontWeight: 'bold' }
+  buttonGroup: { display: 'flex', gap: '8px', marginTop: '8px' },
+  button: { backgroundColor: '#FF6600', color: '#ffffff', border: '1px solid #000000', padding: '3px 8px', fontSize: '11px', cursor: 'pointer', fontWeight: 'bold' },
+  deleteBtn: { backgroundColor: '#cc0000', color: '#ffffff', border: '1px solid #000000', padding: '3px 8px', fontSize: '11px', cursor: 'pointer', fontWeight: 'bold' }
 };
 
 export default function MessagesInboxPage() {
@@ -25,13 +27,18 @@ export default function MessagesInboxPage() {
   const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(true);
   
-  // Track open state of reply fields indexed by message ID context
   const [activeReplyId, setActiveReplyId] = useState(null);
   const [replyText, setReplyText] = useState('');
 
   const emojiList = ['⭐', '😎', '🎸', '🔥', '💀', '👽', '✨', '🖤', '✌️', '💥', '👀', '💯'];
 
   useEffect(() => {
+    // ⭐ SESSION FALLBACK SHIELD: Forces unauthenticated page visitors back to the login terminal
+    if (user === null) {
+      window.location.href = "/login";
+      return;
+    }
+
     if (user) {
       fetchIncomingMessages();
     }
@@ -60,7 +67,6 @@ export default function MessagesInboxPage() {
     e.preventDefault();
     if (!replyText.trim()) return;
 
-    // Send a fresh message row reversing sender and receiver roles
     const { error } = await supabase.from('user_messages').insert([
       {
         sender_id: user.id,
@@ -79,13 +85,30 @@ export default function MessagesInboxPage() {
     }
   };
 
+  // ⭐ ADDED: Operational mailbox row item deletion function
+  const handleDeleteMessage = async (messageId) => {
+    const confirmDel = window.confirm("Are you sure you want to permanently delete this message from your inbox?");
+    if (!confirmDel) return;
+
+    const { error } = await supabase
+      .from('user_messages')
+      .delete()
+      .eq('id', messageId);
+
+    if (!error) {
+      setMessages(messages.filter(msg => msg.id !== messageId));
+    } else {
+      alert("Failed to drop message record: " + error.message);
+    }
+  };
+
   const appendEmoji = (emoji) => {
     setReplyText(prev => prev + emoji);
   };
 
-    if (loading) return <div style={{ color: '#FF6600', padding: '20px', fontFamily: 'Verdana', backgroundColor: '#000', minHeight: '100vh' }}>Reading secure mailbox streams...</div>;
+  if (loading) return <div style={{ color: '#FF6600', padding: '20px', fontFamily: 'Verdana', backgroundColor: '#000', minHeight: '100vh', textAlign: 'center', fontWeight: 'bold' }}>Reading secure mailbox streams...</div>;
 
-  return (
+    return (
     <div style={styles.pageWrapper}>
       <NavBar user={user} />
       <div style={styles.container}>
@@ -101,6 +124,7 @@ export default function MessagesInboxPage() {
                   <div style={styles.messageHeader}>
                     <div style={styles.senderBox}>
                       <span style={styles.username}>{msg.profiles?.username || 'Sender'}</span>
+                      {/* Fixed default placeholder fallback string URL */}
                       <img src={msg.profiles?.avatar_url || 'https://placehold.co'} alt="pic" style={styles.avatar} />
                     </div>
                     <div style={{ flexGrow: 1 }}>
@@ -109,8 +133,8 @@ export default function MessagesInboxPage() {
                       </div>
                       <div style={{ whiteSpace: 'pre-wrap', color: '#000000' }}>{msg.content}</div>
                       
-                      {/* Reply Toggle Action Trigger Link Row */}
-                      <div style={{ marginTop: '8px' }}>
+                      {/* Action Triggers Row Panel */}
+                      <div style={styles.buttonGroup}>
                         <button 
                           onClick={() => {
                             if (activeReplyId === msg.id) {
@@ -123,6 +147,14 @@ export default function MessagesInboxPage() {
                           style={{ ...styles.button, backgroundColor: '#000', color: '#FF6600' }}
                         >
                           {activeReplyId === msg.id ? 'Cancel' : 'Reply'}
+                        </button>
+                        
+                        {/* New functional removal trigger button */}
+                        <button 
+                          onClick={() => handleDeleteMessage(msg.id)} 
+                          style={styles.deleteBtn}
+                        >
+                          Delete
                         </button>
                       </div>
                     </div>

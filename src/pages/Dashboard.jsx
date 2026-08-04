@@ -12,6 +12,12 @@ export default function Dashboard() {
   const [birthday, setBirthday] = useState("");
 
   useEffect(() => {
+    // Session Guard: If auth initialization settles and there is no user token, kick to login
+    if (user === null) {
+      window.location.href = "/login";
+      return;
+    }
+
     async function loadProfile() {
       const { data } = await supabase
         .from("profiles")
@@ -90,7 +96,7 @@ export default function Dashboard() {
       avatar_url = await uploadFile(avatarFile, "avatars");
     }
 
-    // MP3 Upload (Fixed comment block parsing leak)
+    // MP3 Upload
     const mp3File = form.get("mp3");
     if (mp3File && mp3File.size > 0) {
       mp3_url = await uploadFile(mp3File, "songs");
@@ -263,26 +269,31 @@ export default function Dashboard() {
             />
           </div>
 
-          {/* MP3 Upload */}
+          {/* ⭐ RESTORED COMPLETE MP3 BLOCK SECTION */}
           <div>
-            <label className="block font-bold mb-1">Upload MP3</label>
-            <input type="file" name="mp3" accept="audio/mp3,audio/mpeg" className="text-white" />
+            <label className="block font-bold mb-1">Upload MP3 Background Song</label>
+            <input type="file" name="mp3" accept="audio/mp3,audio/mpeg" className="text-white block mb-2" />
 
             {profile.mp3_url && (
-              <audio controls className="mt-3 w-full" key={profile.mp3_url}>
-                <source src={profile.mp3_url} type="audio/mp3" />
-              </audio>
+              <div className="bg-black/40 p-2 border border-orange-800 rounded">
+                <span className="text-xs text-gray-400 block mb-1 font-mono">Active Track Stream:</span>
+                <audio controls className="w-full h-8" key={profile.mp3_url}>
+                  <source src={profile.mp3_url} type="audio/mp3" />
+                </audio>
+              </div>
             )}
           </div>
            
-          {/* Save Button */}
-          <button
-            type="submit"
-            disabled={saving}
-            className="bg-orange-600 text-black font-bold px-4 py-2 rounded hover:bg-orange-400 transition disabled:opacity-50"
-          >
-            {saving ? "Saving..." : "Save Changes"}
-          </button>
+          {/* Save Button Container Box */}
+          <div className="pt-4 border-t border-orange-900/60">
+            <button
+              type="submit"
+              disabled={saving}
+              className="bg-orange-600 text-black font-bold px-6 py-3 rounded-lg hover:bg-orange-400 transition disabled:opacity-50 uppercase tracking-wider text-sm shadow-md"
+            >
+              {saving ? "Saving Changes..." : "Save Profile Changes »"}
+            </button>
+          </div>
         </form>
       </main>
     </div>
