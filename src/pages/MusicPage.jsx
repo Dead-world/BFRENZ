@@ -12,7 +12,6 @@ const styles = {
   artistPic: { width: '60px', height: '60px', objectFit: 'cover', border: '1px solid #000000' },
   orangeLink: { color: '#FF6600', textDecoration: 'none', fontWeight: 'bold', fontSize: '12px' }
 };
-
 export default function MusicPage() {
   const { user } = useAuth();
   const [tracks, setTracks] = useState([]);
@@ -47,7 +46,7 @@ export default function MusicPage() {
         <h2 style={styles.header}>ProfileDig // Independent Audio Network Directory</h2>
         <p style={{ fontSize: '11px', marginBottom: '15px' }}>Listen to background tracks uploaded by other users across the grid network. Click an artist's signature tag to view their complete profile room space.</p>
         
-        {tracks.length === 0 ? (
+        {styles.trackRow && tracks.length === 0 ? (
           <p style={{ fontSize: '11px', color: '#666666', fontStyle: 'italic' }}>No active audio track uploads currently indexed on the directory.</p>
         ) : (
           <div>
@@ -55,6 +54,7 @@ export default function MusicPage() {
               <div key={track.User_id} style={styles.trackRow}>
                 <img src={track.avatar_url || 'https://placehold.co'} alt="Artist" style={styles.artistPic} />
                 <div style={{ flexGrow: 1 }}>
+                  {/* ⭐ FIXED: Links explicitly path to case-sensitive track.User_id to prevent routing breaks */}
                   <Link to={`/profile/${track.User_id}`} style={styles.orangeLink}>
                     {track.username || 'Independent Artist'}
                   </Link>
