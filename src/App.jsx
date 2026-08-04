@@ -7,7 +7,8 @@ import Dashboard from "./pages/Dashboard";
 import SignupPage from "./pages/SignupPage";
 import MessagesInbox from "./pages/MessagesInboxPage";
 import BrowsePage from "./pages/BrowsePage";
-
+import MusicPage from "./pages/MusicPage";
+import VideosPage from "./pages/VideosPage";
 
 export default function App() {
   return (
@@ -16,6 +17,8 @@ export default function App() {
       <Route path="/" element={<LandingPage />} />
       <Route path="/register" element={<SignupPage />} />
       <Route path="/browse" element={<BrowsePage />} />
+      <Route path="/music" element={<MusicPage />} />
+      <Route path="/videos" element={<VideosPage />} />
       
       {/* Profile, Inbox and Settings Panels */}
       <Route path="/profile/:profileId" element={<ProfilePage />} />

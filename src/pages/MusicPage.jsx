@@ -1,178 +1,75 @@
-// src/pages/MusicPage.jsx
-import { useEffect, useState } from "react";
-import { supabase } from "../supabaseClient";
-import NavBar from "../components/NavBar";
+import React, { useState, useEffect } from 'react';
+import { supabase } from '../supabaseClient';
+import { useAuth } from '../hooks/useAuth';
+import NavBar from '../components/NavBar';
+import { Link } from 'react-router-dom';
+
+const styles = {
+  container: { width: '100%', minHeight: '100vh', backgroundColor: '#000000', color: '#000000', fontFamily: 'Verdana, sans-serif' },
+  main: { maxWidth: '950px', margin: '20px auto', padding: '15px', backgroundColor: '#ffffff', border: '2px solid #FF6600' },
+  header: { backgroundColor: '#FF6600', color: '#ffffff', padding: '4px 8px', fontSize: '13px', fontWeight: 'bold', margin: '0 0 15px 0' },
+  trackRow: { display: 'flex', gap: '15px', backgroundColor: '#ffe5d4', padding: '10px', border: '1px dashed #000000', marginBottom: '10px', alignItems: 'center' },
+  artistPic: { width: '60px', height: '60px', objectFit: 'cover', border: '1px solid #000000' },
+  orangeLink: { color: '#FF6600', textDecoration: 'none', fontWeight: 'bold', fontSize: '12px' }
+};
 
 export default function MusicPage() {
-  const [featuredArtist, setFeaturedArtist] = useState(null);
-  const [topSongs, setTopSongs] = useState([]);
-  const [newArtists, setNewArtists] = useState([]);
+  const { user } = useAuth();
+  const [tracks, setTracks] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  // Load Featured Artist
   useEffect(() => {
-    async function loadFeatured() {
-      const { data } = await supabase
-        .from("artists")
-        .select("*")
-        .order("popularity", { ascending: false })
-        .limit(1)
-        .single();
+    const fetchMusicFeeds = async () => {
+      try {
+        setLoading(true);
+        // Extracts profiles containing active background mp3 track parameters
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('User_id, username, avatar_url, mp3_url, music_interests')
+          .not('mp3_url', 'is', null);
 
-      setFeaturedArtist(data);
-    }
-    loadFeatured();
+        if (!error && data) setTracks(data);
+      } catch (e) {
+        console.error("Music indexing error logged:", e);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchMusicFeeds();
   }, []);
 
-  // Load Top Songs
-  useEffect(() => {
-    async function loadSongs() {
-      const { data } = await supabase
-        .from("songs")
-        .select("*")
-        .order("plays", { ascending: false })
-        .limit(10);
-
-      setTopSongs(data || []);
-    }
-    loadSongs();
-  }, []);
-
-  // Load New Artists
-  useEffect(() => {
-    async function loadNewArtists() {
-      const { data } = await supabase
-        .from("artists")
-        .select("*")
-        .order("created_at", { ascending: false })
-        .limit(6);
-
-      setNewArtists(data || []);
-    }
-    loadNewArtists();
-  }, []);
+  if (loading) return <div style={{ color: '#FF6600', padding: '20px', backgroundColor: '#000', minHeight: '100vh', fontFamily: 'Verdana' }}>Buffering music streams directory...</div>;
 
   return (
-    <div className="min-h-screen bg-black text-orange-500 font-[Verdana]">
-      <NavBar />
-
-      <main className="max-w-6xl mx-auto p-6 grid grid-cols-1 md:grid-cols-3 gap-6">
-
-        {/* LEFT COLUMN */}
-        <section className="space-y-6">
-
-          {/* Featured Artist */}
-          <div className="border border-orange-600 bg-black p-4 text-white rounded">
-            <h2 className="text-xl font-bold text-orange-400 mb-3">Featured Artist</h2>
-
-            {featuredArtist ? (
-              <div className="bg-orange-600 text-black p-3 rounded">
-                <h3 className="text-2xl font-bold">{featuredArtist.name}</h3>
-                <p className="text-sm">{featuredArtist.genre} — {featuredArtist.location}</p>
-                <p className="text-xs mt-2">{featuredArtist.description}</p>
-
-                <button
-                  className="mt-3 bg-black text-orange-500 px-3 py-1 rounded hover:bg-orange-400 hover:text-black transition"
-                  onClick={() => window.location.href = featuredArtist.song_url}
-                >
-                  ▶ Listen Now
-                </button>
-              </div>
-            ) : (
-              <p className="text-sm text-gray-400">Loading featured artist...</p>
-            )}
-          </div>
-
-          {/* New Artists */}
-          <div className="border border-orange-600 bg-black p-4 text-white rounded">
-            <h2 className="text-xl font-bold text-orange-400 mb-3">New Artists</h2>
-
-            <div className="grid grid-cols-2 gap-3">
-              {newArtists.map((artist) => (
-                <div key={artist.id} className="bg-orange-600 text-black p-2 rounded">
-                  <h4 className="font-bold">{artist.name}</h4>
-                  <p className="text-xs">{artist.genre}</p>
+    <div style={styles.container}>
+      <NavBar user={user} />
+      <main style={styles.main}>
+        <h2 style={styles.header}>ProfileDig // Independent Audio Network Directory</h2>
+        <p style={{ fontSize: '11px', marginBottom: '15px' }}>Listen to background tracks uploaded by other users across the grid network. Click an artist's signature tag to view their complete profile room space.</p>
+        
+        {tracks.length === 0 ? (
+          <p style={{ fontSize: '11px', color: '#666666', fontStyle: 'italic' }}>No active audio track uploads currently indexed on the directory.</p>
+        ) : (
+          <div>
+            {tracks.map(track => (
+              <div key={track.User_id} style={styles.trackRow}>
+                <img src={track.avatar_url || 'https://placehold.co'} alt="Artist" style={styles.artistPic} />
+                <div style={{ flexGrow: 1 }}>
+                  <Link to={`/profile/${track.User_id}`} style={styles.orangeLink}>
+                    {track.username || 'Independent Artist'}
+                  </Link>
+                  <div style={{ fontSize: '10px', color: '#555555', margin: '2px 0 6px 0' }}>
+                    Preferences: {track.music_interests || 'Rock / Electronic / Indie'}
+                  </div>
+                  <audio controls style={{ width: '100%', height: '28px' }}>
+                    <source src={track.mp3_url} type="audio/mpeg" />
+                  </audio>
                 </div>
-              ))}
-            </div>
+              </div>
+            ))}
           </div>
-        </section>
-
-        {/* CENTER COLUMN */}
-        <section className="space-y-6">
-
-          {/* Top Songs */}
-          <div className="border border-orange-600 bg-black p-4 text-white rounded">
-            <h2 className="text-xl font-bold text-orange-400 mb-3">Top Songs</h2>
-
-            <ul className="space-y-2">
-              {topSongs.map((song, index) => (
-                <li
-                  key={song.id}
-                  className="flex justify-between items-center bg-orange-600 text-black p-2 rounded hover:bg-orange-400 transition"
-                >
-                  <span className="font-bold">{index + 1}. {song.title}</span>
-                  <button
-                    className="bg-black text-orange-500 px-2 py-1 rounded hover:bg-orange-400 hover:text-black transition"
-                    onClick={() => window.location.href = song.song_url}
-                  >
-                    ▶ Play
-                  </button>
-                </li>
-              ))}
-            </ul>
-          </div>
-
-        </section>
-
-        {/* RIGHT COLUMN */}
-        <section className="space-y-6">
-
-          {/* Music Categories */}
-          <div className="border border-orange-600 bg-black p-4 text-white rounded">
-            <h2 className="text-xl font-bold text-orange-400 mb-3">Genres</h2>
-
-            <div className="grid grid-cols-2 gap-2 text-sm">
-              {[
-                "Rock",
-                "Hip-Hop",
-                "Pop",
-                "Metal",
-                "Electronic",
-                "Country",
-                "Indie",
-                "Jazz",
-                "Classical",
-                "R&B",
-                "Soul",
-                "Reggae",
-              ].map((genre) => (
-                <span key={genre} className="cursor-pointer hover:text-orange-400">
-                  {genre}
-                </span>
-              ))}
-            </div>
-          </div>
-
-          {/* Music Videos */}
-          <div className="border border-orange-600 bg-black p-4 text-white rounded">
-            <h2 className="text-xl font-bold text-orange-400 mb-3">Music Videos</h2>
-
-            <div className="bg-orange-600 text-black p-3 rounded">
-              <h3 className="font-bold">Featured Video</h3>
-              <p className="text-xs mt-1">A fresh new drop from the community.</p>
-
-              <button className="mt-2 bg-black text-orange-500 px-3 py-1 rounded hover:bg-orange-400 hover:text-black transition">
-                ▶ Watch Now
-              </button>
-            </div>
-          </div>
-
-        </section>
+        )}
       </main>
-
-      <footer className="bg-orange-600 text-black text-center py-3 text-xs border-t border-orange-400 mt-6">
-        © {new Date().getFullYear()} ProfileDig — Music for Everyone
-      </footer>
     </div>
   );
 }

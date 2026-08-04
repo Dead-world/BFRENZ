@@ -1,173 +1,90 @@
-// src/pages/VideosPage.jsx
-import { useEffect, useState } from "react";
-import { supabase } from "../supabaseClient";
-import NavBar from "../components/NavBar";
+import React, { useState, useEffect } from 'react';
+import { supabase } from '../supabaseClient';
+import { useAuth } from '../hooks/useAuth';
+import NavBar from '../components/NavBar';
+import { Link } from 'react-router-dom';
+
+const styles = {
+  container: { width: '100%', minHeight: '100vh', backgroundColor: '#000000', color: '#000000', fontFamily: 'Verdana, sans-serif' },
+  main: { maxWidth: '950px', margin: '20px auto', padding: '15px', backgroundColor: '#ffffff', border: '2px solid #FF6600' },
+  header: { backgroundColor: '#FF6600', color: '#ffffff', padding: '4px 8px', fontSize: '13px', fontWeight: 'bold', margin: '0 0 15px 0' },
+  videoGrid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '15px' },
+  videoCard: { border: '1px solid #000000', padding: '10px', backgroundColor: '#ffe5d4' },
+  orangeLink: { color: '#FF6600', textDecoration: 'none', fontWeight: 'bold', fontSize: '12px', display: 'block', marginBottom: '6px' }
+};
 
 export default function VideosPage() {
-  const [featuredVideo, setFeaturedVideo] = useState(null);
-  const [trendingVideos, setTrendingVideos] = useState([]);
-  const [newVideos, setNewVideos] = useState([]);
+  const { user } = useAuth();
+  const [videos, setVideos] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  // Load Featured Video
   useEffect(() => {
-    async function loadFeatured() {
-      const { data } = await supabase
-        .from("videos")
-        .select("*")
-        .order("views", { ascending: false })
-        .limit(1)
-        .single();
+    const fetchVideoFeeds = async () => {
+      try {
+        setLoading(true);
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('User_id, username, youtube_url')
+          .not('youtube_url', 'is', null);
 
-      setFeaturedVideo(data);
-    }
-    loadFeatured();
+        if (!error && data) setVideos(data);
+      } catch (e) {
+        console.error("Video indexing exception caught:", e);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchVideoFeeds();
   }, []);
 
-  // Load Trending Videos
-  useEffect(() => {
-    async function loadTrending() {
-      const { data } = await supabase
-        .from("videos")
-        .select("*")
-        .order("views", { ascending: false })
-        .limit(8);
+  const getYouTubeEmbedUrl = (urlStr) => {
+    if (!urlStr) return null;
+    try {
+      let regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
+      let match = urlStr.match(regExp);
+      if (match && match[2].length === 11) {
+        return `https://youtube.com{match[2]}`;
+      }
+    } catch (e) {}
+    return null;
+  };
 
-      setTrendingVideos(data || []);
-    }
-    loadTrending();
-  }, []);
-
-  // Load New Videos
-  useEffect(() => {
-    async function loadNew() {
-      const { data } = await supabase
-        .from("videos")
-        .select("*")
-        .order("created_at", { ascending: false })
-        .limit(8);
-
-      setNewVideos(data || []);
-    }
-    loadNew();
-  }, []);
+  if (loading) return <div style={{ color: '#FF6600', padding: '20px', backgroundColor: '#000', minHeight: '100vh', fontFamily: 'Verdana' }}>Indexing community media feeds...</div>;
 
   return (
-    <div className="min-h-screen bg-black text-orange-500 font-[Verdana]">
-      <NavBar />
-
-      <main className="max-w-6xl mx-auto p-6 grid grid-cols-1 md:grid-cols-3 gap-6">
-
-        {/* LEFT COLUMN */}
-        <section className="space-y-6">
-
-          {/* Featured Video */}
-          <div className="border border-orange-600 bg-black p-4 text-white rounded">
-            <h2 className="text-xl font-bold text-orange-400 mb-3">Featured Video</h2>
-
-            {featuredVideo ? (
-              <div className="bg-orange-600 text-black p-3 rounded">
-                <h3 className="text-2xl font-bold">{featuredVideo.title}</h3>
-                <p className="text-xs mt-1">{featuredVideo.description}</p>
-
-                <button
-                  className="mt-3 bg-black text-orange-500 px-3 py-1 rounded hover:bg-orange-400 hover:text-black transition"
-                  onClick={() => window.location.href = featuredVideo.video_url}
-                >
-                  ▶ Watch Now
-                </button>
-              </div>
-            ) : (
-              <p className="text-sm text-gray-400">Loading featured video...</p>
-            )}
-          </div>
-
-          {/* Categories */}
-          <div className="border border-orange-600 bg-black p-4 text-white rounded">
-            <h2 className="text-xl font-bold text-orange-400 mb-3">Categories</h2>
-
-            <div className="grid grid-cols-2 gap-2 text-sm">
-              {[
-                "Comedy",
-                "Music Videos",
-                "Short Films",
-                "Animation",
-                "Gaming",
-                "Sports",
-                "Vlogs",
-                "Tutorials",
-                "Trailers",
-                "Documentary",
-              ].map((cat) => (
-                <span key={cat} className="cursor-pointer hover:text-orange-400">
-                  {cat}
-                </span>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        {/* CENTER COLUMN */}
-        <section className="space-y-6">
-
-          {/* Trending Videos */}
-          <div className="border border-orange-600 bg-black p-4 text-white rounded">
-            <h2 className="text-xl font-bold text-orange-400 mb-3">Trending Videos</h2>
-
-            <div className="grid grid-cols-1 gap-3">
-              {trendingVideos.map((video) => (
-                <div
-                  key={video.id}
-                  className="flex items-center gap-3 bg-orange-600 text-black p-2 rounded hover:bg-orange-400 transition cursor-pointer"
-                  onClick={() => window.location.href = video.video_url}
-                >
-                  <img
-                    src={video.thumbnail_url || "/default-video-thumb.png"}
-                    className="w-24 h-16 object-cover rounded border border-black"
-                  />
-                  <div>
-                    <h4 className="font-bold">{video.title}</h4>
-                    <p className="text-xs">{video.views} views</p>
+    <div style={styles.container}>
+      <NavBar user={user} />
+      <main style={styles.main}>
+        <h2 style={styles.header}>ProfileDig // Community Video Showcase Channels</h2>
+        <p style={{ fontSize: '11px', marginBottom: '15px' }}>Explore creative media clips and visual highlights shared directly by users. Visit an owner's custom space room by selecting their name tag.</p>
+        
+        {videos.length === 0 ? (
+          <p style={{ fontSize: '11px', color: '#666666', fontStyle: 'italic' }}>No profile showcase video links currently indexed across the network directory.</p>
+        ) : (
+          <div style={styles.videoGrid}>
+            {videos.map(vid => {
+              const embedTarget = getYouTubeEmbedUrl(vid.youtube_url);
+              if (!embedTarget) return null;
+              
+              return (
+                <div key={vid.User_id} style={styles.videoCard}>
+                  <Link to={`/profile/${vid.User_id}`} style={styles.orangeLink}>
+                    🎬 Channel: {vid.username || 'Featured User'}
+                  </Link>
+                  <div style={{ position: 'relative', width: '100%', paddingBottom: '56.25%', height: 0, border: '1px solid #000' }}>
+                    <iframe 
+                      title={vid.username}
+                      src={embedTarget}
+                      style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', border: 0 }}
+                      allowFullScreen
+                    />
                   </div>
                 </div>
-              ))}
-            </div>
+              );
+            })}
           </div>
-
-        </section>
-
-        {/* RIGHT COLUMN */}
-        <section className="space-y-6">
-
-          {/* New Videos */}
-          <div className="border border-orange-600 bg-black p-4 text-white rounded">
-            <h2 className="text-xl font-bold text-orange-400 mb-3">New Videos</h2>
-
-            <div className="grid grid-cols-1 gap-3">
-              {newVideos.map((video) => (
-                <div
-                  key={video.id}
-                  className="flex items-center gap-3 bg-orange-600 text-black p-2 rounded hover:bg-orange-400 transition cursor-pointer"
-                  onClick={() => window.location.href = video.video_url}
-                >
-                  <img
-                    src={video.thumbnail_url || "/default-video-thumb.png"}
-                    className="w-24 h-16 object-cover rounded border border-black"
-                  />
-                  <div>
-                    <h4 className="font-bold">{video.title}</h4>
-                    <p className="text-xs">Uploaded recently</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-
-        </section>
+        )}
       </main>
-
-      <footer className="bg-orange-600 text-black text-center py-3 text-xs border-t border-orange-400 mt-6">
-        © {new Date().getFullYear()} ProfileDig — Watch Something New
-      </footer>
     </div>
   );
 }
