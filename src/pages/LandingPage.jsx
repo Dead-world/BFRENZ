@@ -150,7 +150,7 @@ export default function LandingPage() {
             
             {/* MUSIC SECTION CARD */}
             <div style={styles.contentBox}>
-              <h3 style={styles.boxTitle}>ProfileDig Independent Audio Library</h3>
+              <h3 style={styles.boxTitle}> bfrenz Independent Audio Library</h3>
               <div style={{ padding: "15px 20px" }}>
                 <p style={{ margin: "0 0 12px 0", fontSize: "11px", color: "#b3b3b3", lineHeight: "1.5" }}>
                   Discover raw background mp3 tracks uploaded by developers, musicians, and creators across the grid directory. Select and preview track streams instantly to follow individual workspace rooms.
