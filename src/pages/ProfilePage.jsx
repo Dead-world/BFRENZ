@@ -287,48 +287,82 @@ export default function ProfilePage({ profileId, currentUserId }) {
                 <p style={{ margin: '0', fontSize: '11px', whiteSpace: 'pre-wrap' }}>{profile.meet || 'Looking for cool people using ProfileDig!'}</p>
               </div>
             </div>
-{/* ⭐ FAIL-SAFE HARDCODED VIDEO SHOWCASE GATEWAY */}
+{/* ⭐ FIXED — FULLY WORKING YOUTUBE SHOWCASE GATEWAY */}
 {profile.youtube_url && (
   <div style={styles.box} id="youtube-showcase-window">
     <h2 style={styles.orangeHeader}>{profile.username}'s Featured Showcase Video</h2>
+
     <div style={{ padding: '10px', backgroundColor: '#000000', textAlign: 'center' }}>
+
       {profile.youtube_url.includes('supabase.co') ? (
-        /* 1. Video File Playback Mode */
-        <video controls autoPlay style={{ width: '100%', height: 'auto', maxHeight: '340px', border: '1px solid #FF6600' }} key={profile.youtube_url}>
+        /* 1. Supabase-hosted MP4 playback */
+        <video
+          controls
+          autoPlay
+          style={{
+            width: '100%',
+            height: 'auto',
+            maxHeight: '340px',
+            border: '1px solid #FF6600'
+          }}
+          key={profile.youtube_url}
+        >
           <source src={profile.youtube_url} type="video/mp4" />
         </video>
       ) : (
-        /* 2. External Link Stream Embed Mode */
-        <div style={{ position: 'relative', width: '100%', paddingBottom: '56.25%', height: 0, border: '1px solid #FF6600' }}>
-          <iframe 
+        /* 2. YouTube Embed Mode (FULLY FIXED) */
+        <div
+          style={{
+            position: 'relative',
+            width: '100%',
+            paddingBottom: '56.25%',
+            height: 0,
+            border: '1px solid #FF6600'
+          }}
+        >
+          <iframe
             title={`${profile.username}'s Showcase Video`}
-            /* ⭐ FIXED HARDCODED PATH: Forces the full web address with /embed/ directly into the element source */
-            src={"https://www.youtube.com/embed/xxxx" + (() => {
+            src={(() => {
               try {
-                const cleanUrl = profile.youtube_url.trim();
-                // Matches standard watch addresses, shortened shared paths, and shorts columns
-                const rx = /^.*(?:(?:youtu\.be\/|v\/|vi\/|u\/\w\/|embed\/|shorts\/)|(?:(?:watch)?\?v(?:i)?=|\&v(?:i)?=))([^#\&\?]*).*/;
-                const m = cleanUrl.match(rx);
-                
-                if (m && m[1]) {
-                  let idToken = m[1].trim();
-                  // Safely chop off trailing share codes or tracking lists
-                  if (idToken.includes('&')) idToken = idToken.split('&')[0];
-                  if (idToken.includes('?')) idToken = idToken.split('?')[0];
-                  return idToken;
+                const raw = profile.youtube_url.trim();
+
+                // Universal YouTube ID extractor
+                const rx =
+                  /^.*(?:(?:youtu\.be\/|v\/|vi\/|u\/\w\/|embed\/|shorts\/)|(?:(?:watch)?\?v(?:i)?=|\&v(?:i)?=))([^#\&\?]*).*/;
+
+                const match = raw.match(rx);
+
+                if (match && match[1]) {
+                  let id = match[1].trim();
+
+                  // Remove trailing junk
+                  if (id.includes('&')) id = id.split('&')[0];
+                  if (id.includes('?')) id = id.split('?')[0];
+
+                  // Return proper embed URL
+                  return `https://www.youtube.com/embed/${id}`;
                 }
               } catch (e) {
-                console.error("IFrame Inline Parser Crash:", e);
+                console.error("YouTube Embed Parser Error:", e);
               }
-              // Explicit 11-character absolute fallback key matching your royalty-free project clip
-              return "77nB_9uIcN4"; 
-            })()} 
-            style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', border: 0 }} 
+
+              // Fallback video ID (your royalty-free clip)
+              return "https://www.youtube.com/embed/77nB_9uIcN4";
+            })()}
+            style={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              width: '100%',
+              height: '100%',
+              border: 0
+            }}
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-            allowFullScreen 
+            allowFullScreen
           />
         </div>
       )}
+
     </div>
   </div>
 )}
