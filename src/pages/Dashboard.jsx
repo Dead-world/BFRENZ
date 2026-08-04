@@ -285,7 +285,7 @@ export default function Dashboard() {
     } catch (mutationErr) {
       console.error("Mutation processing failure: ", mutationErr);
       alert("Transaction processing exception: " + mutationErr.message);
-    } finaly {
+    } finally {
       setSaving(false);
     }
   }
