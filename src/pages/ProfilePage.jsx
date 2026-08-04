@@ -2,6 +2,8 @@ import React, { useState, useEffect } from "react";
 import { useAuth } from '../hooks/useAuth';
 import NavBar from "../components/NavBar";
 import { supabase } from "../supabaseClient"; 
+// ⭐ ADDED: Import the native router parameter reader hook
+import { useParams } from "react-router-dom"; 
 
 if (typeof document !== 'undefined') {
   const styleEl = document.createElement('style');
@@ -36,10 +38,12 @@ const styles = {
   textarea: { width: '100%', height: '60px', border: '1px solid #000000', fontSize: '11px', padding: '5px', marginBottom: '5px', resize: 'vertical' }
 };
 
-export default function ProfilePage({ profileId, currentUserId }) {
+export default function ProfilePage({ currentUserId }) {
+  // ⭐ FIXED: Extracts the dynamic id parameter directly from the browser URL path bar
+  const { id: routeProfileId } = useParams();
   const { user, loading: authLoading } = useAuth();
   
-  const [activeProfileId, setActiveProfileId] = useState(profileId || currentUserId);
+  const [activeProfileId, setActiveProfileId] = useState(routeProfileId || currentUserId || user?.id);
   const [profile, setProfile] = useState(null);
   const [bulletins, setBulletins] = useState([]);
   const [comments, setComments] = useState([]);
@@ -50,15 +54,18 @@ export default function ProfilePage({ profileId, currentUserId }) {
   const [newComment, setNewComment] = useState('');
   const [loading, setLoading] = useState(true);
 
+  // ⭐ FIXED: Forces state parameter updates whenever the browser parameters change
   useEffect(() => {
     if (authLoading) return;
-    if (profileId) {
-      setActiveProfileId(profileId);
+
+    if (routeProfileId) {
+      setActiveProfileId(routeProfileId);
     } else if (currentUserId) {
       setActiveProfileId(currentUserId);
     } else if (user?.id) {
       setActiveProfileId(user.id);
     } else {
+      // Logged out & no route param fallback: Fetch the system host account profile
       const fetchGlobalHostFallback = async () => {
         const { data } = await supabase.from('profiles').select('User_id').limit(1);
         if (data && data.length > 0) {
@@ -69,8 +76,9 @@ export default function ProfilePage({ profileId, currentUserId }) {
       };
       fetchGlobalHostFallback();
     }
-  }, [profileId, currentUserId, user, authLoading]);
+  }, [routeProfileId, currentUserId, user, authLoading]);
 
+  // ⭐ FIXED: Added activeProfileId to the dependency loop array to trigger real-time refetching
   useEffect(() => {
     if (activeProfileId) {
       fetchProfileData();
@@ -97,8 +105,20 @@ export default function ProfilePage({ profileId, currentUserId }) {
       const { count } = await supabase.from('profile_views').select('*', { count: 'exact', head: true }).eq('profile_id', activeProfileId);
       setViewCount(count || 0);
 
-      const { data: frRows } = await supabase.from('friends').select('friend_id, profiles!friends_friend_id_fkey(User_id, username, avatar_url)').eq('user_id', activeProfileId).limit(8);
-      if (frRows) setFriends(frRows.map(f => f.profiles).filter(Boolean));
+      // Pull friends list sorted by custom Top 8 dashboard placement rank variables
+      const { data: top8Rows, error: t8Err } = await supabase
+        .from('top_eight')
+        .select('friend_id, profiles!top_eight_friend_id_fkey(User_id, username, avatar_url)')
+        .eq('user_id', activeProfileId)
+        .order('position_rank', { ascending: true })
+        .limit(8);
+
+      if (!t8Err && top8Rows && top8Rows.length > 0) {
+        setFriends(top8Rows.map(row => row.profiles).filter(Boolean));
+      } else {
+        const { data: frRows } = await supabase.from('friends').select('friend_id, profiles!friends_friend_id_fkey(User_id, username, avatar_url)').eq('user_id', activeProfileId).limit(8);
+        if (frRows) setFriends(frRows.map(f => f.profiles).filter(Boolean));
+      }
 
       if (user?.id && user.id !== activeProfileId) {
         const { data: connection } = await supabase.from('friends').select('*').eq('user_id', user.id).eq('friend_id', activeProfileId);
@@ -149,7 +169,6 @@ export default function ProfilePage({ profileId, currentUserId }) {
     if (!error) setBlogs(blogs.filter(bg => bg.id !== blogId));
   };
 
-  // ⭐ FIXED AND CLOSED: Safely parses array fragments and formats embed URLs natively
   const getYouTubeEmbedUrl = (urlStr) => {
     if (!urlStr) return null;
     try {
@@ -180,7 +199,6 @@ export default function ProfilePage({ profileId, currentUserId }) {
       {profile.custom_css && <style>{profile.custom_css}</style>}
 
       <div style={styles.container}>
-        {/* TOP STATUS MARQUEE */}
         <div style={{ backgroundColor: '#000', color: '#FF6600', border: '1px solid #FF6600', padding: '6px', marginBottom: '15px', overflow: 'hidden' }}>
           <marquee scrollamount="5" style={{ fontSize: '11px', fontWeight: 'bold' }}>
             <span className="retro-blink" style={{ marginRight: '10px', color: '#fff' }}>⚡ STATUS TRANSMISSION:</span> 
@@ -189,7 +207,7 @@ export default function ProfilePage({ profileId, currentUserId }) {
         </div>
 
         <div style={styles.mainLayout}>
-          {/* LEFT SIDEBAR GRID COLUMNS */}
+          {/* LEFT COLUMN */}
           <div style={styles.leftColumn}>
             <div>
               <h1 style={{ fontSize: '18px', margin: '0 0 5px 0', fontWeight: 'bold' }}>{profile.username}</h1>
@@ -256,7 +274,7 @@ export default function ProfilePage({ profileId, currentUserId }) {
             )}
           </div>
 
-          {/* RIGHT COLUMN MAIN LAYOUT PANELS */}
+          {/* RIGHT COLUMN */}
           <div style={styles.rightColumn}>
             <div style={{ backgroundColor: '#ffe5d4', border: '1px solid #FF6600', padding: '8px', marginBottom: '15px', fontSize: '11px', fontWeight: 'bold' }}>
               {profile.username} is in your Extended Network
@@ -282,7 +300,7 @@ export default function ProfilePage({ profileId, currentUserId }) {
               </div>
             </div>
 
-           {/* ⭐ FIXED — FULLY WORKING YOUTUBE SHOWCASE GATEWAY */}
+            {/* ⭐ FIXED — FULLY WORKING YOUTUBE SHOWCASE GATEWAY */}
 {profile.youtube_url && (
   <div style={styles.box} id="youtube-showcase-window">
     <h2 style={styles.orangeHeader}>{profile.username}'s Featured Showcase Video</h2>
@@ -361,7 +379,6 @@ export default function ProfilePage({ profileId, currentUserId }) {
     </div>
   </div>
 )}
- 
 
             <div style={styles.box}>
               <h2 style={styles.orangeHeader}>Bulletins</h2>
@@ -419,16 +436,17 @@ export default function ProfilePage({ profileId, currentUserId }) {
               </div>
             </div>
 
-            {/* ⭐ RETRO MYSPACE TOP 8 FRIENDS GRID MAP */}
+            {/* RETRO MYSPACE TOP 8 FRIENDS GRID MAP */}
             <div style={styles.box}>
-              <h2 style={styles.orangeHeader}>{profile.username}'s Space // Top 8 Friends</h2>
+              <h2 style={styles.orangeHeader}>Friend Space // Top 8 Network</h2>
               <div style={styles.contentPadding}>
                 {friends.length === 0 ? (
-                  <p style={{ margin: 0, color: '#666666', fontStyle: 'italic' }}>No friends linked to this profile yet.</p>
+                  <p style={{ margin: 0, color: '#666666', fontStyle: 'italic' }}>No custom ranked connections in this user space yet.</p>
                 ) : (
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '12px', textAlign: 'center' }}>
-                    {friends.slice(0, 8).map((f) => (
+                    {friends.map((f) => (
                       <div key={f.User_id} style={styles.friendCard}>
+                        {/* ⭐ FIXED: Link routing points explicitly to the target friend identifier key */}
                         <a href={`/profile/${f.User_id}`} style={styles.orangeLink}>
                           <div style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', marginBottom: '2px', fontWeight: 'bold', fontSize: '10px' }}>
                             {f.username}
