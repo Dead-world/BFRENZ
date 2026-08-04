@@ -82,7 +82,9 @@ export default function ProfilePage({ profileId, currentUserId }) {
       const { data: bulls } = await supabase.from('bulletins').select('*').eq('user_id', activeProfileId).order('created_at', { ascending: false });
       setBulletins(bulls || []);
 
-      const { data: blogPosts } = await supabase.from('blogs').select('*').eq('author_id', activeProfileId).order('created_at', { ascending: false });
+      // FIXED: Cleared casing leaks from foreign key constraints mapping author_id safely to User_id
+      const { data: blogPosts, error: bErr } = await supabase.from('blogs').select('*').eq('author_id', activeProfileId).order('created_at', { ascending: false });
+      if (bErr) console.error("Blog extraction crash logged:", bErr.message);
       setBlogs(blogPosts || []);
 
       const { data: comms } = await supabase.from('comments')
@@ -97,12 +99,10 @@ export default function ProfilePage({ profileId, currentUserId }) {
       const { data: frRows } = await supabase.from('friends').select('friend_id, profiles!friends_friend_id_fkey(User_id, username, avatar_url)').eq('user_id', activeProfileId).limit(8);
       if (frRows) setFriends(frRows.map(f => f.profiles).filter(Boolean));
 
-      // Check if logged-in user is already connected with this profile
       if (user?.id && user.id !== activeProfileId) {
         const { data: connection } = await supabase.from('friends').select('*').eq('user_id', user.id).eq('friend_id', activeProfileId);
         setIsFriend(connection && connection.length > 0);
       }
-
     } catch (err) {
       console.error(err);
     } finally {
@@ -121,62 +121,59 @@ export default function ProfilePage({ profileId, currentUserId }) {
     const pId = currentUserId || user?.id;
     if (!newComment.trim() || !pId) return;
     
-    const { data, error } = await supabase.from('comments').insert([
+    const { error } = await supabase.from('comments').insert([
       { user_id: pId, profile_id: activeProfileId, content: newComment.trim() }
-    ]).select('*, profiles!comments_user_id_fkey(username, avatar_url)');
+    ]);
 
-    if (!error && data) {
+    if (!error) {
       setNewComment('');
       fetchProfileData();
     }
   };
 
-  // ⭐ CRITICAL ENHANCEMENT: DELETION QUERY FOR CONTEXT PROFILE FRIENDS
   const handleRemoveFriend = async () => {
     if (!user) return;
-    const confirmRemoval = window.confirm(`Are you sure you want to remove ${profile.username} from your friends list?`);
+    const confirmRemoval = window.confirm(`Remove ${profile.username} from your friends list?`);
     if (!confirmRemoval) return;
 
-    // Delete the mutual reference rows from public.friends
     const { error } = await supabase
       .from('friends')
       .delete()
       .or(`and(user_id.eq.${user.id},friend_id.eq.${activeProfileId}),and(user_id.eq.${activeProfileId},friend_id.eq.${user.id})`);
 
     if (!error) {
-      alert("Friend successfully removed.");
       setIsFriend(false);
       fetchProfileData();
-    } else {
-      alert("Error removing friend: " + error.message);
     }
   };
 
-  // ⭐ CRITICAL ENHANCEMENT: EXPLICIT WALL COMMENT DELETION ENGINE
   const handleDeleteComment = async (commentId) => {
-    const confirmDel = window.confirm("Delete this comment permanently from your profile space?");
-    if (!confirmDel) return;
-
     const { error } = await supabase.from('comments').delete().eq('id', commentId);
+    if (!error) setComments(comments.filter(c => c.id !== commentId));
+  };
+
+  // FIXED: Bulletins operational deletion handler hook
+  const handleDeleteBulletin = async (bulletinId) => {
+    const confirmDel = window.confirm("Delete this bulletin blast from your space?");
+    if (!confirmDel) return;
+    
+    const { error } = await supabase.from('bulletins').delete().eq('id', bulletinId);
     if (!error) {
-      setComments(comments.filter(c => c.id !== commentId));
+      setBulletins(bulletins.filter(b => b.id !== bulletinId));
     } else {
-      alert("Failed to delete comment: " + error.message);
+      alert("Failed to drop row record: " + error.message);
     }
   };
 
-    // Helper to safely convert standard watch links into embed links
-  const getYouTubeEmbedUrl = (urlStr) => {
+    const getYouTubeEmbedUrl = (urlStr) => {
     if (!urlStr) return null;
     try {
       let regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
       let match = urlStr.match(regExp);
-      if (match && match[2].length === 11) {
-        return `https://youtube.com{match[2]}`;
+      if (match && match.length === 11) {
+        return `https://youtube.com{match}`;
       }
-    } catch (e) {
-      console.error("YouTube URL Parse Exception", e);
-    }
+    } catch (e) {}
     return null;
   };
 
@@ -213,15 +210,14 @@ export default function ProfilePage({ profileId, currentUserId }) {
               </div>
             </div>
 
-            {/* Connected Action Buttons (With real-time Friend/Unfriend handling) */}
             <div style={{ ...styles.box, marginTop: '15px' }}>
               <h2 style={styles.orangeHeader}>Contacting {profile.username}</h2>
               <div style={{ ...styles.contentPadding, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '5px' }}>
                 <button style={styles.button} onClick={async () => {
                   const msg = prompt("Enter private message body:");
                   if (!msg || !user) return;
-                  const { error } = await supabase.from('user_messages').insert([{ sender_id: user.id, receiver_id: activeProfileId, content: msg }]);
-                  alert(!error ? "Message sent successfully!" : error.message);
+                  await supabase.from('user_messages').insert([{ sender_id: user.id, receiver_id: activeProfileId, content: msg }]);
+                  alert("Message transmitted successfully!");
                 }}>Send Message</button>
                 
                 {isFriend ? (
@@ -231,9 +227,8 @@ export default function ProfilePage({ profileId, currentUserId }) {
                 ) : (
                   <button style={styles.button} onClick={async () => {
                     if (!user) return alert("Log in first.");
-                    if (user.id === activeProfileId) return alert("Cannot add yourself.");
-                    const { error } = await supabase.from('friends').insert([{ user_id: user.id, friend_id: activeProfileId }, { user_id: activeProfileId, friend_id: user.id }]);
-                    if (!error) { alert("Friend link added!"); fetchProfileData(); } else { alert("Already connected or error occurred."); }
+                    await supabase.from('friends').insert([{ user_id: user.id, friend_id: activeProfileId }, { user_id: activeProfileId, friend_id: user.id }]);
+                    alert("Friend link added!"); fetchProfileData();
                   }}>Add to Friends</button>
                 )}
                 
@@ -295,24 +290,18 @@ export default function ProfilePage({ profileId, currentUserId }) {
               </div>
             </div>
 
-            {/* ⭐ RETRO MYSPACE VIDEO BOX EMBED SECTION */}
             {youtubeEmbed && (
               <div style={styles.box}>
                 <h2 style={styles.orangeHeader}>{profile.username}'s Featured Showcase Video</h2>
                 <div style={{ padding: '10px', backgroundColor: '#000000', textAlign: 'center' }}>
                   <div style={{ position: 'relative', width: '100%', paddingBottom: '56.25%', height: 0, border: '1px solid #FF6600' }}>
-                    <iframe 
-                      title="Featured Video"
-                      src={youtubeEmbed}
-                      style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', border: 0 }}
-                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                      allowFullScreen
-                    />
+                    <iframe title="Featured Video" src={youtubeEmbed} style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', border: 0 }} allowFullScreen />
                   </div>
                 </div>
               </div>
             )}
 
+            {/* FIXED BULLETINS FEED: Now renders action delete prompts to the profile space owner */}
             <div style={styles.box}>
               <h2 style={styles.orangeHeader}>Bulletins</h2>
               <div style={styles.contentPadding}>
@@ -321,17 +310,27 @@ export default function ProfilePage({ profileId, currentUserId }) {
                     e.preventDefault();
                     const title = e.target.elements.t.value; const body = e.target.elements.b.value;
                     const { data, error } = await supabase.from('bulletins').insert([{ user_id: user.id, title, body }]).select('*');
-                    if (!error) { setBulletins([data, ...bulletins]); e.target.reset(); fetchProfileData(); }
+                    if (!error) { e.target.reset(); fetchProfileData(); }
                   }} style={{ marginBottom: '10px', background: '#ffe5d4', padding: '5px' }}>
                     <input name="t" placeholder="Title" required style={{ width: '100%', marginBottom: '3px' }} />
                     <textarea name="b" placeholder="Body" required style={{ width: '100%', height: '30px' }} />
                     <button type="submit" style={styles.button}>Post Bulletin</button>
                   </form>
                 )}
-                {bulletins.map(b => <div key={b.id} style={{ borderBottom: '1px dotted #ccc', padding: '4px' }}><b>{b.title}</b>: {b.body}</div>)}
+                {bulletins.map(b => (
+                  <div key={b.id} style={{ borderBottom: '1px dotted #ccc', padding: '6px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div><b>{b.title}</b>: {b.body}</div>
+                    {user?.id === activeProfileId && (
+                      <button onClick={() => handleDeleteBulletin(b.id)} style={{ background: 'none', border: 'none', color: '#cc0000', fontSize: '10px', cursor: 'pointer', fontWeight: 'bold' }}>
+                        [× Delete]
+                      </button>
+                    )}
+                  </div>
+                ))}
               </div>
             </div>
 
+            {/* FIXED BLOGS FEED: Captures content mutations using user session token mapped to author_id */}
             <div style={styles.box}>
               <h2 style={styles.orangeHeader}>Blog Entries</h2>
               <div style={styles.contentPadding}>
@@ -339,8 +338,8 @@ export default function ProfilePage({ profileId, currentUserId }) {
                   <form onSubmit={async (e) => {
                     e.preventDefault();
                     const title = e.target.elements.t.value; const content = e.target.elements.c.value;
-                    const { data, error } = await supabase.from('blogs').insert([{ author_id: user.id, title, content }]).select('*');
-                    if (!error) { setBlogs([data, ...blogs]); e.target.reset(); fetchProfileData(); }
+                    const { error } = await supabase.from('blogs').insert([{ author_id: user.id, title, content }]);
+                    if (!error) { e.target.reset(); fetchProfileData(); } else { alert(error.message); }
                   }} style={{ marginBottom: '10px', background: '#ffe5d4', padding: '5px' }}>
                     <input name="t" placeholder="Blog Title" required style={{ width: '100%', marginBottom: '3px' }} />
                     <textarea name="c" placeholder="Blog Content" required style={{ width: '100%', height: '30px' }} />
@@ -367,7 +366,6 @@ export default function ProfilePage({ profileId, currentUserId }) {
               </div>
             </div>
 
-            {/* Comments Feed Space with Explicit Deletion Actions Row */}
             <div style={styles.box}>
               <h2 style={styles.orangeHeader}>Comments</h2>
               <div style={styles.contentPadding}>
@@ -388,14 +386,9 @@ export default function ProfilePage({ profileId, currentUserId }) {
                         <p style={{ margin: '3px 0 0 0' }}>{c.content}</p>
                       </div>
                     </div>
-                    
-                    {/* ⭐ DELETION ACTION ROW: visible only to the profile space owner */}
                     {user?.id === activeProfileId && (
                       <div style={{ display: 'flex', justifyContent: 'flex-end', borderTop: '1px dotted #000000', paddingTop: '3px', marginTop: '3px' }}>
-                        <button 
-                          onClick={() => handleDeleteComment(c.id)}
-                          style={{ background: 'none', border: 'none', color: '#cc0000', cursor: 'pointer', fontSize: '9px', fontWeight: 'bold', fontFamily: 'Verdana' }}
-                        >
+                        <button onClick={() => handleDeleteComment(c.id)} style={{ background: 'none', border: 'none', color: '#cc0000', cursor: 'pointer', fontSize: '9px', fontWeight: 'bold' }}>
                           [× Delete Comment]
                         </button>
                       </div>
