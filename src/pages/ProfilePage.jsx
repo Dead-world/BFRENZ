@@ -18,21 +18,8 @@ if (typeof document !== 'undefined') {
 }
 
 const styles = {
-  container: {
-    width: '100%',
-    minHeight: '100vh',
-    backgroundColor: '#ffffff',
-    borderLeft: '4px solid #FF6600',
-    borderRight: '4px solid #FF6600',
-    padding: '20px',
-  },
-  mainLayout: {
-    display: 'flex',
-    flexWrap: 'wrap',
-    gap: '20px',
-    maxWidth: '1250px',
-    margin: '0 auto',
-  },
+  container: { width: '100%', minHeight: '100vh', backgroundColor: '#ffffff', borderLeft: '4px solid #FF6600', borderRight: '4px solid #FF6600', padding: '20px' },
+  mainLayout: { display: 'flex', flexWrap: 'wrap', gap: '20px', maxWidth: '1250px', margin: '0 auto' },
   leftColumn: { flex: '1 1 35%', minWidth: '300px' },
   rightColumn: { flex: '1 1 60%', minWidth: '400px' },
   box: { border: '1px solid #000000', marginBottom: '15px', backgroundColor: '#ffffff' },
@@ -63,10 +50,8 @@ export default function ProfilePage({ profileId, currentUserId }) {
   const [newComment, setNewComment] = useState('');
   const [loading, setLoading] = useState(true);
 
-  // ⭐ DYNAMIC ROUTING realign helper
   useEffect(() => {
     if (authLoading) return;
-
     if (profileId) {
       setActiveProfileId(profileId);
     } else if (currentUserId) {
@@ -74,7 +59,6 @@ export default function ProfilePage({ profileId, currentUserId }) {
     } else if (user?.id) {
       setActiveProfileId(user.id);
     } else {
-      // Logged out & no route param fallback: Fetch the first profile in the system to act as 'Tom'
       const fetchGlobalHostFallback = async () => {
         const { data } = await supabase.from('profiles').select('User_id').limit(1);
         if (data && data.length > 0) {
@@ -107,10 +91,7 @@ export default function ProfilePage({ profileId, currentUserId }) {
       const { data: blogPosts } = await supabase.from('blogs').select('*').eq('author_id', activeProfileId).order('created_at', { ascending: false });
       setBlogs(blogPosts || []);
 
-      const { data: comms } = await supabase.from('comments')
-        .select('*, profiles!comments_user_id_fkey(username, avatar_url)')
-        .eq('profile_id', activeProfileId)
-        .order('created_at', { ascending: false });
+      const { data: comms } = await supabase.from('comments').select('*, profiles!comments_user_id_fkey(username, avatar_url)').eq('profile_id', activeProfileId).order('created_at', { ascending: false });
       setComments(comms || []);
 
       const { count } = await supabase.from('profile_views').select('*', { count: 'exact', head: true }).eq('profile_id', activeProfileId);
@@ -140,31 +121,15 @@ export default function ProfilePage({ profileId, currentUserId }) {
     e.preventDefault();
     const pId = currentUserId || user?.id;
     if (!newComment.trim() || !pId) return;
-    
-    const { error } = await supabase.from('comments').insert([
-      { user_id: pId, profile_id: activeProfileId, content: newComment.trim() }
-    ]);
-
-    if (!error) {
-      setNewComment('');
-      fetchProfileData();
-    }
+    const { error } = await supabase.from('comments').insert([{ user_id: pId, profile_id: activeProfileId, content: newComment.trim() }]);
+    if (!error) { setNewComment(''); fetchProfileData(); }
   };
 
   const handleRemoveFriend = async () => {
     if (!user) return;
-    const confirmRemoval = window.confirm(`Remove ${profile.username} from your friends list?`);
-    if (!confirmRemoval) return;
-
-    const { error } = await supabase
-      .from('friends')
-      .delete()
-      .or(`and(user_id.eq.${user.id},friend_id.eq.${activeProfileId}),and(user_id.eq.${activeProfileId},friend_id.eq.${user.id})`);
-
-    if (!error) {
-      setIsFriend(false);
-      fetchProfileData();
-    }
+    if (!window.confirm(`Remove ${profile.username} from your friends list?`)) return;
+    const { error } = await supabase.from('friends').delete().or(`and(user_id.eq.${user.id},friend_id.eq.${activeProfileId}),and(user_id.eq.${activeProfileId},friend_id.eq.${user.id})`);
+    if (!error) { setIsFriend(false); fetchProfileData(); }
   };
 
   const handleDeleteComment = async (commentId) => {
@@ -173,26 +138,25 @@ export default function ProfilePage({ profileId, currentUserId }) {
   };
 
   const handleDeleteBulletin = async (bulletinId) => {
-    const confirmDel = window.confirm("Delete this bulletin blast from your space?");
-    if (!confirmDel) return;
+    if (!window.confirm("Delete this bulletin blast from your space?")) return;
     const { error } = await supabase.from('bulletins').delete().eq('id', bulletinId);
     if (!error) setBulletins(bulletins.filter(b => b.id !== bulletinId));
   };
 
   const handleDeleteBlog = async (blogId) => {
-    const confirmDel = window.confirm("Are you sure you want to delete this blog entry permanently?");
-    if (!confirmDel) return;
+    if (!window.confirm("Are you sure you want to delete this blog entry permanently?")) return;
     const { error } = await supabase.from('blogs').delete().eq('id', blogId);
     if (!error) setBlogs(blogs.filter(bg => bg.id !== blogId));
   };
 
+  // ⭐ FIXED: Replaced non-existent tracking variables with explicit match group array paths
   const getYouTubeEmbedUrl = (urlStr) => {
     if (!urlStr) return null;
     try {
       let regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
       let match = urlStr.match(regExp);
-      if (match && match.length === 11) {
-        return `https://youtube.com{match}`;
+      if (match && match[2].length === 11) {
+        return `https://youtube.com{match[2]}`;
       }
     } catch (e) {}
     return null;
@@ -243,9 +207,7 @@ export default function ProfilePage({ profileId, currentUserId }) {
                 }}>Send Message</button>
                 
                 {isFriend ? (
-                  <button style={{ ...styles.button, backgroundColor: '#cc0000' }} onClick={handleRemoveFriend}>
-                    Remove Friend
-                  </button>
+                  <button style={{ ...styles.button, backgroundColor: '#cc0000' }} onClick={handleRemoveFriend}>Remove Friend</button>
                 ) : (
                   <button style={styles.button} onClick={async () => {
                     if (!user) return alert("Log in first to connect with friends.");
@@ -342,9 +304,7 @@ export default function ProfilePage({ profileId, currentUserId }) {
                   <div key={b.id} style={{ borderBottom: '1px dotted #ccc', padding: '6px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <div><b>{b.title}</b>: {b.body}</div>
                     {user?.id === activeProfileId && (
-                      <button onClick={() => handleDeleteBulletin(b.id)} style={{ background: 'none', border: 'none', color: '#cc0000', fontSize: '10px', cursor: 'pointer', fontWeight: 'bold' }}>
-                        [× Delete]
-                      </button>
+                      <button onClick={() => handleDeleteBulletin(b.id)} style={{ background: 'none', border: 'none', color: '#cc0000', fontSize: '10px', cursor: 'pointer', fontWeight: 'bold' }}>[× Delete]</button>
                     )}
                   </div>
                 ))}
@@ -371,9 +331,7 @@ export default function ProfilePage({ profileId, currentUserId }) {
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                       <div style={{ fontWeight: 'bold', color: '#000000', fontSize: '11px' }}>{bg.title}</div>
                       {user?.id === activeProfileId && (
-                        <button onClick={() => handleDeleteBlog(bg.id)} style={{ background: 'none', border: 'none', color: '#cc0000', fontSize: '10px', cursor: 'pointer', fontWeight: 'bold' }}>
-                          [× Delete]
-                        </button>
+                        <button onClick={() => handleDeleteBlog(bg.id)} style={{ background: 'none', border: 'none', color: '#cc0000', fontSize: '10px', cursor: 'pointer', fontWeight: 'bold' }}>[× Delete]</button>
                       )}
                     </div>
                     <div style={{ fontSize: '9px', color: '#666666' }}>Posted: {new Date(bg.created_at).toLocaleDateString()}</div>
@@ -415,17 +373,13 @@ export default function ProfilePage({ profileId, currentUserId }) {
                     <div style={{ display: 'flex', gap: '10px' }}>
                       <img src={c.profiles?.avatar_url || 'https://placehold.co'} alt="avatar pic" style={{ width: '40px', height: '40px', objectFit: 'cover', border: '1px solid #000' }} />
                       <div style={{ flexGrow: 1 }}>
-                        <a href={`/profile/${c.user_id}`} style={styles.orangeLink}>
-                          <b>{c.profiles?.username || 'User'}:</b>
-                        </a>
+                        <a href={`/profile/${c.user_id}`} style={styles.orangeLink}><b>{c.profiles?.username || 'User'}:</b></a>
                         <p style={{ margin: '3px 0 0 0' }}>{c.content}</p>
                       </div>
                     </div>
                     {user?.id === activeProfileId && (
                       <div style={{ display: 'flex', justifyContent: 'flex-end', borderTop: '1px dotted #000000', paddingTop: '3px', marginTop: '3px' }}>
-                        <button onClick={() => handleDeleteComment(c.id)} style={{ background: 'none', border: 'none', color: '#cc0000', cursor: 'pointer', fontSize: '9px', fontWeight: 'bold' }}>
-                          [× Delete Comment]
-                        </button>
+                        <button onClick={() => handleDeleteComment(c.id)} style={{ background: 'none', border: 'none', color: '#cc0000', cursor: 'pointer', fontSize: '9px', fontWeight: 'bold' }}>[× Delete Comment]</button>
                       </div>
                     )}
                   </div>
