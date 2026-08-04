@@ -93,9 +93,23 @@ export default function NavBar() {
   const { user } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
 
+  // ⭐ UPDATED LOGOUT METHOD: Switches status column parameters upon exit mutation requests
   const handleLogout = async () => {
-    await supabase.auth.signOut();
-    window.location.href = "/login";
+    try {
+      if (user) {
+        // Force the active user's status parameters to track as offline inside your schema
+        await supabase
+          .from("profiles")
+          .update({ status: "offline", last_seen: new Date().toISOString() })
+          .eq("User_id", user.id);
+      }
+    } catch (err) {
+      console.error("Failed to mutate presence status during termination loop: ", err);
+    } finally {
+      // Clear token references and return the user space context cleanly to the login view shell
+      await supabase.auth.signOut();
+      window.location.href = "/login";
+    }
   };
 
   return (

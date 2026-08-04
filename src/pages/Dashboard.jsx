@@ -1,91 +1,3 @@
-import { useEffect, useState } from "react";
-import { supabase } from "../supabaseClient";
-import NavBar from "../components/NavBar";
-import React from 'react';
-import { useAuth } from '../hooks/useAuth'; 
-
-if (typeof document !== 'undefined') {
-  const styleEl = document.createElement('style');
-  styleEl.innerHTML = `
-    * { font-family: Verdana, Arial, Helvetica, sans-serif !important; box-sizing: border-box; }
-    body { background-color: #000000; margin: 0; padding: 0; color: #000000; }
-    .myspace-input, .myspace-textarea {
-      border: 1px solid #000000 !important;
-      font-size: 11px !important;
-      padding: 4px !important;
-      background-color: #FFFFFF !important;
-      color: #000000 !important;
-      width: 100% !important;
-    }
-    .myspace-textarea { height: 70px; resize: vertical; }
-    .help-text { font-size: 10px; color: #666666; margin: 2px 0 0 0; line-height: 1.2; }
-  `;
-  document.head.appendChild(styleEl);
-}
-
-const styles = {
-  pageContainer: {
-    backgroundColor: '#ffffff',
-    width: '100%',
-    maxWidth: '950px',
-    margin: '20px auto',
-    padding: '15px',
-    border: '2px solid #FF6600',
-    minHeight: '100vh'
-  },
-  headerBanner: {
-    backgroundColor: '#ffe5d4',
-    border: '1px solid #FF6600',
-    padding: '10px',
-    marginBottom: '20px',
-    fontSize: '12px'
-  },
-  sectionTitle: {
-    backgroundColor: '#FF6600',
-    color: '#ffffff',
-    fontSize: '12px',
-    fontWeight: 'bold',
-    padding: '4px 8px',
-    margin: '0 0 15px 0',
-    border: '1px solid #000000',
-    textTransform: 'uppercase',
-    letterSpacing: '0.5px'
-  },
-  table: {
-    width: '100%',
-    borderCollapse: 'collapse',
-    marginBottom: '20px',
-    border: '1px solid #FF6600'
-  },
-  tdLabel: {
-    backgroundColor: '#ffe5d4',
-    color: '#000000',
-    fontWeight: 'bold',
-    padding: '6px 8px',
-    fontSize: '11px',
-    width: '25%',
-    borderBottom: '1px solid #FF6600',
-    borderRight: '1px solid #FF6600',
-    verticalAlign: 'top'
-  },
-  tdValue: {
-    padding: '6px 8px',
-    fontSize: '11px',
-    borderBottom: '1px solid #FF6600',
-    backgroundColor: '#ffffff'
-  },
-  button: {
-    backgroundColor: '#FF6600',
-    color: '#ffffff',
-    border: '1px solid #000000',
-    padding: '5px 12px',
-    fontSize: '11px',
-    cursor: 'pointer',
-    fontWeight: 'bold',
-    textTransform: 'uppercase'
-  }
-};
-
 export default function Dashboard() {
   const { user } = useAuth();
   const [profile, setProfile] = useState(null);
@@ -188,7 +100,7 @@ export default function Dashboard() {
     }
   }
 
-  async function saveChanges(e) {
+    async function saveChanges(e) {
     e.preventDefault();
     setBirthdayError("");
     setSaving(true);
@@ -244,6 +156,8 @@ export default function Dashboard() {
       status: form.get("status"),
       status_message: form.get("status_message"),
       about_me: form.get("about_me"),
+      // ⭐ ADDED: Maps hometown profile parameters cleanly to database rows
+      hometown: form.get("hometown"),
       general_interests: form.get("general_interests"),
       music_interests: form.get("music_interests"),
       custom_html: form.get("custom_html"),
@@ -269,12 +183,16 @@ export default function Dashboard() {
         .delete()
         .eq('user_id', user.id);
 
-      // 3. Re-save updated top 8 selector allocations
+      // 3. ⭐ RESTORED COMPLETE LOOP: Re-saves updated top 8 selector allocations
       const insertRows = [];
       for (let rank = 1; rank <= 8; rank++) {
         const chosenId = topEightSlots[`slot_${rank}`];
-        if (chosenId && chosenId !== "empty") {
-          insertRows.push({ user_id: user.id, friend_id: chosenId, position_rank: rank });
+        if (chosenId && chosenId !== "empty" && chosenId !== "") {
+          insertRows.push({
+            user_id: user.id,
+            friend_id: chosenId,
+            position_rank: rank
+          });
         }
       }
 
@@ -331,6 +249,14 @@ export default function Dashboard() {
                 <td style={styles.tdValue}>
                   <input name="username" defaultValue={profile.username} className="myspace-input" />
                   <p className="help-text">This is the bold name text printed right above your profile picture photo.</p>
+                </td>
+              </tr>
+              {/* ⭐ ADDED: Hometown Location parameter editor row */}
+              <tr>
+                <td style={styles.tdLabel}>Hometown Location</td>
+                <td style={styles.tdValue}>
+                  <input name="hometown" defaultValue={profile.hometown || ""} placeholder="City, State or Region..." className="myspace-input" />
+                  <p className="help-text">This displays next to your avatar on your public profile space card.</p>
                 </td>
               </tr>
               <tr>
