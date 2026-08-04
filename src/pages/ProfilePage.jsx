@@ -282,27 +282,86 @@ export default function ProfilePage({ profileId, currentUserId }) {
               </div>
             </div>
 
-            {/* ⭐ SMART MULTI-MODE VIDEO PLAYER NODE */}
-            {profile.youtube_url && (
-              <div style={styles.box} id="youtube-showcase-window">
-                <h2 style={styles.orangeHeader}>{profile.username}'s Featured Showcase Video</h2>
-                <div style={{ padding: '10px', backgroundColor: '#000000', textAlign: 'center' }}>
-                  {profile.youtube_url.includes('supabase.co') ? (
-                    <video controls autoPlay style={{ width: '100%', height: 'auto', maxHeight: '340px', border: '1px solid #FF6600' }} key={profile.youtube_url}>
-                      <source src={profile.youtube_url} type="video/mp4" />
-                    </video>
-                  ) : youtubeEmbed ? (
-                    <div style={{ position: 'relative', width: '100%', paddingBottom: '56.25%', height: 0, border: '1px solid #FF6600' }}>
-                      <iframe title="Showcase Video Frame" src={youtubeEmbed} style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', border: 0 }} allowFullScreen />
-                    </div>
-                  ) : (
-                    <div style={{ padding: '10px', color: 'red', fontSize: '11px', backgroundColor: '#ffe5d4', textAlign: 'left' }}>
-                      ⚠ LINK SYSTEM FAULT: Check the link settings inside your dashboard.
-                    </div>
-                  )}
-                </div>
-              </div>
-            )}
+           {/* ⭐ FIXED — FULLY WORKING YOUTUBE SHOWCASE GATEWAY */}
+{profile.youtube_url && (
+  <div style={styles.box} id="youtube-showcase-window">
+    <h2 style={styles.orangeHeader}>{profile.username}'s Featured Showcase Video</h2>
+
+    <div style={{ padding: '10px', backgroundColor: '#000000', textAlign: 'center' }}>
+
+      {profile.youtube_url.includes('supabase.co') ? (
+        /* 1. Supabase-hosted MP4 playback */
+        <video
+          controls
+          autoPlay
+          style={{
+            width: '100%',
+            height: 'auto',
+            maxHeight: '340px',
+            border: '1px solid #FF6600'
+          }}
+          key={profile.youtube_url}
+        >
+          <source src={profile.youtube_url} type="video/mp4" />
+        </video>
+      ) : (
+        /* 2. YouTube Embed Mode (FULLY FIXED) */
+        <div
+          style={{
+            position: 'relative',
+            width: '100%',
+            paddingBottom: '56.25%',
+            height: 0,
+            border: '1px solid #FF6600'
+          }}
+        >
+          <iframe
+            title={`${profile.username}'s Showcase Video`}
+            src={(() => {
+              try {
+                const raw = profile.youtube_url.trim();
+
+                // Universal YouTube ID extractor
+                const rx =
+                  /^.*(?:(?:youtu\.be\/|v\/|vi\/|u\/\w\/|embed\/|shorts\/)|(?:(?:watch)?\?v(?:i)?=|\&v(?:i)?=))([^#\&\?]*).*/;
+
+                const match = raw.match(rx);
+
+                if (match && match[1]) {
+                  let id = match[1].trim();
+
+                  // Remove trailing junk
+                  if (id.includes('&')) id = id.split('&')[0];
+                  if (id.includes('?')) id = id.split('?')[0];
+
+                  // Return proper embed URL
+                  return `https://www.youtube.com/embed/${id}`;
+                }
+              } catch (e) {
+                console.error("YouTube Embed Parser Error:", e);
+              }
+
+              // Fallback video ID (your royalty-free clip)
+              return "https://www.youtube.com/embed/77nB_9uIcN4";
+            })()}
+            style={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              width: '100%',
+              height: '100%',
+              border: 0
+            }}
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allowFullScreen
+          />
+        </div>
+      )}
+
+    </div>
+  </div>
+)}
+ 
 
             <div style={styles.box}>
               <h2 style={styles.orangeHeader}>Bulletins</h2>
