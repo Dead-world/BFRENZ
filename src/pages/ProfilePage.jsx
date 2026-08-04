@@ -149,16 +149,20 @@ export default function ProfilePage({ profileId, currentUserId }) {
     if (!error) setBlogs(blogs.filter(bg => bg.id !== blogId));
   };
 
-  // ⭐ FIXED: Formats embed outputs cleanly by inserting the missing dollar sign ($) back into path templates
+  // ⭐ FIXED: Checks the explicit string length of match group index 2 to allow formatting
   const getYouTubeEmbedUrl = (urlStr) => {
     if (!urlStr) return null;
     try {
-      let regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
+      let regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|shorts\/|watch\?v=|\&v=)([^#\&\?]*).*/;
       let match = urlStr.match(regExp);
-      if (match && match[2].length === 11) {
+      
+      // Index 2 safely isolates your 11-character alphanumeric video ID token
+      if (match && match[2] && match[2].length === 11) {
         return `https://youtube.com{match[2]}`;
       }
-    } catch (e) {}
+    } catch (e) {
+      console.error("YouTube Parser Exception: ", e);
+    }
     return null;
   };
 
