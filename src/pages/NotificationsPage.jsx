@@ -106,7 +106,7 @@ export default function NotificationsPage() {
     <div style={styles.pageWrapper}>
       <NavBar user={user} />
       <div style={styles.container}>
-        <h2 style={styles.header}>ProfileDig // Action Alert Control Hub</h2>
+        <h2 style={styles.header}>BFRENZ // Action Alert Control Hub</h2>
         <div style={{ padding: '15px' }}>
           {alerts.length === 0 ? (
             <p style={{ color: '#666666', fontStyle: 'italic', margin: 0 }}>No pending notifications or action requests.</p>

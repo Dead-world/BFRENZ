@@ -138,7 +138,7 @@ export default function SignupPage() {
         {/* Top Header Branding Banner Block */}
         <div style={{ backgroundColor: '#000000', padding: '6px', marginBottom: '20px', border: '1px solid #FF6600', textAlign: 'center' }}>
           <h1 style={{ color: '#FF6600', fontSize: '15px', fontWeight: 'bold', margin: 0, letterSpacing: '1px' }}>
-            ProfileDig // JOIN THE NETWORK
+            BFRENZ // JOIN THE NETWORK
           </h1>
         </div>
 

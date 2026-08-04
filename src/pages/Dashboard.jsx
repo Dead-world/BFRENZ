@@ -291,7 +291,7 @@ export default function Dashboard() {
   if (!profile) {
     return (
       <div style={{ backgroundColor: '#000000', minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#FF6600', fontSize: '13px', fontWeight: 'bold' }}>
-        LOADING MYSPACE CONTROL PANEL...
+        LOADING DASHBOARD...
       </div>
     );
   }
@@ -339,7 +339,7 @@ export default function Dashboard() {
                 <td style={styles.tdValue}>
                   <input type="date" value={birthday} onChange={(e) => setBirthday(e.target.value)} className="myspace-input" style={{ width: 'auto' }} required />
                   {birthdayError && <p style={{ color: '#cc0000', fontWeight: 'bold', margin: '3px 0 0 0', fontSize: '10px' }}>{birthdayError}</p>}
-                  <p className="help-text">Required verification. ProfileDig requires profile space owners to be 16 or older.</p>
+                  <p className="help-text">Required verification. BFRENZ requires profile space owners to be 16 or older.</p>
                 </td>
               </tr>
               <tr>

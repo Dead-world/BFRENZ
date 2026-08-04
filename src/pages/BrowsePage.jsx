@@ -62,7 +62,7 @@ export default function BrowsePage() {
       <NavBar user={user} />
       
       <div style={styles.container}>
-        <h2 style={styles.header}>ProfileDig // Browse Users Matrix Network</h2>
+        <h2 style={styles.header}>BFRENZ // Browse Users Matrix Network</h2>
         
         <div style={{ padding: '15px', fontFamily: 'Verdana' }}>
           

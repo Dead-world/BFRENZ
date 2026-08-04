@@ -112,7 +112,7 @@ export default function MessagesInboxPage() {
     <div style={styles.pageWrapper}>
       <NavBar user={user} />
       <div style={styles.container}>
-        <h2 style={styles.header}>ProfileDig // Private Mailbox Inbox</h2>
+        <h2 style={styles.header}>BFRENZ // Private Mailbox Inbox</h2>
         <div style={styles.content}>
           {messages.length === 0 ? (
             <p style={{ color: '#666666', fontStyle: 'italic' }}>Your message box is currently empty.</p>
