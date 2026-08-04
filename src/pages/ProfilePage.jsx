@@ -149,19 +149,20 @@ export default function ProfilePage({ profileId, currentUserId }) {
     if (!error) setBlogs(blogs.filter(bg => bg.id !== blogId));
   };
 
-  // ⭐ FIXED: Checks the explicit string length of match group index 2 to allow formatting
+  // ⭐ FIXED VIDEO ID EXTRACTOR ENGINE
   const getYouTubeEmbedUrl = (urlStr) => {
     if (!urlStr) return null;
     try {
-      let regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|shorts\/|watch\?v=|\&v=)([^#\&\?]*).*/;
-      let match = urlStr.match(regExp);
+      // Robust regex pulling 11-char IDs from watch text strings, shorts, shares, and mobile subdomains
+      const regExp = /^.*(?:(?:youtu\.be\/|v\/|vi\/|u\/\w\/|embed\/|shorts\/)|(?:(?:watch)?\?v(?:i)?=|\&v(?:i)?=))([^#\&\?]*).*/;
+      const match = urlStr.match(regExp);
       
-      // Index 2 safely isolates your 11-character alphanumeric video ID token
-      if (match && match[2] && match[2].length === 11) {
-        return `https://youtube.com{match[2]}`;
+      // Explicit group checking rules tracking the exact length constraint of index array token 1
+      if (match && match[1] && match[1].length === 11) {
+        return `https://youtube.com{match[1]}`;
       }
     } catch (e) {
-      console.error("YouTube Parser Exception: ", e);
+      console.error("YouTube Link Exception caught: ", e);
     }
     return null;
   };
@@ -225,10 +226,10 @@ export default function ProfilePage({ profileId, currentUserId }) {
               </div>
             </div>
 
-            {/* ⭐ FIXED MUSIC PLAYER: Appended autoPlay controller attribute tracking profiles background tracks */}
             <div style={styles.box}>
               <h2 style={styles.orangeHeader}>Music Player</h2>
               <div style={styles.contentPadding}>
+                {/* Autoplay flag synchronized explicitly with key identifiers updates */}
                 <audio controls autoPlay style={{ width: '100%' }} key={profile.mp3_url}>
                   <source src={profile.mp3_url || "https://soundhelix.com"} type="audio/mpeg" />
                 </audio>
@@ -279,16 +280,16 @@ export default function ProfilePage({ profileId, currentUserId }) {
               </div>
             </div>
 
-            {/* ⭐ FIXED VIDEO WINDOW SHOWCASE EMBED */}
+            {/* ⭐ COMPLETE FIXED YOUTUBE EMBED VIDEO PLAYER MODULE */}
             {youtubeEmbed && (
-              <div style={styles.box}>
+              <div style={styles.box} id="youtube-showcase-window">
                 <h2 style={styles.orangeHeader}>{profile.username}'s Featured Showcase Video</h2>
                 <div style={{ padding: '10px', backgroundColor: '#000000', textAlign: 'center' }}>
-                  <div style={{ position: 'relative', width: '100%', paddingBottom: '56.25%', height: 0, border: '1px solid #FF6600' }}>
+                  <div style={{ position: 'relative', width: '100%', paddingBottom: '56.25%', height: 0, border: '1px solid #00ffff', zIndex: 999 }}>
                     <iframe 
                       title={`${profile.username}'s Showcase Video`}
                       src={youtubeEmbed} 
-                      style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', border: 0 }} 
+                      style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', border: 0, zIndex: 1000 }} 
                       allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                       allowFullScreen 
                     />
