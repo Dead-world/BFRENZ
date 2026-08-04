@@ -9,6 +9,7 @@ import MessagesInbox from "./pages/MessagesInboxPage";
 import BrowsePage from "./pages/BrowsePage";
 import MusicPage from "./pages/MusicPage";
 import VideosPage from "./pages/VideosPage";
+import NotificationsPage from "./pages/NotificationsPage";
 
 export default function App() {
   return (
@@ -19,6 +20,7 @@ export default function App() {
       <Route path="/browse" element={<BrowsePage />} />
       <Route path="/music" element={<MusicPage />} />
       <Route path="/videos" element={<VideosPage />} />
+      <Route path="/notifications" element={<NotificationsPage />} />
       
       {/* Profile, Inbox and Settings Panels */}
       <Route path="/profile/:id" element={<ProfilePage />} />

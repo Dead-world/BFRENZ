@@ -2,7 +2,6 @@ import React, { useState, useEffect } from "react";
 import { useAuth } from '../hooks/useAuth';
 import NavBar from "../components/NavBar";
 import { supabase } from "../supabaseClient"; 
-// ⭐ ADDED: Import the native router parameter reader hook
 import { useParams } from "react-router-dom"; 
 
 if (typeof document !== 'undefined') {
@@ -39,7 +38,6 @@ const styles = {
 };
 
 export default function ProfilePage({ currentUserId }) {
-  // ⭐ FIXED: Extracts the dynamic id parameter directly from the browser URL path bar
   const { id: routeProfileId } = useParams();
   const { user, loading: authLoading } = useAuth();
   
@@ -54,7 +52,7 @@ export default function ProfilePage({ currentUserId }) {
   const [newComment, setNewComment] = useState('');
   const [loading, setLoading] = useState(true);
 
-  // ⭐ FIXED: Forces state parameter updates whenever the browser parameters change
+  // Sync state targets whenever route hooks drop changes
   useEffect(() => {
     if (authLoading) return;
 
@@ -65,11 +63,10 @@ export default function ProfilePage({ currentUserId }) {
     } else if (user?.id) {
       setActiveProfileId(user.id);
     } else {
-      // Logged out & no route param fallback: Fetch the system host account profile
       const fetchGlobalHostFallback = async () => {
         const { data } = await supabase.from('profiles').select('User_id').limit(1);
         if (data && data.length > 0) {
-          setActiveProfileId(data[0].User_id);
+          setActiveProfileId(data.User_id);
         } else {
           setLoading(false);
         }
@@ -78,7 +75,6 @@ export default function ProfilePage({ currentUserId }) {
     }
   }, [routeProfileId, currentUserId, user, authLoading]);
 
-  // ⭐ FIXED: Added activeProfileId to the dependency loop array to trigger real-time refetching
   useEffect(() => {
     if (activeProfileId) {
       fetchProfileData();
@@ -105,7 +101,7 @@ export default function ProfilePage({ currentUserId }) {
       const { count } = await supabase.from('profile_views').select('*', { count: 'exact', head: true }).eq('profile_id', activeProfileId);
       setViewCount(count || 0);
 
-      // Pull friends list sorted by custom Top 8 dashboard placement rank variables
+      // Fetch friends sorted by your chosen Top 8 positions ranks
       const { data: top8Rows, error: t8Err } = await supabase
         .from('top_eight')
         .select('friend_id, profiles!top_eight_friend_id_fkey(User_id, username, avatar_url)')
@@ -176,10 +172,10 @@ export default function ProfilePage({ currentUserId }) {
       const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|shorts\/|watch\?v=|\&v=)([^#\&\?]*).*/;
       const match = cleanUrl.match(regExp);
       
-      if (match && match[2]) {
-        let videoId = match[2].trim();
-        if (videoId.includes('&')) videoId = videoId.split('&')[0];
-        if (videoId.includes('?')) videoId = videoId.split('?')[0];
+      if (match && match) {
+        let videoId = match.trim();
+        if (videoId.includes('&')) videoId = videoId.split('&');
+        if (videoId.includes('?')) videoId = videoId.split('?');
         return "https://youtube.com" + videoId;
       }
     } catch (e) {
@@ -215,7 +211,10 @@ export default function ProfilePage({ currentUserId }) {
                 <img src={profile.avatar_url || 'https://placehold.co'} alt="Avatar" style={{ width: '150px', height: '150px', border: '1px solid #000000', objectFit: 'cover' }} />
                 <div style={{ fontSize: '11px' }}>
                   <p>Hometown: {profile.hometown || 'Unknown'}</p>
-                  <p>Status: <b>{profile.status || 'offline'}</b></p>
+                  
+                  {/* ⭐ AUTOMATED LIVE PRESENCE TRACKER BADGE */}
+                  <p>Status: <span style={{ color: profile.status === 'online' ? '#00cc00' : '#666666', fontWeight: 'bold' }}>{profile.status || 'offline'}</span></p>
+                  
                   <p>Views: <b>{viewCount}</b></p>
                 </div>
               </div>
@@ -235,11 +234,24 @@ export default function ProfilePage({ currentUserId }) {
                 {isFriend ? (
                   <button style={{ ...styles.button, backgroundColor: '#cc0000' }} onClick={handleRemoveFriend}>Remove Friend</button>
                 ) : (
-                  <button style={styles.button} onClick={async () => {
-                    if (!user) return alert("Log in first to connect with friends.");
-                    await supabase.from('friends').insert([{ user_id: user.id, friend_id: activeProfileId }, { user_id: activeProfileId, friend_id: user.id }]);
-                    alert("Friend link added!"); fetchProfileData();
-                  }}>Add to Friends</button>
+                  /* ⭐ UPDATED: Sends a notification request to the recipient instead of forcing lines directly */
+                  <button 
+                    style={styles.button} 
+                    onClick={async () => {
+                      if (!user) return alert("Log in first to connect with friends.");
+                      const { error } = await supabase
+                        .from('notifications')
+                        .insert([{ user_id: activeProfileId, sender_id: user.id, type: 'friend_request' }]);
+
+                      if (!error) {
+                        alert("Friend link request transmitted! Waiting for space owner confirmation approval.");
+                      } else {
+                        alert("Request transaction failed: " + error.message);
+                      }
+                    }}
+                  >
+                    Add to Friends
+                  </button>
                 )}
                 
                 <button style={styles.button} onClick={() => alert("Groups coming soon!")}>Add to Group</button>
@@ -300,85 +312,26 @@ export default function ProfilePage({ currentUserId }) {
               </div>
             </div>
 
-            {/* ⭐ FIXED — FULLY WORKING YOUTUBE SHOWCASE GATEWAY */}
-{profile.youtube_url && (
-  <div style={styles.box} id="youtube-showcase-window">
-    <h2 style={styles.orangeHeader}>{profile.username}'s Featured Showcase Video</h2>
-
-    <div style={{ padding: '10px', backgroundColor: '#000000', textAlign: 'center' }}>
-
-      {profile.youtube_url.includes('supabase.co') ? (
-        /* 1. Supabase-hosted MP4 playback */
-        <video
-          controls
-          autoPlay
-          style={{
-            width: '100%',
-            height: 'auto',
-            maxHeight: '340px',
-            border: '1px solid #FF6600'
-          }}
-          key={profile.youtube_url}
-        >
-          <source src={profile.youtube_url} type="video/mp4" />
-        </video>
-      ) : (
-        /* 2. YouTube Embed Mode (FULLY FIXED) */
-        <div
-          style={{
-            position: 'relative',
-            width: '100%',
-            paddingBottom: '56.25%',
-            height: 0,
-            border: '1px solid #FF6600'
-          }}
-        >
-          <iframe
-            title={`${profile.username}'s Showcase Video`}
-            src={(() => {
-              try {
-                const raw = profile.youtube_url.trim();
-
-                // Universal YouTube ID extractor
-                const rx =
-                  /^.*(?:(?:youtu\.be\/|v\/|vi\/|u\/\w\/|embed\/|shorts\/)|(?:(?:watch)?\?v(?:i)?=|\&v(?:i)?=))([^#\&\?]*).*/;
-
-                const match = raw.match(rx);
-
-                if (match && match[1]) {
-                  let id = match[1].trim();
-
-                  // Remove trailing junk
-                  if (id.includes('&')) id = id.split('&')[0];
-                  if (id.includes('?')) id = id.split('?')[0];
-
-                  // Return proper embed URL
-                  return `https://www.youtube.com/embed/${id}`;
-                }
-              } catch (e) {
-                console.error("YouTube Embed Parser Error:", e);
-              }
-
-              // Fallback video ID (your royalty-free clip)
-              return "https://www.youtube.com/embed/77nB_9uIcN4";
-            })()}
-            style={{
-              position: 'absolute',
-              top: 0,
-              left: 0,
-              width: '100%',
-              height: '100%',
-              border: 0
-            }}
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-            allowFullScreen
-          />
-        </div>
-      )}
-
-    </div>
-  </div>
-)}
+            {profile.youtube_url && (
+              <div style={styles.box} id="youtube-showcase-window">
+                <h2 style={styles.orangeHeader}>{profile.username}'s Featured Showcase Video</h2>
+                <div style={{ padding: '10px', backgroundColor: '#000000', textAlign: 'center' }}>
+                  {profile.youtube_url.includes('supabase.co') ? (
+                    <video controls autoPlay style={{ width: '100%', height: 'auto', maxHeight: '340px', border: '1px solid #FF6600' }} key={profile.youtube_url}>
+                      <source src={profile.youtube_url} type="video/mp4" />
+                    </video>
+                  ) : youtubeEmbed ? (
+                    <div style={{ position: 'relative', width: '100%', paddingBottom: '56.25%', height: 0, border: '1px solid #FF6600' }}>
+                      <iframe title="Showcase Video Frame" src={youtubeEmbed} style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', border: 0 }} allowFullScreen />
+                    </div>
+                  ) : (
+                    <div style={{ padding: '10px', color: 'red', fontSize: '11px', backgroundColor: '#ffe5d4', textAlign: 'left' }}>
+                      ⚠ LINK SYSTEM FAULT: Check the link settings inside your dashboard.
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
 
             <div style={styles.box}>
               <h2 style={styles.orangeHeader}>Bulletins</h2>
@@ -436,9 +389,9 @@ export default function ProfilePage({ currentUserId }) {
               </div>
             </div>
 
-            {/* RETRO MYSPACE TOP 8 FRIENDS GRID MAP */}
+            {/* CLASSIC TOP 8 FRIENDS GRID MAP */}
             <div style={styles.box}>
-              <h2 style={styles.orangeHeader}>Friend Space // Top 8 Network</h2>
+              <h2 style={styles.orangeHeader}>{profile.username}'s Space // Top 8 Friends</h2>
               <div style={styles.contentPadding}>
                 {friends.length === 0 ? (
                   <p style={{ margin: 0, color: '#666666', fontStyle: 'italic' }}>No custom ranked connections in this user space yet.</p>
@@ -446,7 +399,6 @@ export default function ProfilePage({ currentUserId }) {
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '12px', textAlign: 'center' }}>
                     {friends.map((f) => (
                       <div key={f.User_id} style={styles.friendCard}>
-                        {/* ⭐ FIXED: Link routing points explicitly to the target friend identifier key */}
                         <a href={`/profile/${f.User_id}`} style={styles.orangeLink}>
                           <div style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', marginBottom: '2px', fontWeight: 'bold', fontSize: '10px' }}>
                             {f.username}
