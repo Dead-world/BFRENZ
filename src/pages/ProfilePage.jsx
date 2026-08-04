@@ -82,7 +82,6 @@ export default function ProfilePage({ profileId, currentUserId }) {
       const { data: bulls } = await supabase.from('bulletins').select('*').eq('user_id', activeProfileId).order('created_at', { ascending: false });
       setBulletins(bulls || []);
 
-      // FIXED: Cleared casing leaks from foreign key constraints mapping author_id safely to User_id
       const { data: blogPosts, error: bErr } = await supabase.from('blogs').select('*').eq('author_id', activeProfileId).order('created_at', { ascending: false });
       if (bErr) console.error("Blog extraction crash logged:", bErr.message);
       setBlogs(blogPosts || []);
@@ -152,7 +151,6 @@ export default function ProfilePage({ profileId, currentUserId }) {
     if (!error) setComments(comments.filter(c => c.id !== commentId));
   };
 
-  // FIXED: Bulletins operational deletion handler hook
   const handleDeleteBulletin = async (bulletinId) => {
     const confirmDel = window.confirm("Delete this bulletin blast from your space?");
     if (!confirmDel) return;
@@ -160,24 +158,35 @@ export default function ProfilePage({ profileId, currentUserId }) {
     const { error } = await supabase.from('bulletins').delete().eq('id', bulletinId);
     if (!error) {
       setBulletins(bulletins.filter(b => b.id !== bulletinId));
-    } else {
-      alert("Failed to drop row record: " + error.message);
     }
   };
 
-    const getYouTubeEmbedUrl = (urlStr) => {
+  // ⭐ OPERATIONAL DELETION MUTATION HOOK FOR BLOG ENTIRES
+  const handleDeleteBlog = async (blogId) => {
+    const confirmDel = window.confirm("Are you sure you want to delete this blog entry permanently?");
+    if (!confirmDel) return;
+    
+    const { error } = await supabase.from('blogs').delete().eq('id', blogId);
+    if (!error) {
+      setBlogs(blogs.filter(bg => bg.id !== blogId));
+    } else {
+      alert("Failed to drop blog row record: " + error.message);
+    }
+  };
+
+  const getYouTubeEmbedUrl = (urlStr) => {
     if (!urlStr) return null;
     try {
       let regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
       let match = urlStr.match(regExp);
-      if (match && match.length === 11) {
-        return `https://youtube.com{match}`;
+      if (match && match[2].length === 11) {
+        return `https://youtube.com{match[2]}`;
       }
     } catch (e) {}
     return null;
   };
 
-  if (loading) return <div style={{ color: '#FF6600', textAlign: 'center', padding: '50px', fontSize: '14px', fontWeight: 'bold', backgroundColor: '#000', minHeight: '100vh' }}>LOADING RETRO CANVAS...</div>;
+    if (loading) return <div style={{ color: '#FF6600', textAlign: 'center', padding: '50px', fontSize: '14px', fontWeight: 'bold', backgroundColor: '#000', minHeight: '100vh' }}>LOADING RETRO CANVAS...</div>;
   if (!profile) return <div style={{ color: '#FF6600', textAlign: 'center', padding: '50px', fontSize: '14px', fontWeight: 'bold', backgroundColor: '#000', minHeight: '100vh' }}>PROFILE NOT FOUND</div>;
 
   const youtubeEmbed = getYouTubeEmbedUrl(profile.youtube_url);
@@ -281,7 +290,7 @@ export default function ProfilePage({ profileId, currentUserId }) {
             </div>
 
             <div style={styles.box}>
-              <h2 style={styles.orangeHeader}>{profile.username}'s Blurbs</h2>
+              <h2 style={styles.orangeHeaderContainer || styles.orangeHeader}>{profile.username}'s Blurbs</h2>
               <div style={styles.contentPadding}>
                 <h3 style={{ color: '#FF6600', fontSize: '11px', margin: '0 0 5px 0', fontWeight: 'bold' }}>About me:</h3>
                 <p style={{ margin: '0 0 15px 0', fontSize: '11px', whiteSpace: 'pre-wrap' }}>{profile.about_me || 'Nothing written here yet.'}</p>
@@ -301,7 +310,6 @@ export default function ProfilePage({ profileId, currentUserId }) {
               </div>
             )}
 
-            {/* FIXED BULLETINS FEED: Now renders action delete prompts to the profile space owner */}
             <div style={styles.box}>
               <h2 style={styles.orangeHeader}>Bulletins</h2>
               <div style={styles.contentPadding}>
@@ -330,7 +338,6 @@ export default function ProfilePage({ profileId, currentUserId }) {
               </div>
             </div>
 
-            {/* FIXED BLOGS FEED: Captures content mutations using user session token mapped to author_id */}
             <div style={styles.box}>
               <h2 style={styles.orangeHeader}>Blog Entries</h2>
               <div style={styles.contentPadding}>
@@ -346,7 +353,20 @@ export default function ProfilePage({ profileId, currentUserId }) {
                     <button type="submit" style={styles.button}>Publish Blog</button>
                   </form>
                 )}
-                {blogs.map(bg => <div key={bg.id} style={{ borderBottom: '1px dashed #ccc', padding: '4px' }}><b>{bg.title}</b><p style={{ margin: '2px 0' }}>{bg.content}</p></div>)}
+                {blogs.map(bg => (
+                  <div key={bg.id} style={{ borderBottom: '1px dashed #ccc', padding: '6px', marginBottom: '8px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                      <div style={{ fontWeight: 'bold', color: '#000000', fontSize: '11px' }}>{bg.title}</div>
+                      {user?.id === activeProfileId && (
+                        <button onClick={() => handleDeleteBlog(bg.id)} style={{ background: 'none', border: 'none', color: '#cc0000', fontSize: '10px', cursor: 'pointer', fontWeight: 'bold' }}>
+                          [× Delete]
+                        </button>
+                      )}
+                    </div>
+                    <div style={{ fontSize: '9px', color: '#666666' }}>Posted: {new Date(bg.created_at).toLocaleDateString()}</div>
+                    <p style={{ margin: '4px 0 0 0', whiteSpace: 'pre-wrap' }}>{bg.content}</p>
+                  </div>
+                ))}
               </div>
             </div>
 
