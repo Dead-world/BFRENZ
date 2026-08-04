@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useAuth } from '../hooks/useAuth';
 import NavBar from "../components/NavBar";
-// FIXED: Pull shared instance to comply with Vite Fast Refresh rule
 import { supabase } from "../supabaseClient"; 
 
 if (typeof document !== 'undefined') {
@@ -59,6 +58,7 @@ export default function ProfilePage({ profileId, currentUserId }) {
   const [comments, setComments] = useState([]);
   const [blogs, setBlogs] = useState([]);
   const [friends, setFriends] = useState([]);
+  const [isFriend, setIsFriend] = useState(false);
   const [viewCount, setViewCount] = useState(0);
   const [newComment, setNewComment] = useState('');
   const [loading, setLoading] = useState(true);
@@ -70,7 +70,7 @@ export default function ProfilePage({ profileId, currentUserId }) {
     } else {
       setLoading(false);
     }
-  }, [activeProfileId]);
+  }, [activeProfileId, user?.id]);
 
   const fetchProfileData = async () => {
     try {
@@ -97,6 +97,12 @@ export default function ProfilePage({ profileId, currentUserId }) {
       const { data: frRows } = await supabase.from('friends').select('friend_id, profiles!friends_friend_id_fkey(User_id, username, avatar_url)').eq('user_id', activeProfileId).limit(8);
       if (frRows) setFriends(frRows.map(f => f.profiles).filter(Boolean));
 
+      // Check if logged-in user is already connected with this profile
+      if (user?.id && user.id !== activeProfileId) {
+        const { data: connection } = await supabase.from('friends').select('*').eq('user_id', user.id).eq('friend_id', activeProfileId);
+        setIsFriend(connection && connection.length > 0);
+      }
+
     } catch (err) {
       console.error(err);
     } finally {
@@ -120,25 +126,71 @@ export default function ProfilePage({ profileId, currentUserId }) {
     ]).select('*, profiles!comments_user_id_fkey(username, avatar_url)');
 
     if (!error && data) {
-      setComments([data, ...comments]);
       setNewComment('');
       fetchProfileData();
     }
   };
 
-    if (loading) return <div style={{ color: '#FF6600', textAlign: 'center', padding: '50px', fontSize: '14px', fontWeight: 'bold', backgroundColor: '#000', minHeight: '100vh' }}>LOADING RETRO CANVAS...</div>;
+  // ⭐ CRITICAL ENHANCEMENT: DELETION QUERY FOR CONTEXT PROFILE FRIENDS
+  const handleRemoveFriend = async () => {
+    if (!user) return;
+    const confirmRemoval = window.confirm(`Are you sure you want to remove ${profile.username} from your friends list?`);
+    if (!confirmRemoval) return;
+
+    // Delete the mutual reference rows from public.friends
+    const { error } = await supabase
+      .from('friends')
+      .delete()
+      .or(`and(user_id.eq.${user.id},friend_id.eq.${activeProfileId}),and(user_id.eq.${activeProfileId},friend_id.eq.${user.id})`);
+
+    if (!error) {
+      alert("Friend successfully removed.");
+      setIsFriend(false);
+      fetchProfileData();
+    } else {
+      alert("Error removing friend: " + error.message);
+    }
+  };
+
+  // ⭐ CRITICAL ENHANCEMENT: EXPLICIT WALL COMMENT DELETION ENGINE
+  const handleDeleteComment = async (commentId) => {
+    const confirmDel = window.confirm("Delete this comment permanently from your profile space?");
+    if (!confirmDel) return;
+
+    const { error } = await supabase.from('comments').delete().eq('id', commentId);
+    if (!error) {
+      setComments(comments.filter(c => c.id !== commentId));
+    } else {
+      alert("Failed to delete comment: " + error.message);
+    }
+  };
+
+    // Helper to safely convert standard watch links into embed links
+  const getYouTubeEmbedUrl = (urlStr) => {
+    if (!urlStr) return null;
+    try {
+      let regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
+      let match = urlStr.match(regExp);
+      if (match && match[2].length === 11) {
+        return `https://youtube.com{match[2]}`;
+      }
+    } catch (e) {
+      console.error("YouTube URL Parse Exception", e);
+    }
+    return null;
+  };
+
+  if (loading) return <div style={{ color: '#FF6600', textAlign: 'center', padding: '50px', fontSize: '14px', fontWeight: 'bold', backgroundColor: '#000', minHeight: '100vh' }}>LOADING RETRO CANVAS...</div>;
   if (!profile) return <div style={{ color: '#FF6600', textAlign: 'center', padding: '50px', fontSize: '14px', fontWeight: 'bold', backgroundColor: '#000', minHeight: '100vh' }}>PROFILE NOT FOUND</div>;
+
+  const youtubeEmbed = getYouTubeEmbedUrl(profile.youtube_url);
 
   return (
     <div style={{ backgroundColor: '#000000', minHeight: '100vh' }}>
       <NavBar user={user} />
-      
-      {/* ⭐ DYNAMIC CUSTOM CSS STRING INJECTION BLOCK */}
       {profile.custom_css && <style>{profile.custom_css}</style>}
 
       <div style={styles.container}>
-        
-        {/* ⭐ RETRO SCROLLING BLINKING MARQUEE STATUS BANNER */}
         <div style={{ backgroundColor: '#000', color: '#FF6600', border: '1px solid #FF6600', padding: '6px', marginBottom: '15px', overflow: 'hidden' }}>
           <marquee scrollamount="5" style={{ fontSize: '11px', fontWeight: 'bold' }}>
             <span className="retro-blink" style={{ marginRight: '10px', color: '#fff' }}>⚡ STATUS TRANSMISSION:</span> 
@@ -161,7 +213,7 @@ export default function ProfilePage({ profileId, currentUserId }) {
               </div>
             </div>
 
-            {/* Functional Contact Triggers */}
+            {/* Connected Action Buttons (With real-time Friend/Unfriend handling) */}
             <div style={{ ...styles.box, marginTop: '15px' }}>
               <h2 style={styles.orangeHeader}>Contacting {profile.username}</h2>
               <div style={{ ...styles.contentPadding, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '5px' }}>
@@ -172,12 +224,18 @@ export default function ProfilePage({ profileId, currentUserId }) {
                   alert(!error ? "Message sent successfully!" : error.message);
                 }}>Send Message</button>
                 
-                <button style={styles.button} onClick={async () => {
-                  if (!user) return alert("Log in first.");
-                  if (user.id === activeProfileId) return alert("Cannot add yourself.");
-                  const { error } = await supabase.from('friends').insert([{ user_id: user.id, friend_id: activeProfileId }, { user_id: activeProfileId, friend_id: user.id }]);
-                  if (!error) { alert("Friend link added!"); fetchProfileData(); } else { alert("Already connected or error occurred."); }
-                }}>Add to Friends</button>
+                {isFriend ? (
+                  <button style={{ ...styles.button, backgroundColor: '#cc0000' }} onClick={handleRemoveFriend}>
+                    Remove Friend
+                  </button>
+                ) : (
+                  <button style={styles.button} onClick={async () => {
+                    if (!user) return alert("Log in first.");
+                    if (user.id === activeProfileId) return alert("Cannot add yourself.");
+                    const { error } = await supabase.from('friends').insert([{ user_id: user.id, friend_id: activeProfileId }, { user_id: activeProfileId, friend_id: user.id }]);
+                    if (!error) { alert("Friend link added!"); fetchProfileData(); } else { alert("Already connected or error occurred."); }
+                  }}>Add to Friends</button>
+                )}
                 
                 <button style={styles.button} onClick={() => alert("Groups coming soon!")}>Add to Group</button>
                 <button style={styles.button} onClick={() => { navigator.clipboard.writeText(window.location.href); alert("Copied profile URL!"); }}>Forward to Friends</button>
@@ -203,7 +261,6 @@ export default function ProfilePage({ profileId, currentUserId }) {
               </table>
             </div>
 
-            {/* ⭐ DYNAMIC CUSTOM HTML STRING INJECTION MODULE */}
             {profile.custom_html && (
               <div style={styles.box}>
                 <h2 style={styles.orangeHeader}>Custom Blurbs Room</h2>
@@ -227,6 +284,34 @@ export default function ProfilePage({ profileId, currentUserId }) {
                 </tbody>
               </table>
             </div>
+
+            <div style={styles.box}>
+              <h2 style={styles.orangeHeader}>{profile.username}'s Blurbs</h2>
+              <div style={styles.contentPadding}>
+                <h3 style={{ color: '#FF6600', fontSize: '11px', margin: '0 0 5px 0', fontWeight: 'bold' }}>About me:</h3>
+                <p style={{ margin: '0 0 15px 0', fontSize: '11px', whiteSpace: 'pre-wrap' }}>{profile.about_me || 'Nothing written here yet.'}</p>
+                <h3 style={{ color: '#FF6600', fontSize: '11px', margin: '0 0 5px 0', fontWeight: 'bold' }}>Who I'd like to meet:</h3>
+                <p style={{ margin: '0', fontSize: '11px', whiteSpace: 'pre-wrap' }}>{profile.meet || 'Looking for cool people using ProfileDig!'}</p>
+              </div>
+            </div>
+
+            {/* ⭐ RETRO MYSPACE VIDEO BOX EMBED SECTION */}
+            {youtubeEmbed && (
+              <div style={styles.box}>
+                <h2 style={styles.orangeHeader}>{profile.username}'s Featured Showcase Video</h2>
+                <div style={{ padding: '10px', backgroundColor: '#000000', textAlign: 'center' }}>
+                  <div style={{ position: 'relative', width: '100%', paddingBottom: '56.25%', height: 0, border: '1px solid #FF6600' }}>
+                    <iframe 
+                      title="Featured Video"
+                      src={youtubeEmbed}
+                      style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', border: 0 }}
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                      allowFullScreen
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
 
             <div style={styles.box}>
               <h2 style={styles.orangeHeader}>Bulletins</h2>
@@ -282,6 +367,7 @@ export default function ProfilePage({ profileId, currentUserId }) {
               </div>
             </div>
 
+            {/* Comments Feed Space with Explicit Deletion Actions Row */}
             <div style={styles.box}>
               <h2 style={styles.orangeHeader}>Comments</h2>
               <div style={styles.contentPadding}>
@@ -292,9 +378,28 @@ export default function ProfilePage({ profileId, currentUserId }) {
                   </form>
                 )}
                 {comments.map(c => (
-                  <div key={c.id} style={{ display: 'flex', gap: '10px', background: '#ffe5d4', padding: '5px', marginBottom: '5px', border: '1px dashed #000' }}>
-                    <img src={c.profiles?.avatar_url || 'https://placehold.co'} alt="pic" style={{ width: '40px', height: '40px', objectFit: 'cover' }} />
-                    <div><b>{c.profiles?.username || 'User'}:</b> <p style={{ margin: 0 }}>{c.content}</p></div>
+                  <div key={c.id} style={{ display: 'flex', gap: '10px', background: '#ffe5d4', padding: '5px', marginBottom: '5px', border: '1px dashed #000', flexDirection: 'column' }}>
+                    <div style={{ display: 'flex', gap: '10px' }}>
+                      <img src={c.profiles?.avatar_url || 'https://placehold.co'} alt="avatar pic" style={{ width: '40px', height: '40px', objectFit: 'cover', border: '1px solid #000' }} />
+                      <div style={{ flexGrow: 1 }}>
+                        <a href={`/profile/${c.user_id}`} style={styles.orangeLink}>
+                          <b>{c.profiles?.username || 'User'}:</b>
+                        </a>
+                        <p style={{ margin: '3px 0 0 0' }}>{c.content}</p>
+                      </div>
+                    </div>
+                    
+                    {/* ⭐ DELETION ACTION ROW: visible only to the profile space owner */}
+                    {user?.id === activeProfileId && (
+                      <div style={{ display: 'flex', justifyContent: 'flex-end', borderTop: '1px dotted #000000', paddingTop: '3px', marginTop: '3px' }}>
+                        <button 
+                          onClick={() => handleDeleteComment(c.id)}
+                          style={{ background: 'none', border: 'none', color: '#cc0000', cursor: 'pointer', fontSize: '9px', fontWeight: 'bold', fontFamily: 'Verdana' }}
+                        >
+                          [× Delete Comment]
+                        </button>
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>

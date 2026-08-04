@@ -1,62 +1,79 @@
-// src/pages/MessagesInboxPage.jsx
-import { useEffect, useState } from "react";
-import { supabase } from "../supabaseClient";
-import { Link } from "react-router-dom";
+import React, { useState, useEffect } from 'react';
+import { supabase } from '../supabaseClient';
+import { useAuth } from '../hooks/useAuth';
+import NavBar from '../components/NavBar';
+
+const styles = {
+  pageWrapper: { backgroundColor: '#000000', minHeight: '100vh', color: '#000000' },
+  container: { maxWidth: '850px', margin: '30px auto', padding: '15px', backgroundColor: '#ffffff', border: '2px solid #FF6600' },
+  header: { backgroundColor: '#FF6600', color: '#ffffff', padding: '6px', margin: 0, fontSize: '13px', fontWeight: 'bold', fontFamily: 'Verdana' },
+  content: { padding: '15px', fontSize: '11px', fontFamily: 'Verdana' },
+  msgRow: { display: 'flex', gap: '15px', backgroundColor: '#ffe5d4', padding: '10px', border: '1px dashed #FF6600' },
+  senderBox: { width: '80px', textAlign: 'center', flexShrink: 0 },
+  username: { display: 'block', fontWeight: 'bold', color: '#FF6600', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' },
+  avatar: { width: '60px', height: '60px', objectFit: 'cover', border: '1px solid #000000', marginTop: '4px' }
+};
 
 export default function MessagesInboxPage() {
-  const [user, setUser] = useState(null);
-  const [threads, setThreads] = useState([]);
+  const { user } = useAuth();
+  const [messages, setMessages] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const load = async () => {
-      const { data: auth } = await supabase.auth.getUser();
-      if (!auth?.user) return;
-      setUser(auth.user);
+    if (user) {
+      fetchIncomingMessages();
+    }
+  }, [user]);
 
-      const { data } = await supabase
-        .from("messages")
-        .select("id, sender_id, receiver_id, content, created_at, read")
-        .or(`sender_id.eq.${auth.user.id},receiver_id.eq.${auth.user.id}`)
-        .order("created_at", { ascending: false });
+  const fetchIncomingMessages = async () => {
+    try {
+      setLoading(true);
+      // Queries user_messages filtering receiver_id against the active account UUID
+      const { data, error } = await supabase
+        .from('user_messages')
+        .select('*, profiles!user_messages_receiver_id_fkey(username, avatar_url)')
+        .eq('receiver_id', user.id)
+        .order('created_at', { ascending: false });
 
-      const map = new Map();
-      for (const m of data || []) {
-        const otherId = m.sender_id === auth.user.id ? m.receiver_id : m.sender_id;
-        if (!map.has(otherId)) map.set(otherId, m);
+      if (!error && data) {
+        setMessages(data);
       }
-      setThreads(Array.from(map.entries())); // [ [otherId, lastMessage], ... ]
-    };
+    } catch (err) {
+      console.error("Error loading mailbox rows:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    load();
-  }, []);
-
-  if (!user) return null;
+  if (loading) return <div style={{ color: '#FF6600', padding: '20px', fontFamily: 'Verdana', backgroundColor: '#000', minHeight: '100vh' }}>Reading secure mailbox streams...</div>;
 
   return (
-    <div className="min-h-screen bg-black text-white p-6">
-      <h1 className="text-2xl font-bold mb-4">Inbox</h1>
-      <div className="space-y-3">
-        {threads.map(([otherId, msg]) => (
-          <Link
-            key={msg.id}
-            to={`/messages/${otherId}`}
-            className="block bg-white text-black p-3 rounded hover:bg-gray-200"
-          >
-            <div className="flex justify-between items-center">
-              <span className="font-semibold">
-                Chat with: {otherId.slice(0, 8)}...
-              </span>
-              {!msg.read && msg.receiver_id === user.id && (
-                <span className="text-xs bg-orange-600 text-white px-2 py-1 rounded">
-                  New
-                </span>
-              )}
+    <div style={styles.pageWrapper}>
+      <NavBar user={user} />
+      <div style={styles.container}>
+        <h2 style={styles.header}>ProfileDig // Private Mailbox Inbox</h2>
+        <div style={styles.content}>
+          {messages.length === 0 ? (
+            <p style={{ color: '#666666', fontStyle: 'italic' }}>Your message box is currently empty.</p>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+              {messages.map((msg) => (
+                <div key={msg.id} style={styles.msgRow}>
+                  <div style={styles.senderBox}>
+                    <span style={styles.username}>{msg.profiles?.username || 'Sender'}</span>
+                    <img src={msg.profiles?.avatar_url || 'https://placehold.co'} alt="pic" style={styles.avatar} />
+                  </div>
+                  <div style={{ flexGrow: 1 }}>
+                    <div style={{ fontSize: '9px', color: '#666666', marginBottom: '5px' }}>
+                      Received: {msg.created_at ? new Date(msg.created_at).toLocaleString() : 'Just Now'}
+                    </div>
+                    <div style={{ whiteSpace: 'pre-wrap', color: '#000000' }}>{msg.content}</div>
+                  </div>
+                </div>
+              ))}
             </div>
-            <p className="text-sm text-gray-700 mt-1">
-              {msg.content?.slice(0, 60) || "No content"}
-            </p>
-          </Link>
-        ))}
+          )}
+        </div>
       </div>
     </div>
   );

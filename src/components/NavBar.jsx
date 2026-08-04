@@ -1,6 +1,8 @@
 import React from 'react';
 import { useAuth } from '../hooks/useAuth';
 import { supabase } from '../supabaseClient';
+// IMPORT LINK: Crucial engine component required to stop the hard refresh home routing fallback bug
+import { Link } from 'react-router-dom';
 
 const styles = {
   nav: {
@@ -17,8 +19,8 @@ const styles = {
     alignItems: 'center'
   },
   logoImage: {
-    height: '100px',          // Constrains height to stay compact inside the bar
-    width: 'auto',            // Maintains original image aspect ratio proportions
+    height: '100px',          // Restores your preferred prominent height setting
+    width: 'auto',            
     display: 'block'
   },
   linkGroup: { 
@@ -58,41 +60,39 @@ export default function NavBar() {
 
   return (
     <nav style={styles.nav}>
-      {/* Left-Side Logo Anchor using your custom image file */}
+      {/* Left-Side Logo Anchor updated to use virtual Link routing */}
       <div style={styles.logoContainer}>
-        <a href="/">
+        <Link to="/">
           <img 
             src="/ProfileDigLogo.png" 
             alt="ProfileDig" 
             style={styles.logoImage} 
             onError={(e) => {
-              // Fallback to text link representation if the asset path acts broken
               e.target.style.display = 'none';
               e.target.parentNode.innerHTML = '<span style="color:#FF6600; font-weight:bold; font-size:14px;">ProfileDig</span>';
             }}
           />
-        </a>
+        </Link>
       </div>
 
-      {/* Right-Side Navigation State Link Tree */}
+      {/* Right-Side Navigation State Link Tree using native Virtual Path routers */}
       <div style={styles.linkGroup}>
-        <a href="/" style={styles.navLink}>Home</a>
+        <Link to="/" style={styles.navLink}>Home</Link>
         
         {user ? (
           <>
-            {/* Renders instantly when state flips to logged in */}
-            <a href="/dashboard" style={styles.navLink}>Dashboard</a>
-            <a href="/inbox" style={styles.navLink}>Inbox Messages</a>
-            <a href={`/profile/${user.id}`} style={styles.profileLink}>My Profile</a>
+            {/* Swapping anchors for absolute virtual link targets fixes the hard-refresh reset loop bug */}
+            <Link to="/dashboard" style={styles.navLink}>Dashboard</Link>
+            <Link to="/inbox" style={styles.navLink}>Inbox Messages</Link>
+            <Link to={`/profile/${user.id}`} style={styles.profileLink}>My Profile</Link>
             <button onClick={handleLogout} style={styles.logoutBtn}>
               Log Out
             </button>
           </>
         ) : (
           <>
-            {/* Renders when there is no active auth session */}
-            <a href="/login" style={styles.profileLink}>Log In</a>
-            <a href="/register" style={styles.navLink}>Sign Up</a>
+            <Link to="/login" style={styles.profileLink}>Log In</Link>
+            <Link to="/register" style={styles.navLink}>Sign Up</Link>
           </>
         )}
       </div>
