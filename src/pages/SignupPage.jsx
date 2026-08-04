@@ -1,5 +1,16 @@
 import { useState } from "react";
 import { supabase } from "../supabaseClient";
+import React from 'react';
+
+// Inject global font controls directly to ensure a boxy 2005 look
+if (typeof document !== 'undefined') {
+  const styleEl = document.createElement('style');
+  styleEl.innerHTML = `
+    .retro-input::placeholder { color: #888888; }
+    .retro-input:focus { outline: none; border: 1px solid #ffffff !important; box-shadow: 0 0 5px #FF6600; }
+  `;
+  document.head.appendChild(styleEl);
+}
 
 export default function SignupPage() {
   const [email, setEmail] = useState("");
@@ -12,11 +23,11 @@ export default function SignupPage() {
     setError("");
 
     if (!birthday) {
-      setError("Please select your birthday.");
+      setError("Please specify your date of birth.");
       return;
     }
 
-    // 16-or-older verification logic
+    // 16-or-older verification rule engine
     const birthDate = new Date(birthday);
     const today = new Date();
     let age = today.getFullYear() - birthDate.getFullYear();
@@ -27,7 +38,7 @@ export default function SignupPage() {
     }
 
     if (age < 16) {
-      setError("You must be 16 years or older to register an account on ProfileDig.");
+      setError("CRITICAL ERROR: You must be 16 years or older to initialize a ProfileDig profile.");
       return;
     }
 
@@ -44,8 +55,8 @@ export default function SignupPage() {
 
     const user = data.user;
 
-    if (user) {
-      // Create initial profile record matching your schema configuration
+        if (user) {
+      // Create initial profile record matching your case-sensitive schema configuration
       const { error: profileError } = await supabase.from("profiles").insert({
         User_id: user.id,
         username: email.split("@")[0],
@@ -66,48 +77,116 @@ export default function SignupPage() {
     window.location.href = "/dashboard";
   }
 
-    return (
-    <div className="min-h-screen bg-background text-text flex items-center justify-center px-6">
-      <form
-        onSubmit={handleSignup}
-        className="bg-surface p-8 rounded-xl w-full max-w-md border border-accent shadow-lg"
-      >
-        <h1 className="text-3xl font-bold mb-6 text-primary">Create Account</h1>
+    const containerStyle = {
+    minHeight: '100vh',
+    backgroundColor: '#000000',
+    color: '#000000',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: '24px',
+    fontFamily: 'Verdana, Arial, Helvetica, sans-serif'
+  };
 
-        {error && <p className="text-red-500 mb-4 font-semibold text-sm">{error}</p>}
+  const formStyle = {
+    backgroundColor: '#ffffff',
+    border: '2px solid #FF6600',
+    padding: '25px',
+    width: '100%',
+    maxWidth: '420px',
+    boxShadow: '5px 5px 0px #FF6600', // Boxy hard-edge retro drop shadow
+  };
 
-        <label className="block text-xs font-semibold uppercase tracking-wider mb-1 text-gray-400">Email Address</label>
+  const inputStyle = {
+    width: '100%',
+    marginBottom: '16px',
+    padding: '8px',
+    backgroundColor: '#ffffff',
+    border: '1px solid #000000',
+    color: '#000000',
+    fontSize: '11px',
+    fontFamily: 'Verdana, sans-serif',
+  };
+
+  const labelStyle = {
+    display: 'block',
+    fontSize: '11px',
+    fontWeight: 'bold',
+    color: '#000000',
+    marginBottom: '4px',
+    textTransform: 'uppercase',
+    letterSpacing: '0.5px'
+  };
+
+  const buttonStyle = {
+    width: '100%',
+    padding: '10px',
+    backgroundColor: '#FF6600',
+    color: '#ffffff',
+    border: '1px solid #000000',
+    fontWeight: 'bold',
+    fontSize: '12px',
+    cursor: 'pointer',
+    textTransform: 'uppercase',
+    marginTop: '5px'
+  };
+
+  return (
+    <div style={containerStyle}>
+      <form onSubmit={handleSignup} style={formStyle}>
+        
+        {/* Top Header Branding Banner Block */}
+        <div style={{ backgroundColor: '#000000', padding: '6px', marginBottom: '20px', border: '1px solid #FF6600', textAlign: 'center' }}>
+          <h1 style={{ color: '#FF6600', fontSize: '15px', fontWeight: 'bold', margin: 0, letterSpacing: '1px' }}>
+            ProfileDig // JOIN THE NETWORK
+          </h1>
+        </div>
+
+        {/* Runtime Input Exception Alerts Row */}
+        {error && (
+          <div style={{ backgroundColor: '#ffe5d4', border: '1px dashed #FF6600', color: '#cc0000', padding: '8px', fontSize: '11px', fontWeight: 'bold', marginBottom: '15px' }}>
+            ⚠ ERROR: {error}
+          </div>
+        )}
+
+        <label style={labelStyle}>Email Address</label>
         <input
           type="email"
-          placeholder="Email"
-          className="w-full mb-4 px-4 py-3 bg-background border border-accent rounded-lg text-text focus:outline-none focus:border-primary"
+          placeholder="Enter email..."
+          className="retro-input"
+          style={inputStyle}
           onChange={(e) => setEmail(e.target.value)}
           required
         />
 
-        <label className="block text-xs font-semibold uppercase tracking-wider mb-1 text-gray-400">Password</label>
+        <label style={labelStyle}>Password</label>
         <input
           type="password"
-          placeholder="Password"
-          className="w-full mb-4 px-4 py-3 bg-background border border-accent rounded-lg text-text focus:outline-none focus:border-primary"
+          placeholder="Enter password..."
+          className="retro-input"
+          style={inputStyle}
           onChange={(e) => setPassword(e.target.value)}
           required
         />
 
-        <label className="block text-xs font-semibold uppercase tracking-wider mb-1 text-gray-400">Birthday (Must be 16 or older)</label>
+        <label style={labelStyle}>Date of Birth (Must be 16+)</label>
         <input
           type="date"
-          className="w-full mb-6 px-4 py-3 bg-background border border-accent rounded-lg text-text focus:outline-none focus:border-primary invert-calendar-icon"
+          className="retro-input"
+          style={{ ...inputStyle, marginBottom: '24px' }}
           onChange={(e) => setBirthday(e.target.value)}
           required
         />
 
-        <button
-          type="submit"
-          className="w-full py-3 bg-primary hover:bg-accent rounded-lg font-semibold text-text transition shadow-md"
-        >
-          Sign Up
+        <button type="submit" style={buttonStyle}>
+          Create Account »
         </button>
+        
+        <div style={{ marginTop: '15px', textAlign: 'center', fontSize: '10px' }}>
+          <a href="/login" style={{ color: '#FF6600', textDecoration: 'none', fontWeight: 'bold' }}>
+            Already have a profile? Log In here
+          </a>
+        </div>
       </form>
     </div>
   );
