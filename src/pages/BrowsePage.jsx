@@ -1,205 +1,134 @@
-// src/pages/BrowsePage.jsx
-import { useEffect, useState } from "react";
-import { supabase } from "../supabaseClient";
-import Notifications from "../components/Notifications";
+import React, { useState, useEffect } from 'react';
+import { supabase } from '../supabaseClient';
+import { useAuth } from '../hooks/useAuth';
+import NavBar from '../components/NavBar';
+import { Link } from 'react-router-dom';
+
+const styles = {
+  pageWrapper: { backgroundColor: '#000000', minHeight: '100vh', color: '#000000' },
+  container: { maxWidth: '1100px', margin: '30px auto', padding: '15px', backgroundColor: '#ffffff', border: '2px solid #FF6600' },
+  header: { backgroundColor: '#FF6600', color: '#ffffff', padding: '6px 10px', margin: 0, fontSize: '14px', fontWeight: 'bold', fontFamily: 'Verdana' },
+  searchBox: { border: '1px solid #000000', backgroundColor: '#ffe5d4', padding: '12px', marginBottom: '20px', display: 'flex', gap: '10px', alignItems: 'center' },
+  input: { padding: '6px', border: '1px solid #000000', fontSize: '12px', fontFamily: 'Verdana', flexGrow: 1 },
+  button: { backgroundColor: '#FF6600', color: '#ffffff', border: '1px solid #000000', padding: '6px 12px', fontSize: '12px', cursor: 'pointer', fontWeight: 'bold' },
+  resultsGrid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: '15px', marginTop: '15px' },
+  userCard: { border: '1px solid #000000', padding: '10px', backgroundColor: '#ffffff', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'space-between' },
+  avatar: { width: '120px', height: '120px', objectFit: 'cover', border: '1px solid #000000', marginBottom: '8px' },
+  usernameLink: { color: '#FF6600', textDecoration: 'none', fontWeight: 'bold', fontSize: '13px', display: 'block', marginBottom: '4px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', width: '100%' },
+  statusText: { fontSize: '11px', color: '#555555', fontStyle: 'italic', margin: '4px 0', minHeight: '16px', overflow: 'hidden', textOverflow: 'ellipsis', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' },
+  infoLabel: { fontSize: '10px', color: '#000000', margin: '2px 0' }
+};
 
 export default function BrowsePage() {
-  const [user, setUser] = useState(null);
+  const { user } = useAuth();
   const [profiles, setProfiles] = useState([]);
-  const [search, setSearch] = useState("");
-  const [location, setLocation] = useState("");
-  const [interest, setInterest] = useState("");
-  const [page, setPage] = useState(0);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [loading, setLoading] = useState(true);
 
-  const PAGE_SIZE = 12;
-
-  // Load logged-in user
   useEffect(() => {
-    async function loadUser() {
-      const { data } = await supabase.auth.getUser();
-      setUser(data.user);
-    }
-    loadUser();
+    fetchUsers();
   }, []);
 
-  // Load profiles with filters + pagination
-  useEffect(() => {
-    async function loadProfiles() {
-      if (!user) return;
+  const fetchUsers = async () => {
+    try {
+      setLoading(true);
+      // Fetches username, avatar, hometown, status message parameters across the public.profiles schema
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .order('username', { ascending: true });
 
-      let query = supabase
-        .from("profiles")
-        .select("*")
-        .neq("User_id", user.id)
-        .order("created_at", { ascending: false })
-        .range(page * PAGE_SIZE, page * PAGE_SIZE + PAGE_SIZE - 1);
-
-      if (search.trim()) query = query.ilike("username", `%${search}%`);
-      if (location.trim()) query = query.ilike("location", `%${location}%`);
-      if (interest.trim())
-        query = query.or(
-          `general_interests.ilike.%${interest}%,music_interests.ilike.%${interest}%`
-        );
-
-      const { data, error } = await query;
-      if (error) console.error(error);
-      setProfiles(data || []);
+      if (!error && data) {
+        setProfiles(data);
+      } else if (error) {
+        console.error("Browse query failed:", error.message);
+      }
+    } catch (err) {
+      console.error("Error connecting to profile feeds:", err);
+    } finally {
+      setLoading(false);
     }
+  };
 
-    loadProfiles();
-  }, [user, search, location, interest, page]);
+  // Filter local arrays tracking active search keyword strings
+  const filteredProfiles = profiles.filter(prof => 
+    (prof.username || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+    (prof.hometown || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+    (prof.status_message || '').toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
-  // Add friend
-  async function addFriend(friendId) {
-    if (!user) return;
-    await supabase.from("friends").insert({
-      user_id: user.id,
-      friend_id: friendId,
-      status: "pending",
-    });
-    alert("Friend request sent!");
-  }
-
-  // Logout
-  async function handleLogout() {
-    await supabase.auth.signOut();
-    setUser(null);
-    window.location.href = "/";
-  }
-
-  if (!user) {
-    return (
-      <div className="min-h-screen bg-black text-white flex items-center justify-center">
-        <p className="text-orange-500 text-xl font-bold">Loading users...</p>
-      </div>
-    );
-  }
+    if (loading) return <div style={{ color: '#FF6600', padding: '20px', fontFamily: 'Verdana', backgroundColor: '#000', minHeight: '100vh', textAlign: 'center', fontWeight: 'bold' }}>SCANNING BROWSE CHANNELS...</div>;
 
   return (
-    <div className="min-h-screen bg-black text-white font-sans">
-      {/* HEADER */}
-      <header className="bg-orange-600 text-white py-4 px-6 flex justify-between items-center">
-        <div className="flex items-center gap-4">
-          {/* Logo */}
-          <img
-            src="/ProfileDigLogo.png"
-            alt="ProfileDig Logo"
-            className="h-28 md:h-28 object-contain"
-          />
-
-        </div>
-
-        <div className="flex items-center gap-6">
-          <nav className="space-x-4 flex items-center">
-            <a href="/" className="hover:underline">Home</a>
-            <a href="/browse" className="hover:underline">Browse</a>
-            <a href="/music" className="hover:underline">Music</a>
-            <a href="/videos" className="hover:underline">Videos</a>
-            <a href="/blogs" className="hover:underline">Blogs</a>
-
-            {user && (
-              <>
-                <a href="/dashboard" className="hover:underline font-bold">Dashboard</a>
-                <a href={`/profile/${user.id}`} className="hover:underline">Profile</a>
-                <a href="/settings" className="hover:underline">Settings</a>
-              </>
+    <div style={styles.pageWrapper}>
+      <NavBar user={user} />
+      
+      <div style={styles.container}>
+        <h2 style={styles.header}>ProfileDig // Browse Users Matrix Network</h2>
+        
+        <div style={{ padding: '15px', fontFamily: 'Verdana' }}>
+          
+          {/* Functional Search Filter Bar */}
+          <div style={styles.searchBox}>
+            <span style={{ fontSize: '11px', fontWeight: 'bold', color: '#000000', textTransform: 'uppercase' }}>Filter Matrix:</span>
+            <input 
+              type="text" 
+              placeholder="Search by username, hometown, or status..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              style={styles.input}
+            />
+            {searchQuery && (
+              <button onClick={() => setSearchQuery('')} style={{ ...styles.button, backgroundColor: '#000' }}>
+                Clear
+              </button>
             )}
-          </nav>
-
-          <Notifications />
-
-          {user && (
-            <button
-              onClick={handleLogout}
-              className="bg-white text-black px-3 py-1 rounded hover:bg-orange-500 hover:text-white transition"
-            >
-              Logout
-            </button>
-          )}
-        </div>
-      </header>
-
-      {/* SEARCH FILTERS */}
-      <main className="max-w-6xl mx-auto p-6">
-        <div className="bg-white text-black rounded p-6 mb-6">
-          <h2 className="text-2xl font-bold text-orange-600 mb-4">Find People</h2>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <input
-              placeholder="Search username..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="px-3 py-2 rounded bg-gray-200 text-black"
-            />
-            <input
-              placeholder="Filter by location..."
-              value={location}
-              onChange={(e) => setLocation(e.target.value)}
-              className="px-3 py-2 rounded bg-gray-200 text-black"
-            />
-            <input
-              placeholder="Filter by interests..."
-              value={interest}
-              onChange={(e) => setInterest(e.target.value)}
-              className="px-3 py-2 rounded bg-gray-200 text-black"
-            />
           </div>
-        </div>
 
-        {/* USER GRID */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-          {profiles.map((p) => (
-            <div key={p.User_id} className="bg-white text-black rounded p-4">
-              <img
-                src={p.avatar_url || "/default-avatar.png"}
-                className="w-full h-40 object-cover rounded border-2 border-orange-600 mb-3"
-              />
-              <h3 className="text-xl font-bold">{p.username}</h3>
-              <p className="text-sm text-gray-700">{p.location || "Unknown"}</p>
-              <p className="text-sm mt-2">
-                <strong>Interests:</strong>{" "}
-                {(p.general_interests || p.music_interests || "None").slice(0, 60)}...
-              </p>
-              <div className="mt-4 flex gap-2">
-                <a
-                  href={`/profile/${p.User_id}`}
-                  className="flex-1 bg-orange-600 text-white text-center py-2 rounded hover:bg-orange-700"
-                >
-                  View Profile
-                </a>
-                <button
-                  onClick={() => addFriend(p.User_id)}
-                  className="flex-1 bg-gray-300 text-black py-2 rounded hover:bg-gray-400"
-                >
-                  Add Friend
-                </button>
-              </div>
+          <p style={{ fontSize: '11px', margin: '0 0 10px 0' }}>
+            Showing <b>{filteredProfiles.length}</b> verified user spaces across the network.
+          </p>
+
+          {/* User Results Grid Mapping Loop */}
+          {filteredProfiles.length === 0 ? (
+            <div style={{ border: '1px dashed #FF6600', padding: '20px', textAlign: 'center', backgroundColor: '#ffe5d4', color: '#cc0000', fontWeight: 'bold', fontSize: '12px' }}>
+              NO PROFILES FOUND MATCHING YOUR CURRENT CONFIGURATION PARAMETERS.
             </div>
-          ))}
+          ) : (
+            <div style={styles.resultsGrid}>
+              {filteredProfiles.map((prof) => (
+                <div key={prof.User_id} style={styles.userCard}>
+                  <div>
+                    <Link to={`/profile/${prof.User_id}`} style={styles.usernameLink}>
+                      {prof.username || 'Anonymous User'}
+                    </Link>
+                    <img 
+                      src={prof.avatar_url || 'https://placehold.co'} 
+                      alt="avatar" 
+                      style={styles.avatar} 
+                    />
+                  </div>
+                  
+                  <div style={{ width: '100%', borderTop: '1px dotted #ccc', paddingTop: '6px' }}>
+                    <p style={styles.statusText}>
+                      {prof.status_message ? `"${prof.status_message}"` : '"Retro vibes..."'}
+                    </p>
+                    <p style={styles.infoLabel}>Hometown: <b>{prof.hometown || 'Unknown'}</b></p>
+                    <p style={styles.infoLabel}>Status: <span style={{ color: prof.status === 'online' ? 'green' : '#666', fontWeight: 'bold' }}>{prof.status || 'offline'}</span></p>
+                    
+                    <div style={{ marginTop: '10px' }}>
+                      <Link to={`/profile/${prof.User_id}`}>
+                        <button style={{ ...styles.button, width: '100%', padding: '4px' }}>View Space »</button>
+                      </Link>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+          
         </div>
-
-        {/* PAGINATION */}
-        <div className="flex justify-center gap-4 mt-10">
-          <button
-            disabled={page === 0}
-            onClick={() => setPage(page - 1)}
-            className="bg-gray-300 text-black px-4 py-2 rounded hover:bg-gray-400 disabled:opacity-50"
-          >
-            Previous
-          </button>
-          <button
-            onClick={() => setPage(page + 1)}
-            className="bg-orange-600 text-white px-4 py-2 rounded hover:bg-orange-700"
-          >
-            Next
-          </button>
-        </div>
-      </main>
-
-      {/* FOOTER */}
-      <footer className="bg-orange-600 text-black text-center py-3 mt-6">
-        © {new Date().getFullYear()} ProfileDig — Discover New People
-      </footer>
+      </div>
     </div>
   );
 }

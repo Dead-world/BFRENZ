@@ -1,14 +1,40 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import { supabase } from '../supabaseClient';
-// IMPORT LINK: Crucial engine component required to stop the hard refresh home routing fallback bug
 import { Link } from 'react-router-dom';
+
+// Inject dynamic mobile styles directly into the head to keep components inline
+if (typeof document !== 'undefined') {
+  const styleEl = document.createElement('style');
+  styleEl.innerHTML = `
+    @media (max-width: 768px) {
+      .nav-links-container {
+        display: none !important;
+        flex-direction: column !important;
+        width: 100% !important;
+        background-color: #000000 !important;
+        border-top: 1px solid #FF6600 !important;
+        padding-top: 10px !important;
+        margin-top: 10px !important;
+        gap: 12px !important;
+      }
+      .nav-links-container.open {
+        display: flex !important;
+      }
+      .burger-menu-btn {
+        display: block !important;
+      }
+    }
+  `;
+  document.head.appendChild(styleEl);
+}
 
 const styles = {
   nav: {
     backgroundColor: '#000000', 
     padding: '8px 20px', 
     display: 'flex', 
+    flexWrap: 'wrap', // Allows links to drop beneath logo on mobile screens
     justifyContent: 'space-between', 
     alignItems: 'center',
     borderBottom: '2px solid #FF6600',
@@ -19,9 +45,19 @@ const styles = {
     alignItems: 'center'
   },
   logoImage: {
-    height: '100px',          // Restores your preferred prominent height setting
+    height: '60px',          // Slightly scaled down to maximize screen space on mobile
     width: 'auto',            
     display: 'block'
+  },
+  burgerBtn: {
+    display: 'none', // Hidden on widescreen desktop monitors via global head CSS
+    backgroundColor: 'transparent',
+    color: '#FF6600',
+    border: '1px solid #FF6600',
+    fontSize: '20px',
+    padding: '4px 10px',
+    cursor: 'pointer',
+    fontWeight: 'bold'
   },
   linkGroup: { 
     fontSize: '12px',
@@ -32,26 +68,30 @@ const styles = {
   navLink: { 
     color: '#ffffff', 
     textDecoration: 'none', 
-    fontWeight: 'normal' 
+    fontWeight: 'normal',
+    padding: '4px 0'
   },
   profileLink: {
     color: '#FF6600', 
     textDecoration: 'none', 
-    fontWeight: 'bold'
+    fontWeight: 'bold',
+    padding: '4px 0'
   },
   logoutBtn: { 
     backgroundColor: '#FF6600', 
     color: '#ffffff', 
     border: '1px solid #ffffff', 
-    padding: '3px 8px', 
+    padding: '4px 10px', 
     cursor: 'pointer',
     fontSize: '11px',
-    fontWeight: 'bold'
+    fontWeight: 'bold',
+    textAlign: 'center'
   }
 };
 
 export default function NavBar() {
   const { user } = useAuth();
+  const [isOpen, setIsOpen] = useState(false);
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
@@ -60,9 +100,9 @@ export default function NavBar() {
 
   return (
     <nav style={styles.nav}>
-      {/* Left-Side Logo Anchor updated to use virtual Link routing */}
+      {/* Left-Side Logo Branding Anchor */}
       <div style={styles.logoContainer}>
-        <Link to="/">
+        <Link to="/" onClick={() => setIsOpen(false)}>
           <img 
             src="/ProfileDigLogo.png" 
             alt="ProfileDig" 
@@ -75,24 +115,36 @@ export default function NavBar() {
         </Link>
       </div>
 
-      {/* Right-Side Navigation State Link Tree using native Virtual Path routers */}
-      <div style={styles.linkGroup}>
-        <Link to="/" style={styles.navLink}>Home</Link>
+      {/* Mobile Burger Menu Button Toggle */}
+      <button 
+        className="burger-menu-btn" 
+        style={styles.burgerBtn} 
+        onClick={() => setIsOpen(!isOpen)}
+      >
+        {isOpen ? '✕' : '☰'}
+      </button>
+
+      {/* Right-Side Navigation State Link Tree */}
+      <div 
+        className={`nav-links-container ${isOpen ? 'open' : ''}`} 
+        style={styles.linkGroup}
+      >
+        <Link to="/" style={styles.navLink} onClick={() => setIsOpen(false)}>Home</Link>
+        <Link to="/browse" style={styles.navLink} onClick={() => setIsOpen(false)}>Browse</Link>
         
         {user ? (
           <>
-            {/* Swapping anchors for absolute virtual link targets fixes the hard-refresh reset loop bug */}
-            <Link to="/dashboard" style={styles.navLink}>Dashboard</Link>
-            <Link to="/inbox" style={styles.navLink}>Inbox Messages</Link>
-            <Link to={`/profile/${user.id}`} style={styles.profileLink}>My Profile</Link>
+            <Link to="/dashboard" style={styles.navLink} onClick={() => setIsOpen(false)}>Dashboard</Link>
+            <Link to="/inbox" style={styles.navLink} onClick={() => setIsOpen(false)}>Inbox Messages</Link>
+            <Link to={`/profile/${user.id}`} style={styles.profileLink} onClick={() => setIsOpen(false)}>My Profile</Link>
             <button onClick={handleLogout} style={styles.logoutBtn}>
               Log Out
             </button>
           </>
         ) : (
           <>
-            <Link to="/login" style={styles.profileLink}>Log In</Link>
-            <Link to="/register" style={styles.navLink}>Sign Up</Link>
+            <Link to="/login" style={styles.profileLink} onClick={() => setIsOpen(false)}>Log In</Link>
+            <Link to="/register" style={styles.navLink} onClick={() => setIsOpen(false)}>Sign Up</Link>
           </>
         )}
       </div>

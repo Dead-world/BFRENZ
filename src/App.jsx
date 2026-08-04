@@ -6,6 +6,7 @@ import ProfilePage from "./pages/ProfilePage";
 import Dashboard from "./pages/Dashboard";
 import SignupPage from "./pages/SignupPage";
 import MessagesInbox from "./pages/MessagesInboxPage";
+import BrowsePage from "./pages/BrowsePage";
 
 
 export default function App() {
@@ -14,6 +15,7 @@ export default function App() {
       {/* Core Identity Portal Pathways */}
       <Route path="/" element={<LandingPage />} />
       <Route path="/register" element={<SignupPage />} />
+      <Route path="/browse" element={<BrowsePage />} />
       
       {/* Profile, Inbox and Settings Panels */}
       <Route path="/profile/:profileId" element={<ProfilePage />} />
