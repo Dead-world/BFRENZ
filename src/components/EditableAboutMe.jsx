@@ -11,3 +11,4 @@ export default function EditableAboutMe({ about, setAbout }) {
     </div>
   );
 }
+ 
