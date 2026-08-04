@@ -234,15 +234,15 @@ export default function Dashboard() {
       const textUrl = form.get("youtube_url");
       if (textUrl) youtube_url = textUrl;
     }
-    const updates = {
+        const updates = {
       username: form.get("username"),
       status: form.get("status"),
       status_message: form.get("status_message"),
       about_me: form.get("about_me"),
       meet: form.get("meet"), 
-      // ⭐ ADDED: Pulls the 'gender' string value cleanly from the form data layer
       gender: form.get("gender"), 
-      hometown: form.get("hometown"),
+      // ⭐ ENSURE THIS EXISTS: Pulls hometown data string safely from FormData nodes
+      hometown: form.get("hometown"), 
       general_interests: form.get("general_interests"),
       music_interests: form.get("music_interests"),
       custom_html: form.get("custom_html"),
@@ -252,6 +252,7 @@ export default function Dashboard() {
       avatar_url,
       mp3_url, 
     };
+
 
 
     try {
@@ -313,31 +314,25 @@ export default function Dashboard() {
         <form onSubmit={saveChanges}>
           <table style={styles.table}>
             <tbody>
-              {/* SECTION 1: ACCOUNT IDENTITY & AESTHETICS (CONTINUED) */}
+                            {/* SECTION 1: ACCOUNT IDENTITY & AESTHETICS (CONTINUED) */}
               <tr>
-                <td style={styles.tdLabel}>Age Gate / Birthdate</td>
+                <td style={styles.tdLabel}>Display Name</td>
                 <td style={styles.tdValue}>
-                  <input type="date" value={birthday} onChange={(e) => setBirthday(e.target.value)} className="myspace-input" style={{ width: 'auto' }} required />
-                  {birthdayError && <p style={{ color: '#cc0000', fontWeight: 'bold', margin: '3px 0 0 0', fontSize: '10px' }}>{birthdayError}</p>}
-                  <p className="help-text">Required verification. bfrenz requires profile space owners to be 16 or older.</p>
+                  <input name="username" defaultValue={profile.username} className="myspace-input" />
+                  <p className="help-text">This is the bold name text printed right above your profile picture photo.</p>
                 </td>
               </tr>
-              {/* ⭐ ADDED: GENDER EDIT SELECTION DROPDOWN FIELD */}
+              {/* ⭐ FIXED HOMETOWN CONFIGURATION GRID ROW ENTRY INPUT */}
               <tr>
-                <td style={styles.tdLabel}>Gender Identity</td>
+                <td style={styles.tdLabel}>Hometown Location</td>
                 <td style={styles.tdValue}>
-                  <select 
-                    name="gender" 
-                    defaultValue={profile.gender || "Not specified"}
-                    style={{ width: 'auto', padding: '4px', fontSize: '11px', border: '1px solid #000000', backgroundColor: '#ffffff', fontFamily: 'Verdana' }}
-                  >
-                    <option value="Not specified">Not specified</option>
-                    <option value="Male">Male</option>
-                    <option value="Female">Female</option>
-                    <option value="Non-binary">Non-binary</option>
-                    <option value="Other">Other</option>
-                  </select>
-                  <p className="help-text">This details block updates your identity label display matrix on public walls.</p>
+                  <input 
+                    name="hometown" 
+                    defaultValue={profile.hometown || ""} 
+                    placeholder="City, State or Region..." 
+                    className="myspace-input" 
+                  />
+                  <p className="help-text">This will display directly inside the info block right next to your avatar picture.</p>
                 </td>
               </tr>
 
