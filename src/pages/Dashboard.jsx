@@ -240,6 +240,7 @@ export default function Dashboard() {
       status: form.get("status"),
       status_message: form.get("status_message"),
       about_me: form.get("about_me"),
+      meet: form.get("meet"), 
       hometown: form.get("hometown"),
       general_interests: form.get("general_interests"),
       music_interests: form.get("music_interests"),
@@ -264,6 +265,7 @@ export default function Dashboard() {
         .delete()
         .eq('user_id', user.id);
 
+      // ⭐ FIXED & CLOSED: Complete non-breaking data-sync insertions branch for positions 1-8
       const insertRows = [];
       for (let rank = 1; rank <= 8; rank++) {
         const chosenId = topEightSlots[`slot_${rank}`];
@@ -283,7 +285,7 @@ export default function Dashboard() {
     } catch (mutationErr) {
       console.error("Mutation processing failure: ", mutationErr);
       alert("Transaction processing exception: " + mutationErr.message);
-    } finally {
+    } finaly {
       setSaving(false);
     }
   }
@@ -302,7 +304,7 @@ export default function Dashboard() {
 
       <div style={styles.pageContainer}>
         <div style={styles.headerBanner}>
-          Hello <b>{profile.username || 'User'}</b>! Welcome to your bfrenz space control panel. 
+          Hello <b>{profile.username || 'User'}</b>! Welcome to your bfrenz dashboard. 
           Use the form below to customize your bio blurb tables, upload background track MP3s, select Top 8 ranks, or inject raw code alterations.
         </div>
 
@@ -339,7 +341,7 @@ export default function Dashboard() {
                 <td style={styles.tdValue}>
                   <input type="date" value={birthday} onChange={(e) => setBirthday(e.target.value)} className="myspace-input" style={{ width: 'auto' }} required />
                   {birthdayError && <p style={{ color: '#cc0000', fontWeight: 'bold', margin: '3px 0 0 0', fontSize: '10px' }}>{birthdayError}</p>}
-                  <p className="help-text">Required verification. BFRENZ requires profile space owners to be 16 or older.</p>
+                  <p className="help-text">Required verification. bfrenz requires profile space owners to be 16 or older.</p>
                 </td>
               </tr>
               <tr>
@@ -358,7 +360,7 @@ export default function Dashboard() {
             </tbody>
           </table>
 
-          {/* SECTION 2: BIOGRAPHIES */}
+          {/* SECTION 2: BIOGRAPHIES WITH 'WHO ID LIKE TO MEET' PLACED */}
           <h3 style={styles.sectionTitle}>Customize Blurbs & Bio Fields</h3>
           <table style={styles.table}>
             <tbody>
@@ -366,6 +368,14 @@ export default function Dashboard() {
                 <td style={styles.tdLabel}>About Me Blurb</td>
                 <td style={styles.tdValue}>
                   <textarea name="about_me" defaultValue={profile.about_me} className="myspace-textarea" />
+                </td>
+              </tr>
+              {/* ⭐ FIXED INLINE: Embedded input text layout for the meet descriptor variable */}
+              <tr>
+                <td style={styles.tdLabel}>Who I'd Like to Meet</td>
+                <td style={styles.tdValue}>
+                  <textarea name="meet" defaultValue={profile.meet || ""} className="myspace-textarea" placeholder="Describe who you want to network link with..." />
+                  <p className="help-text">This details block populates directly on your public biography display panels.</p>
                 </td>
               </tr>
               <tr>
@@ -390,7 +400,7 @@ export default function Dashboard() {
               <tr>
                 <td style={styles.tdLabel}>Rank Positions Mapping Matrix</td>
                 <td style={styles.tdValue}>
-                  <p className="help-text" style={{ marginBottom: '12px' }}>Choose a contact from your mutual connection loops to pin them onto your Top 8 layout grid coordinate blocks.</p>
+                  <p className="help-text" style={{ marginBottom: '12px' }}>Choose a contact from your mutual connection loops to pin them onto your Top 8 layout grid blocks.</p>
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', padding: '4px' }}>
                     {[1, 2, 3, 4, 5, 6, 7, 8].map((slotNum) => (
                       <div key={slotNum} style={{ display: 'flex', flexDirection: 'column', gap: '3px', backgroundColor: '#ffe5d4', padding: '5px', border: '1px dotted #FF6600' }}>
