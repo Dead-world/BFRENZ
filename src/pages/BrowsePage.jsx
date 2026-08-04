@@ -32,7 +32,6 @@ export default function BrowsePage() {
   const fetchUsers = async () => {
     try {
       setLoading(true);
-      // Fetches username, avatar, hometown, status message parameters across the public.profiles schema
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
@@ -50,16 +49,15 @@ export default function BrowsePage() {
     }
   };
 
-  // Filter local arrays tracking active search keyword strings
   const filteredProfiles = profiles.filter(prof => 
     (prof.username || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
     (prof.hometown || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
     (prof.status_message || '').toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-    if (loading) return <div style={{ color: '#FF6600', padding: '20px', fontFamily: 'Verdana', backgroundColor: '#000', minHeight: '100vh', textAlign: 'center', fontWeight: 'bold' }}>SCANNING BROWSE CHANNELS...</div>;
+  if (loading) return <div style={{ color: '#FF6600', padding: '20px', fontFamily: 'Verdana', backgroundColor: '#000', minHeight: '100vh', textAlign: 'center', fontWeight: 'bold' }}>SCANNING BROWSE CHANNELS...</div>;
 
-  return (
+    return (
     <div style={styles.pageWrapper}>
       <NavBar user={user} />
       
@@ -99,14 +97,17 @@ export default function BrowsePage() {
               {filteredProfiles.map((prof) => (
                 <div key={prof.User_id} style={styles.userCard}>
                   <div>
+                    {/* Link paths point explicitly to independent profile parameters rows keys */}
                     <Link to={`/profile/${prof.User_id}`} style={styles.usernameLink}>
                       {prof.username || 'Anonymous User'}
                     </Link>
-                    <img 
-                      src={prof.avatar_url || 'https://placehold.co'} 
-                      alt="avatar" 
-                      style={styles.avatar} 
-                    />
+                    <Link to={`/profile/${prof.User_id}`}>
+                      <img 
+                        src={prof.avatar_url || 'https://placehold.co'} 
+                        alt="avatar" 
+                        style={styles.avatar} 
+                      />
+                    </Link>
                   </div>
                   
                   <div style={{ width: '100%', borderTop: '1px dotted #ccc', paddingTop: '6px' }}>

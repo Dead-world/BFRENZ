@@ -21,7 +21,7 @@ export default function App() {
       <Route path="/videos" element={<VideosPage />} />
       
       {/* Profile, Inbox and Settings Panels */}
-      <Route path="/profile/:profileId" element={<ProfilePage />} />
+      <Route path="/profile/:id" element={<ProfilePage />} />
       <Route path="/dashboard" element={<Dashboard />} />
       <Route path="/inbox" element={<MessagesInbox />} />
       
