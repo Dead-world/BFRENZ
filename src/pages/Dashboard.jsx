@@ -234,13 +234,14 @@ export default function Dashboard() {
       const textUrl = form.get("youtube_url");
       if (textUrl) youtube_url = textUrl;
     }
-
     const updates = {
       username: form.get("username"),
       status: form.get("status"),
       status_message: form.get("status_message"),
       about_me: form.get("about_me"),
       meet: form.get("meet"), 
+      // ⭐ ADDED: Pulls the 'gender' string value cleanly from the form data layer
+      gender: form.get("gender"), 
       hometown: form.get("hometown"),
       general_interests: form.get("general_interests"),
       music_interests: form.get("music_interests"),
@@ -251,6 +252,7 @@ export default function Dashboard() {
       avatar_url,
       mp3_url, 
     };
+
 
     try {
       const { error: profileErr } = await supabase
@@ -309,33 +311,9 @@ export default function Dashboard() {
         </div>
 
         <form onSubmit={saveChanges}>
-          
-          {/* SECTION 1: IDENTITY & ACCOUNTS */}
-          <h3 style={styles.sectionTitle}>Account Identity & Aesthetics</h3>
           <table style={styles.table}>
             <tbody>
-              <tr>
-                <td style={styles.tdLabel}>Profile Image</td>
-                <td style={styles.tdValue}>
-                  <img src={profile.avatar_url || "/default-avatar.png"} style={{ width: '90px', height: '90px', objectFit: 'cover', border: '1px solid #000000', display: 'block', marginBottom: '8px' }} alt="Preview" />
-                  <input type="file" name="avatar" accept="image/*" style={{ fontSize: '11px' }} />
-                  <p className="help-text">JPG, GIF, or PNG. Max size 2MB. Crops automatically to a box grid.</p>
-                </td>
-              </tr>
-              <tr>
-                <td style={styles.tdLabel}>Display Name</td>
-                <td style={styles.tdValue}>
-                  <input name="username" defaultValue={profile.username} className="myspace-input" />
-                  <p className="help-text">This is the bold name text printed right above your profile picture photo.</p>
-                </td>
-              </tr>
-              <tr>
-                <td style={styles.tdLabel}>Hometown Location</td>
-                <td style={styles.tdValue}>
-                  <input name="hometown" defaultValue={profile.hometown || ""} placeholder="City, State or Region..." className="myspace-input" />
-                  <p className="help-text">This displays next to your avatar on your public profile space card.</p>
-                </td>
-              </tr>
+              {/* SECTION 1: ACCOUNT IDENTITY & AESTHETICS (CONTINUED) */}
               <tr>
                 <td style={styles.tdLabel}>Age Gate / Birthdate</td>
                 <td style={styles.tdValue}>
@@ -344,19 +322,25 @@ export default function Dashboard() {
                   <p className="help-text">Required verification. bfrenz requires profile space owners to be 16 or older.</p>
                 </td>
               </tr>
+              {/* ⭐ ADDED: GENDER EDIT SELECTION DROPDOWN FIELD */}
               <tr>
-                <td style={styles.tdLabel}>Network Status Tag</td>
+                <td style={styles.tdLabel}>Gender Identity</td>
                 <td style={styles.tdValue}>
-                  <input name="status" defaultValue={profile.status} className="myspace-input" />
+                  <select 
+                    name="gender" 
+                    defaultValue={profile.gender || "Not specified"}
+                    style={{ width: 'auto', padding: '4px', fontSize: '11px', border: '1px solid #000000', backgroundColor: '#ffffff', fontFamily: 'Verdana' }}
+                  >
+                    <option value="Not specified">Not specified</option>
+                    <option value="Male">Male</option>
+                    <option value="Female">Female</option>
+                    <option value="Non-binary">Non-binary</option>
+                    <option value="Other">Other</option>
+                  </select>
+                  <p className="help-text">This details block updates your identity label display matrix on public walls.</p>
                 </td>
               </tr>
-              <tr>
-                <td style={styles.tdLabel}>Ticker Status Message</td>
-                <td style={styles.tdValue}>
-                  <input name="status_message" defaultValue={profile.status_message} className="myspace-input" />
-                  <p className="help-text">This animates across the scrolling blinking marquee tracker bar on your public wall.</p>
-                </td>
-              </tr>
+
             </tbody>
           </table>
 
