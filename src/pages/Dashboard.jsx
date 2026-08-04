@@ -93,47 +93,102 @@ export default function Dashboard() {
   const [birthdayError, setBirthdayError] = useState("");
   const [birthday, setBirthday] = useState("");
 
+  // Top 8 layout state tracking modules
+  const [myFriendsList, setMyFriendsList] = useState([]);
+  const [topEightSlots, setTopEightSlots] = useState({
+    slot_1: "", slot_2: "", slot_3: "", slot_4: "",
+    slot_5: "", slot_6: "", slot_7: "", slot_8: ""
+  });
+
   useEffect(() => {
     if (user === null) {
       window.location.href = "/login";
       return;
     }
 
-    async function loadProfile() {
-      const { data } = await supabase
-        .from("profiles")
-        .select("*")
-        .eq("User_id", user.id)
-        .single();
+    async function loadProfileAndFriends() {
+      if (!user) return;
+      try {
+        // Fetch core primary user info
+        const { data: profData } = await supabase
+          .from("profiles")
+          .select("*")
+          .eq("User_id", user.id)
+          .single();
 
-      if (data) {
-        setProfile(data);
-        if (data.birthday) {
-          setBirthday(data.birthday);
+        if (profData) {
+          setProfile(profData);
+          if (profData.birthday) setBirthday(profData.birthday);
         }
+
+        // Fetch user connections options to pop mapping choices dropdown selectors
+        const { data: frRows } = await supabase
+          .from('friends')
+          .select('friend_id, profiles!friends_friend_id_fkey(User_id, username)')
+          .eq('user_id', user.id);
+
+        if (frRows) {
+          setMyFriendsList(frRows.map(f => f.profiles).filter(Boolean));
+        }
+
+        // Fetch pre-existing customized positions from Top 8 table row definitions
+        const { data: existingTop8 } = await supabase
+          .from('top_eight')
+          .select('*')
+          .eq('user_id', user.id);
+
+        if (existingTop8 && existingTop8.length > 0) {
+          setTopEightSlots(prev => {
+            const updatedSlots = { ...prev };
+            existingTop8.forEach(record => {
+              if (record.position_rank >= 1 && record.position_rank <= 8) {
+                updatedSlots[`slot_${record.position_rank}`] = record.friend_id;
+              }
+            });
+            return updatedSlots;
+          });
+        }
+      } catch (err) {
+        console.error("Dashboard initial sync pipeline dropped:", err);
       }
     }
 
-    if (user) loadProfile();
+    if (user) loadProfileAndFriends();
   }, [user]);
 
-  async function uploadFile(file, bucket) {
-    const fileName = `${user.id}-${Date.now()}-${file.name}`;
-    const { data, error } = await supabase.storage
-      .from(bucket)
-      .upload(fileName, file, { cacheControl: "3600", upsert: false });
+  const handleSlotSelectChange = (slotNum, value) => {
+    setTopEightSlots(prev => ({
+      ...prev,
+      [`slot_${slotNum}`]: value
+    }));
+  };
 
-    if (error) {
-      console.error("Upload error:", error);
-      alert("Upload failed: " + error.message);
+    async function uploadFile(file, bucket) {
+    const fileName = `${user.id}-${Date.now()}-${file.name.replace(/\s+/g, '_')}`;
+
+    try {
+      if (bucket === 'videos' || file.type.startsWith('video/')) {
+        const { data, error } = await supabase.storage
+          .from(bucket)
+          .upload(fileName, file, { cacheControl: '3600', upsert: false, useTus: true });
+        if (error) throw error;
+      } else {
+        const { data, error } = await supabase.storage
+          .from(bucket)
+          .upload(fileName, file, { cacheControl: "3600", upsert: false });
+        if (error) throw error;
+      }
+
+      const { data: urlData } = supabase.storage.from(bucket).getPublicUrl(fileName);
+      return urlData.publicUrl;
+    } catch (err) {
+      console.error(`Storage Bucket [${bucket}] upload failure context:`, err.message);
+      alert(`Upload Failed: ${err.message}.`);
       return null;
     }
-
-    const { data: urlData } = supabase.storage.from(bucket).getPublicUrl(fileName);
-    return urlData.publicUrl;
   }
 
-    async function saveChanges(e) {
+  async function saveChanges(e) {
     e.preventDefault();
     setBirthdayError("");
     setSaving(true);
@@ -164,25 +219,22 @@ export default function Dashboard() {
     let mp3_url = profile.mp3_url;
     let youtube_url = profile.youtube_url;
 
-    // Avatar Upload
+    // Handle optional file assignments
     const avatarFile = form.get("avatar");
     if (avatarFile && avatarFile.size > 0) {
       avatar_url = await uploadFile(avatarFile, "avatars");
     }
 
-    // MP3 Background Track Upload
     const mp3File = form.get("mp3");
     if (mp3File && mp3File.size > 0) {
       mp3_url = await uploadFile(mp3File, "songs");
     }
 
-    // ⭐ FIXED: Raw Video Upload routing payload to your 'videos' storage bucket
     const videoFile = form.get("video_file");
     if (videoFile && videoFile.size > 0) {
       const uploadedUrl = await uploadFile(videoFile, "videos");
       if (uploadedUrl) youtube_url = uploadedUrl;
     } else {
-      // If no file was attached, process the standard manual text link field instead
       const textUrl = form.get("youtube_url");
       if (textUrl) youtube_url = textUrl;
     }
@@ -202,25 +254,49 @@ export default function Dashboard() {
       mp3_url, 
     };
 
-    const { error } = await supabase
-      .from("profiles")
-      .update(updates)
-      .eq("User_id", user.id);
+    try {
+      // 1. Commit profile details
+      const { error: profileErr } = await supabase
+        .from("profiles")
+        .update(updates)
+        .eq("User_id", user.id);
 
-    if (error) {
-      console.error("UPDATE ERROR:", error);
-      alert("Failed to save profile: " + error.message);
-    } else {
+      if (profileErr) throw profileErr;
+
+      // 2. Erase old rankings for this unique active user space
+      await supabase
+        .from('top_eight')
+        .delete()
+        .eq('user_id', user.id);
+
+      // 3. Re-save updated top 8 selector allocations
+      const insertRows = [];
+      for (let rank = 1; rank <= 8; rank++) {
+        const chosenId = topEightSlots[`slot_${rank}`];
+        if (chosenId && chosenId !== "empty") {
+          insertRows.push({ user_id: user.id, friend_id: chosenId, position_rank: rank });
+        }
+      }
+
+      if (insertRows.length > 0) {
+        const { error: t8Error } = await supabase.from('top_eight').insert(insertRows);
+        if (t8Error) throw t8Error;
+      }
+
       setProfile(prev => ({ ...prev, ...updates }));
-      alert("Profile Space Updated Successfully!");
-    }
+      alert("Profile and Top 8 settings saved successfully!");
 
-    setSaving(false);
+    } catch (mutationErr) {
+      console.error("Mutation failure context:", mutationErr);
+      alert("Transaction processing exception: " + mutationErr.message);
+    } finally {
+      setSaving(false);
+    }
   }
 
   if (!profile) {
     return (
-      <div style={{ backgroundColor: '#000000', minHeight: '100vh', display: 'flex', alignItems: 'center', justifycenter: 'center', color: '#FF6600', fontSize: '13px', fontWeight: 'bold' }}>
+      <div style={{ backgroundColor: '#000000', minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#FF6600', fontSize: '13px', fontWeight: 'bold' }}>
         LOADING MYSPACE CONTROL PANEL...
       </div>
     );
@@ -233,7 +309,7 @@ export default function Dashboard() {
       <div style={styles.pageContainer}>
         <div style={styles.headerBanner}>
           Hello <b>{profile.username || 'User'}</b>! Welcome to your ProfileDig space control panel. 
-          Use the form below to customize your bio blurb tables, upload background track MP3s, or inject raw code alterations.
+          Use the form below to customize your bio blurb tables, upload background track MP3s, select Top 8 ranks, or inject raw code alterations.
         </div>
 
         <form onSubmit={saveChanges}>
@@ -243,7 +319,7 @@ export default function Dashboard() {
           <table style={styles.table}>
             <tbody>
               <tr>
-                <td style={styles.navLink || styles.tdLabel}>Profile Image</td>
+                <td style={styles.tdLabel}>Profile Image</td>
                 <td style={styles.tdValue}>
                   <img src={profile.avatar_url || "/default-avatar.png"} style={{ width: '90px', height: '90px', objectFit: 'cover', border: '1px solid #000000', display: 'block', marginBottom: '8px' }} alt="Preview" />
                   <input type="file" name="avatar" accept="image/*" style={{ fontSize: '11px' }} />
@@ -269,7 +345,6 @@ export default function Dashboard() {
                 <td style={styles.tdLabel}>Network Status Tag</td>
                 <td style={styles.tdValue}>
                   <input name="status" defaultValue={profile.status} className="myspace-input" />
-                  <p className="help-text">e.g., single, in a relationship, working, offline, chilling.</p>
                 </td>
               </tr>
               <tr>
@@ -282,7 +357,7 @@ export default function Dashboard() {
             </tbody>
           </table>
 
-          {/* SECTION 2: BLURBS & TEXT MATRIX */}
+          {/* SECTION 2: BLURBS & TEXT FIELDS */}
           <h3 style={styles.sectionTitle}>Customize Blurbs & Bio Fields</h3>
           <table style={styles.table}>
             <tbody>
@@ -290,7 +365,6 @@ export default function Dashboard() {
                 <td style={styles.tdLabel}>About Me Blurb</td>
                 <td style={styles.tdValue}>
                   <textarea name="about_me" defaultValue={profile.about_me} className="myspace-textarea" />
-                  <p className="help-text">Tell the network grid community who you are, what you stand for, or your timeline lore.</p>
                 </td>
               </tr>
               <tr>
@@ -308,27 +382,52 @@ export default function Dashboard() {
             </tbody>
           </table>
 
-          {/* SECTION 3: MEDIA ENHANCEMENTS & MARKUP CODES */}
+          {/* SECTION 3: TOP 8 SELECTION GRID */}
+          <h3 style={styles.sectionTitle}>Manage & Rank Your Space Top 8 Grid</h3>
+          <table style={styles.table}>
+            <tbody>
+              <tr>
+                <td style={styles.tdLabel}>Rank Positions Mapping Matrix</td>
+                <td style={styles.tdValue}>
+                  <p className="help-text" style={{ marginBottom: '12px' }}>Choose a contact from your mutual connection loops to pin them onto your Top 8 layout grid coordinate blocks.</p>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', padding: '4px' }}>
+                    {[1, 2, 3, 4, 5, 6, 7, 8].map((slotNum) => (
+                      <div key={slotNum} style={{ display: 'flex', flexDirection: 'column', gap: '3px', backgroundColor: '#ffe5d4', padding: '5px', border: '1px dotted #FF6600' }}>
+                        <span style={{ fontSize: '10px', fontWeight: 'bold', color: '#000000' }}>Top Position Rank Slot #{slotNum}:</span>
+                        <select
+                          value={topEightSlots[`slot_${slotNum}`] || "empty"}
+                          onChange={(e) => handleSlotSelectChange(slotNum, e.target.value)}
+                          style={{ width: '100%', padding: '3px', fontSize: '11px', border: '1px solid #000000', backgroundColor: '#ffffff', fontFamily: 'Verdana' }}
+                        >
+                          <option value="empty">-- [ Empty Rank Slot ] --</option>
+                          {myFriendsList.map((friend) => (
+                            <option key={friend.User_id} value={friend.User_id}>
+                              {friend.username || "Anonymous Friend"}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                    ))}
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+
+          {/* SECTION 4: ADVANCED CHANNELS CODES */}
           <h3 style={styles.sectionTitle}>Advanced Custom Codes & Media Hooks</h3>
           <table style={styles.table}>
             <tbody>
-              {/* ⭐ FIXED DUAL-INPUT VIDEO RENDER ROW */}
               <tr>
-                <td style={styles.tdLabel}>Featured Video System</td>
+                <td style={styles.tdLabel}>Featured Showcase Video</td>
                 <td style={styles.tdValue}>
-                  <span style={{ display: 'block', fontWeight: 'bold', marginBottom: '3px' }}>Option A: Paste External YouTube Link</span>
-                  <input 
-                    name="youtube_url" 
-                    defaultValue={profile.youtube_url && !profile.youtube_url.includes('supabase.co') ? profile.youtube_url : ""} 
-                    className="myspace-input" 
-                    placeholder="https://youtube.com..." 
-                  />
+                  <span style={{ display: 'block', fontWeight: 'bold', marginBottom: '3px', fontSize: '11px' }}>Option A: Paste External YouTube Link</span>
+                  <input name="youtube_url" defaultValue={profile.youtube_url && !profile.youtube_url.includes('supabase.co') ? profile.youtube_url : ""} className="myspace-input" placeholder="https://youtube.com..." />
                   
-                  <span style={{ display: 'block', fontWeight: 'bold', marginTop: '12px', marginBottom: '3px' }}>Option B: Or Upload Raw MP4 Video File Directly</span>
+                  <span style={{ display: 'block', fontWeight: 'bold', marginTop: '12px', marginBottom: '3px', fontSize: '11px' }}>Option B: Or Upload Raw MP4 Video File Directly</span>
                   <input type="file" name="video_file" accept="video/mp4,video/webm" style={{ fontSize: '11px', display: 'block' }} />
-                  <p className="help-text" style={{ marginBottom: '8px' }}>Max size 25MB. Uploading a video file will overwrite manual YouTube text links.</p>
+                  <p className="help-text" style={{ marginBottom: '8px' }}>Max size 50MB. Uploads into your videos storage bucket directory.</p>
 
-                  {/* Inline active file player monitor container */}
                   {profile.youtube_url && profile.youtube_url.includes('supabase.co') && (
                     <div style={{ marginTop: '8px', padding: '6px', backgroundColor: '#ffe5d4', border: '1px dashed #000' }}>
                       <span style={{ fontSize: '9px', fontWeight: 'bold', display: 'block', color: '#000' }}>Active Storage MP4 File Attached:</span>
@@ -351,27 +450,24 @@ export default function Dashboard() {
                       </audio>
                     </div>
                   )}
-                  <p className="help-text">Upload an MP3 track. This plays inside your left column background music node.</p>
                 </td>
               </tr>
               <tr>
                 <td style={styles.tdLabel}>Custom Profile HTML</td>
                 <td style={styles.tdValue}>
                   <textarea name="custom_html" defaultValue={profile.custom_html} className="myspace-textarea" style={{ fontFamily: 'monospace', height: '90px' }} placeholder="<div>...</div>" />
-                  <p className="help-text">Inject raw markup boxes, custom flash simulators, custom greetings, or tracker images.</p>
                 </td>
               </tr>
               <tr>
                 <td style={styles.tdLabel}>Custom Profile CSS</td>
                 <td style={styles.tdValue}>
                   <textarea name="custom_css" defaultValue={profile.custom_css} className="myspace-textarea" style={{ fontFamily: 'monospace', height: '90px' }} placeholder="body { background: url(...); }" />
-                  <p className="help-text">Inject raw style sheets to completely override backgrounds, cursors, fonts, or text glows.</p>
                 </td>
               </tr>
             </tbody>
           </table>
 
-          {/* SOLID SAVE CONTROLS BLOCK */}
+          {/* FINAL SUBMIT BUTTON BOX */}
           <div style={{ border: '1px solid #000000', padding: '12px', backgroundColor: '#ffe5d4', textAlign: 'center', marginBottom: '20px' }}>
             <button type="submit" disabled={saving} style={styles.button}>
               {saving ? "Saving Configurations..." : "Save My Profile Changes »"}
