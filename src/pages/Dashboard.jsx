@@ -302,7 +302,7 @@ export default function Dashboard() {
 
       <div style={styles.pageContainer}>
         <div style={styles.headerBanner}>
-          Hello <b>{profile.username || 'User'}</b>! Welcome to your ProfileDig space control panel. 
+          Hello <b>{profile.username || 'User'}</b>! Welcome to your bfrenz space control panel. 
           Use the form below to customize your bio blurb tables, upload background track MP3s, select Top 8 ranks, or inject raw code alterations.
         </div>
 
