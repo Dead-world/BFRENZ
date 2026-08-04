@@ -3,6 +3,7 @@ import { supabase } from "../supabaseClient";
 import { Link, useNavigate } from "react-router-dom";
 import NavBar from "../components/NavBar";
 import React from 'react';
+import { useAuth } from '../hooks/useAuth';
 
 export default function LandingPage() {
   const [email, setEmail] = useState("");

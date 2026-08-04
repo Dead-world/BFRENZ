@@ -1,3 +1,92 @@
+import { useEffect, useState } from "react";
+import { supabase } from "../supabaseClient";
+import NavBar from "../components/NavBar";
+import React from 'react';
+import { useAuth } from '../hooks/useAuth'; 
+
+if (typeof document !== 'undefined') {
+  const styleEl = document.createElement('style');
+  styleEl.innerHTML = `
+    * { font-family: Verdana, Arial, Helvetica, sans-serif !important; box-sizing: border-box; }
+    body { background-color: #000000; margin: 0; padding: 0; color: #000000; }
+    .myspace-input, .myspace-textarea {
+      border: 1px solid #000000 !important;
+      font-size: 11px !important;
+      padding: 4px !important;
+      background-color: #FFFFFF !important;
+      color: #000000 !important;
+      width: 100% !important;
+    }
+    .myspace-textarea { height: 70px; resize: vertical; }
+    .help-text { font-size: 10px; color: #666666; margin: 2px 0 0 0; line-height: 1.2; }
+  `;
+  document.head.appendChild(styleEl);
+}
+
+// ⭐ DEFINED GLOBAL STYLES OBJECT MATRIX
+const styles = {
+  pageContainer: {
+    backgroundColor: '#ffffff',
+    width: '100%',
+    maxWidth: '950px',
+    margin: '20px auto',
+    padding: '15px',
+    border: '2px solid #FF6600',
+    minHeight: '100vh'
+  },
+  headerBanner: {
+    backgroundColor: '#ffe5d4',
+    border: '1px solid #FF6600',
+    padding: '10px',
+    marginBottom: '20px',
+    fontSize: '12px'
+  },
+  sectionTitle: {
+    backgroundColor: '#FF6600',
+    color: '#ffffff',
+    fontSize: '12px',
+    fontWeight: 'bold',
+    padding: '4px 8px',
+    margin: '0 0 15px 0',
+    border: '1px solid #000000',
+    textTransform: 'uppercase',
+    letterSpacing: '0.5px'
+  },
+  table: {
+    width: '100%',
+    borderCollapse: 'collapse',
+    marginBottom: '20px',
+    border: '1px solid #FF6600'
+  },
+  tdLabel: {
+    backgroundColor: '#ffe5d4',
+    color: '#000000',
+    fontWeight: 'bold',
+    padding: '6px 8px',
+    fontSize: '11px',
+    width: '25%',
+    borderBottom: '1px solid #FF6600',
+    borderRight: '1px solid #FF6600',
+    verticalAlign: 'top'
+  },
+  tdValue: {
+    padding: '6px 8px',
+    fontSize: '11px',
+    borderBottom: '1px solid #FF6600',
+    backgroundColor: '#ffffff'
+  },
+  button: {
+    backgroundColor: '#FF6600',
+    color: '#ffffff',
+    border: '1px solid #000000',
+    padding: '5px 12px',
+    fontSize: '11px',
+    cursor: 'pointer',
+    fontWeight: 'bold',
+    textTransform: 'uppercase'
+  }
+};
+
 export default function Dashboard() {
   const { user } = useAuth();
   const [profile, setProfile] = useState(null);
@@ -5,7 +94,6 @@ export default function Dashboard() {
   const [birthdayError, setBirthdayError] = useState("");
   const [birthday, setBirthday] = useState("");
 
-  // Top 8 layout state tracking modules
   const [myFriendsList, setMyFriendsList] = useState([]);
   const [topEightSlots, setTopEightSlots] = useState({
     slot_1: "", slot_2: "", slot_3: "", slot_4: "",
@@ -21,7 +109,6 @@ export default function Dashboard() {
     async function loadProfileAndFriends() {
       if (!user) return;
       try {
-        // Fetch core primary user info
         const { data: profData } = await supabase
           .from("profiles")
           .select("*")
@@ -33,7 +120,6 @@ export default function Dashboard() {
           if (profData.birthday) setBirthday(profData.birthday);
         }
 
-        // Fetch user connections options to pop mapping choices dropdown selectors
         const { data: frRows } = await supabase
           .from('friends')
           .select('friend_id, profiles!friends_friend_id_fkey(User_id, username)')
@@ -43,7 +129,6 @@ export default function Dashboard() {
           setMyFriendsList(frRows.map(f => f.profiles).filter(Boolean));
         }
 
-        // Fetch pre-existing customized positions from Top 8 table row definitions
         const { data: existingTop8 } = await supabase
           .from('top_eight')
           .select('*')
@@ -61,7 +146,7 @@ export default function Dashboard() {
           });
         }
       } catch (err) {
-        console.error("Dashboard initial sync pipeline dropped:", err);
+        console.error("Dashboard profile initialization sync dropped:", err);
       }
     }
 
@@ -100,7 +185,7 @@ export default function Dashboard() {
     }
   }
 
-    async function saveChanges(e) {
+  async function saveChanges(e) {
     e.preventDefault();
     setBirthdayError("");
     setSaving(true);
@@ -131,7 +216,6 @@ export default function Dashboard() {
     let mp3_url = profile.mp3_url;
     let youtube_url = profile.youtube_url;
 
-    // Handle optional file assignments
     const avatarFile = form.get("avatar");
     if (avatarFile && avatarFile.size > 0) {
       avatar_url = await uploadFile(avatarFile, "avatars");
@@ -156,7 +240,6 @@ export default function Dashboard() {
       status: form.get("status"),
       status_message: form.get("status_message"),
       about_me: form.get("about_me"),
-      // ⭐ ADDED: Maps hometown profile parameters cleanly to database rows
       hometown: form.get("hometown"),
       general_interests: form.get("general_interests"),
       music_interests: form.get("music_interests"),
@@ -169,7 +252,6 @@ export default function Dashboard() {
     };
 
     try {
-      // 1. Commit profile details
       const { error: profileErr } = await supabase
         .from("profiles")
         .update(updates)
@@ -177,22 +259,16 @@ export default function Dashboard() {
 
       if (profileErr) throw profileErr;
 
-      // 2. Erase old rankings for this unique active user space
       await supabase
         .from('top_eight')
         .delete()
         .eq('user_id', user.id);
 
-      // 3. ⭐ RESTORED COMPLETE LOOP: Re-saves updated top 8 selector allocations
       const insertRows = [];
       for (let rank = 1; rank <= 8; rank++) {
         const chosenId = topEightSlots[`slot_${rank}`];
         if (chosenId && chosenId !== "empty" && chosenId !== "") {
-          insertRows.push({
-            user_id: user.id,
-            friend_id: chosenId,
-            position_rank: rank
-          });
+          insertRows.push({ user_id: user.id, friend_id: chosenId, position_rank: rank });
         }
       }
 
@@ -205,7 +281,7 @@ export default function Dashboard() {
       alert("Profile and Top 8 settings saved successfully!");
 
     } catch (mutationErr) {
-      console.error("Mutation failure context:", mutationErr);
+      console.error("Mutation processing failure: ", mutationErr);
       alert("Transaction processing exception: " + mutationErr.message);
     } finally {
       setSaving(false);
@@ -251,7 +327,6 @@ export default function Dashboard() {
                   <p className="help-text">This is the bold name text printed right above your profile picture photo.</p>
                 </td>
               </tr>
-              {/* ⭐ ADDED: Hometown Location parameter editor row */}
               <tr>
                 <td style={styles.tdLabel}>Hometown Location</td>
                 <td style={styles.tdValue}>
@@ -283,7 +358,7 @@ export default function Dashboard() {
             </tbody>
           </table>
 
-          {/* SECTION 2: BLURBS & TEXT FIELDS */}
+          {/* SECTION 2: BIOGRAPHIES */}
           <h3 style={styles.sectionTitle}>Customize Blurbs & Bio Fields</h3>
           <table style={styles.table}>
             <tbody>
@@ -340,7 +415,7 @@ export default function Dashboard() {
             </tbody>
           </table>
 
-          {/* SECTION 4: ADVANCED CHANNELS CODES */}
+          {/* SECTION 4: ADVANCED CODES */}
           <h3 style={styles.sectionTitle}>Advanced Custom Codes & Media Hooks</h3>
           <table style={styles.table}>
             <tbody>
