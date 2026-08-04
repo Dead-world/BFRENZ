@@ -149,23 +149,24 @@ export default function ProfilePage({ profileId, currentUserId }) {
     if (!error) setBlogs(blogs.filter(bg => bg.id !== blogId));
   };
 
-  // ⭐ FIXED VIDEO ID EXTRACTOR ENGINE
+  // ⭐ FIXED: Targets capture group index 2 to return a valid alphanumeric video embed string path
   const getYouTubeEmbedUrl = (urlStr) => {
     if (!urlStr) return null;
     try {
-      // Robust regex pulling 11-char IDs from watch text strings, shorts, shares, and mobile subdomains
-      const regExp = /^.*(?:(?:youtu\.be\/|v\/|vi\/|u\/\w\/|embed\/|shorts\/)|(?:(?:watch)?\?v(?:i)?=|\&v(?:i)?=))([^#\&\?]*).*/;
-      const match = urlStr.match(regExp);
+      // Robust regex that correctly maps shorts, shares, watches, and mobile redirects
+      let regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|shorts\/|watch\?v=|\&v=)([^#\&\?]*).*/;
+      let match = urlStr.match(regExp);
       
-      // Explicit group checking rules tracking the exact length constraint of index array token 1
-      if (match && match[1] && match[1].length === 11) {
-        return `https://youtube.com{match[1]}`;
+      // match[2] explicitly isolates the 11-character video ID string
+      if (match && match[2] && match[2].length === 11) {
+        return `https://youtube.com{match[2]}`;
       }
     } catch (e) {
-      console.error("YouTube Link Exception caught: ", e);
+      console.error("YouTube Link Extractor Exception:", e);
     }
     return null;
   };
+
 
     if (loading || authLoading) return <div style={{ color: '#FF6600', textAlign: 'center', padding: '50px', fontSize: '14px', fontWeight: 'bold', backgroundColor: '#000', minHeight: '100vh' }}>LOADING RETRO CANVAS...</div>;
   if (!profile) return <div style={{ color: '#FF6600', textAlign: 'center', padding: '50px', fontSize: '14px', fontWeight: 'bold', backgroundColor: '#000', minHeight: '100vh' }}>PROFILE NOT FOUND</div>;

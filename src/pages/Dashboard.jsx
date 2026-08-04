@@ -162,15 +162,29 @@ export default function Dashboard() {
     const form = new FormData(e.target);
     let avatar_url = profile.avatar_url;
     let mp3_url = profile.mp3_url;
+    let youtube_url = profile.youtube_url;
 
+    // Avatar Upload
     const avatarFile = form.get("avatar");
     if (avatarFile && avatarFile.size > 0) {
       avatar_url = await uploadFile(avatarFile, "avatars");
     }
 
+    // MP3 Background Track Upload
     const mp3File = form.get("mp3");
     if (mp3File && mp3File.size > 0) {
       mp3_url = await uploadFile(mp3File, "songs");
+    }
+
+    // ⭐ FIXED: Raw Video Upload routing payload to your 'videos' storage bucket
+    const videoFile = form.get("video_file");
+    if (videoFile && videoFile.size > 0) {
+      const uploadedUrl = await uploadFile(videoFile, "videos");
+      if (uploadedUrl) youtube_url = uploadedUrl;
+    } else {
+      // If no file was attached, process the standard manual text link field instead
+      const textUrl = form.get("youtube_url");
+      if (textUrl) youtube_url = textUrl;
     }
 
     const updates = {
@@ -182,7 +196,7 @@ export default function Dashboard() {
       music_interests: form.get("music_interests"),
       custom_html: form.get("custom_html"),
       custom_css: form.get("custom_css"),
-      youtube_url: form.get("youtube_url"),
+      youtube_url: youtube_url,
       birthday: birthday,
       avatar_url,
       mp3_url, 
@@ -206,7 +220,7 @@ export default function Dashboard() {
 
   if (!profile) {
     return (
-      <div style={{ backgroundColor: '#000000', minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#FF6600', fontSize: '13px', fontWeight: 'bold' }}>
+      <div style={{ backgroundColor: '#000000', minHeight: '100vh', display: 'flex', alignItems: 'center', justifycenter: 'center', color: '#FF6600', fontSize: '13px', fontWeight: 'bold' }}>
         LOADING MYSPACE CONTROL PANEL...
       </div>
     );
@@ -217,7 +231,6 @@ export default function Dashboard() {
       <NavBar user={user} />
 
       <div style={styles.pageContainer}>
-        {/* TOP GREETING BANNER */}
         <div style={styles.headerBanner}>
           Hello <b>{profile.username || 'User'}</b>! Welcome to your ProfileDig space control panel. 
           Use the form below to customize your bio blurb tables, upload background track MP3s, or inject raw code alterations.
@@ -230,7 +243,7 @@ export default function Dashboard() {
           <table style={styles.table}>
             <tbody>
               <tr>
-                <td style={styles.tdLabel}>Profile Image</td>
+                <td style={styles.navLink || styles.tdLabel}>Profile Image</td>
                 <td style={styles.tdValue}>
                   <img src={profile.avatar_url || "/default-avatar.png"} style={{ width: '90px', height: '90px', objectFit: 'cover', border: '1px solid #000000', display: 'block', marginBottom: '8px' }} alt="Preview" />
                   <input type="file" name="avatar" accept="image/*" style={{ fontSize: '11px' }} />
@@ -299,11 +312,31 @@ export default function Dashboard() {
           <h3 style={styles.sectionTitle}>Advanced Custom Codes & Media Hooks</h3>
           <table style={styles.table}>
             <tbody>
+              {/* ⭐ FIXED DUAL-INPUT VIDEO RENDER ROW */}
               <tr>
-                <td style={styles.tdLabel}>YouTube Video URL</td>
+                <td style={styles.tdLabel}>Featured Video System</td>
                 <td style={styles.tdValue}>
-                  <input name="youtube_url" defaultValue={profile.youtube_url} className="myspace-input" placeholder="https://youtube.com..." />
-                  <p className="help-text">Pasting a watch link embeds a responsive video iframe frame right into your right column block.</p>
+                  <span style={{ display: 'block', fontWeight: 'bold', marginBottom: '3px' }}>Option A: Paste External YouTube Link</span>
+                  <input 
+                    name="youtube_url" 
+                    defaultValue={profile.youtube_url && !profile.youtube_url.includes('supabase.co') ? profile.youtube_url : ""} 
+                    className="myspace-input" 
+                    placeholder="https://youtube.com..." 
+                  />
+                  
+                  <span style={{ display: 'block', fontWeight: 'bold', marginTop: '12px', marginBottom: '3px' }}>Option B: Or Upload Raw MP4 Video File Directly</span>
+                  <input type="file" name="video_file" accept="video/mp4,video/webm" style={{ fontSize: '11px', display: 'block' }} />
+                  <p className="help-text" style={{ marginBottom: '8px' }}>Max size 25MB. Uploading a video file will overwrite manual YouTube text links.</p>
+
+                  {/* Inline active file player monitor container */}
+                  {profile.youtube_url && profile.youtube_url.includes('supabase.co') && (
+                    <div style={{ marginTop: '8px', padding: '6px', backgroundColor: '#ffe5d4', border: '1px dashed #000' }}>
+                      <span style={{ fontSize: '9px', fontWeight: 'bold', display: 'block', color: '#000' }}>Active Storage MP4 File Attached:</span>
+                      <video controls style={{ width: '100%', maxHeight: '140px', marginTop: '4px', backgroundColor: '#000' }} key={profile.youtube_url}>
+                        <source src={profile.youtube_url} type="video/mp4" />
+                      </video>
+                    </div>
+                  )}
                 </td>
               </tr>
               <tr>
@@ -339,7 +372,7 @@ export default function Dashboard() {
           </table>
 
           {/* SOLID SAVE CONTROLS BLOCK */}
-          <div style={{ border: '1px solid #000000', padding: '12px', backgroundColor: '#ffe5d4', textAlign: 'center' }}>
+          <div style={{ border: '1px solid #000000', padding: '12px', backgroundColor: '#ffe5d4', textAlign: 'center', marginBottom: '20px' }}>
             <button type="submit" disabled={saving} style={styles.button}>
               {saving ? "Saving Configurations..." : "Save My Profile Changes »"}
             </button>
