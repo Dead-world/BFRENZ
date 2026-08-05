@@ -288,7 +288,7 @@ export default function ProfilePage({ currentUserId }) {
       ) : (
         <div className="profile-main-layout">
           
-          {/* ⬅️ SIDEBAR PANEL */}
+            {/* ⬅️ SIDEBAR PANEL */}
           <div className="profile-left-sidebar">
             
             {/* Identity Card Profile */}
@@ -303,40 +303,83 @@ export default function ProfilePage({ currentUserId }) {
               <div style={{ fontSize: '12px', color: '#9ca3af', marginTop: '10px' }}>Total Profile Views: {viewCount}</div>
             </div>
 
-            {/* 🔊 Media Showcase Hub */}
-            {(profile?.profile_song_url || profile?.youtube_video_url || profile?.soundcloud_url || profile?.profile_mp4_url) && (
+            {/* Media Showcase Hub */}
+            {(profile?.profile_song_url ||
+              profile?.youtube_video_url ||
+              profile?.soundcloud_url ||
+              profile?.profile_mp4_url) && (
               <div className="profile-content-card">
                 <div className="profile-card-title">🔊 User Media Stream</div>
 
                 {/* MP3 */}
                 {profile?.profile_song_url && (
                   <div className="profile-media-item">
-                    <span style={{ fontSize: "11px", fontWeight: "600", color: "#9ca3af" }}>AUDIO THEME SONG (.MP3)</span>
-                    <audio src={profile.profile_song_url} controls autoPlay style={{ width: "100%", marginTop: "6px" }} />
+                    <span style={{ fontSize: "11px", fontWeight: "600", color: "#9ca3af" }}>
+                      AUDIO THEME SONG (.MP3)
+                    </span>
+                    <audio
+                      src={profile.profile_song_url}
+                      controls
+                      autoPlay /* Plays background audio smoothly on layout mount */
+                      style={{ width: "100%", marginTop: "6px" }}
+                    />
                   </div>
                 )}
 
                 {/* MP4 */}
                 {profile?.profile_mp4_url && (
                   <div className="profile-media-item">
-                    <span style={{ fontSize: "11px", fontWeight: "600", color: "#9ca3af" }}>FEATURED VIDEO TRACK (.MP4)</span>
-                    <video src={profile.profile_mp4_url} controls style={{ width: "100%", marginTop: "6px", borderRadius: "4px", border: "1px solid #FF6600" }} />
+                    <span style={{ fontSize: "11px", fontWeight: "600", color: "#9ca3af" }}>
+                      FEATURED VIDEO TRACK (.MP4)
+                    </span>
+                    <video
+                      src={profile.profile_mp4_url}
+                      controls
+                      style={{
+                        width: "100%",
+                        marginTop: "6px",
+                        borderRadius: "4px",
+                        border: "1px solid #FF6600",
+                      }}
+                    />
                   </div>
                 )}
 
                 {/* YouTube */}
                 {profile?.youtube_video_url && getYouTubeEmbed(profile.youtube_video_url) && (
                   <div className="profile-media-item">
-                    <span style={{ fontSize: "11px", fontWeight: "600", color: "#9ca3af" }}>YOUTUBE UPLOAD VIDEOS</span>
-                    <iframe width="100%" height="160" style={{ marginTop: "6px", border: "none", borderRadius: "4px" }} src={getYouTubeEmbed(profile.youtube_video_url)} allowFullScreen title="YouTube Stream Display" />
+                    <span style={{ fontSize: "11px", fontWeight: "600", color: "#9ca3af" }}>
+                      YOUTUBE UPLOAD VIDEOS
+                    </span>
+                    <iframe
+                      width="100%"
+                      height="160"
+                      style={{
+                        marginTop: "6px",
+                        border: "none",
+                        borderRadius: "4px",
+                      }}
+                      src={getYouTubeEmbed(profile.youtube_video_url)}
+                      allowFullScreen
+                      title="YouTube Stream Display"
+                    />
                   </div>
                 )}
 
                 {/* SoundCloud */}
                 {profile?.soundcloud_url && (
                   <div className="profile-media-item">
-                    <span style={{ fontSize: "11px", fontWeight: "600", color: "#9ca3af" }}>SOUNDCLOUD INTEGRATION LINK</span>
-                    <iframe width="100%" height="120" style={{ marginTop: "6px", border: "none" }} scrolling="no" src={getSoundCloudEmbed(profile.soundcloud_url)} title="SoundCloud Track Feed" />
+                    <span style={{ fontSize: "11px", fontWeight: "600", color: "#9ca3af" }}>
+                      SOUNDCLOUD INTEGRATION LINK
+                    </span>
+                    <iframe
+                      width="100%"
+                      height="120"
+                      style={{ marginTop: "6px", border: "none" }}
+                      scrolling="no"
+                      src={getSoundCloudEmbed(profile.soundcloud_url)}
+                      title="SoundCloud Track Feed"
+                    />
                   </div>
                 )}
               </div>
@@ -360,6 +403,7 @@ export default function ProfilePage({ currentUserId }) {
             </div>
 
           </div>
+
 
           {/* ➡️ MAIN RIGHT COLUMN CANVAS */}
           <div className="profile-right-canvas">
