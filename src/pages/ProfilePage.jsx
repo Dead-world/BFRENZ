@@ -7,7 +7,7 @@ import { useParams, Link } from "react-router-dom";
 if (typeof document !== 'undefined') {
   const styleEl = document.createElement('style');
   styleEl.innerHTML = `
-    /* 🌐 GLOBAL DARK VIEW THEME */
+    /* 🌐 GLOBAL VIEW STYLES */
     .profile-page-background { background-color: #0d0e10; min-height: 100vh; color: #f3f4f6; font-family: 'Segoe UI', system-ui, sans-serif; }
     .profile-main-layout { display: grid; grid-template-columns: 340px 1fr; gap: 24px; max-width: 1300px; margin: 0 auto; padding: 24px 16px; }
     
@@ -29,7 +29,7 @@ if (typeof document !== 'undefined') {
     
     /* Media Containers */
     .profile-media-item { background: #1c1d22; border: 1px solid #26282c; border-radius: 8px; padding: 12px; margin-bottom: 12px; }
-    .profile-media-item audio, .profile-media-item video { width: 100%; margin-top: 6px; border-radius: 4px; }
+    .profile-media-item audio { width: 100%; margin-top: 6px; border-radius: 4px; }
     
     /* Comment Section */
     .profile-comment-textarea { width: 100%; background: #1c1d22; border: 1px solid #26282c; border-radius: 6px; padding: 10px; color: #fff; font-size: 13px; resize: vertical; min-height: 50px; outline: none; margin-bottom: 8px; }
@@ -93,7 +93,6 @@ export default function ProfilePage({ currentUserId }) {
       if (profileError) throw profileError;
       setProfile(profileRecord);
 
-      // Inject custom styling safely
       if (profileRecord.custom_css && typeof document !== 'undefined') {
         const oldStyleElement = document.getElementById(`user-styles-${activeProfileId}`);
         if (oldStyleElement) oldStyleElement.remove();
@@ -169,30 +168,49 @@ export default function ProfilePage({ currentUserId }) {
     }
   };
 
-  // ⭐ FIXED: Deployed an exhaustive regex extraction mechanism to always parse 11-digit clean YouTube video string hashes correctly
-  const extractYoutubeVideoId = (url) => {
+  /* ⭐ Utility: Safe YouTube ID Extractor */
+  const getYouTubeEmbed = (url) => {
     if (!url) return null;
-    const matches = url.match(/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/i);
-    return (matches && matches[1]) ? matches[1] : null;
+
+    try {
+      const rx =
+        /^.*(?:(?:youtu\.be\/|v\/|vi\/|u\/\w\/|embed\/|shorts\/)|(?:(?:watch)?\?v(?:i)?=|\&v(?:i)?=))([^#\&\?]*).*/;
+
+      const match = url.match(rx);
+      if (match && match[1]) {
+        let id = match[1].trim();
+        if (id.includes("&")) id = id.split("&")[0];
+        if (id.includes("?")) id = id.split("?")[0];
+        return `https://www.youtube.com/embed/${id}`;
+      }
+    } catch (e) {
+      console.error("YouTube ID parse error:", e);
+    }
+
+    return null;
   };
 
-  if (loading) return <div style={{ color: '#FF6600', padding: '60px', textAlign: 'center', fontFamily: 'monospace', fontWeight: 'bold' }}>LOADING USER PROFILE...</div>;
+  /* ⭐ Utility: Safe SoundCloud Embed */
+  const getSoundCloudEmbed = (url) => {
+    if (!url) return null;
+    return `https://w.soundcloud.com/player/?url=${encodeURIComponent(url)}&color=%23ff5500&auto_play=false&hide_related=true`;
+  };
 
-    return (
+  if (loading) return <div style={{ color: '#FF6600', padding: '60px', textAlign: 'center', fontFamily: 'monospace', fontWeight: 'bold' }}>LOADING PROFILE...</div>;
+
+   return (
     <div className="profile-page-background">
       <NavBar />
       
       {profile?.custom_html ? (
-        /* If custom HTML is provided, bypass the default fallback layout entirely */
         <div className="custom-html-override-container" dangerouslySetInnerHTML={{ __html: profile.custom_html }} />
       ) : (
-        /* Default Balanced Responsive Layout */
         <div className="profile-main-layout">
           
           {/* ⬅️ SIDEBAR PANEL */}
           <div className="profile-left-sidebar">
             
-            {/* Profile Avatar & Identity */}
+            {/* Identity Card */}
             <div className="profile-content-card profile-image-container">
               <h2 style={{ fontSize: '20px', fontWeight: '800', margin: '0 0 12px 0', color: '#fff' }}>{profile?.username}</h2>
               <img src={profile?.avatar_url || "/default-avatar.png"} alt="User Profile Avatar" className="profile-main-avatar" onError={(e) => { e.target.src = "https://unsplash.com"; }} />
@@ -205,51 +223,110 @@ export default function ProfilePage({ currentUserId }) {
               <div style={{ fontSize: '12px', color: '#9ca3af', marginTop: '10px' }}>Total Profile Views: {viewCount}</div>
             </div>
 
-            {/* Media Showcase Hub */}
-            {(profile?.profile_song_url || profile?.youtube_video_url || profile?.soundcloud_url || profile?.profile_mp4_url) && (
+            {/* ⭐ USER MEDIA STREAM HUB */}
+            {(profile?.profile_song_url ||
+              profile?.youtube_video_url ||
+              profile?.soundcloud_url ||
+              profile?.profile_mp4_url) && (
               <div className="profile-content-card">
                 <div className="profile-card-title">🔊 User Media Stream</div>
-                
+
+                {/* MP3 */}
                 {profile?.profile_song_url && (
                   <div className="profile-media-item">
-                    <span style={{ fontSize: '11px', fontWeight: '600', color: '#9ca3af' }}>AUDIO THEME SONG (.MP3)</span>
-                    <audio src={profile.profile_song_url} controls />
+                    <span style={{ fontSize: "11px", fontWeight: "600", color: "#9ca3af" }}>
+                      AUDIO THEME SONG (.MP3)
+                    </span>
+                    <audio
+                      src={profile.profile_song_url}
+                      controls
+                      style={{ width: "100%", marginTop: "6px" }}
+                    />
                   </div>
                 )}
 
+                {/* MP4 */}
                 {profile?.profile_mp4_url && (
                   <div className="profile-media-item">
-                    <span style={{ fontSize: '11px', fontWeight: '600', color: '#9ca3af' }}>FEATURED VIDEO TRACK (.MP4)</span>
-                    <video src={profile.profile_mp4_url} controls />
+                    <span style={{ fontSize: "11px", fontWeight: "600", color: "#9ca3af" }}>
+                      FEATURED VIDEO TRACK (.MP4)
+                    </span>
+                    <video
+                      src={profile.profile_mp4_url}
+                      controls
+                      style={{
+                        width: "100%",
+                        marginTop: "6px",
+                        borderRadius: "4px",
+                        border: "1px solid #FF6600",
+                      }}
+                    />
                   </div>
                 )}
 
-                {profile?.youtube_video_url && extractYoutubeVideoId(profile.youtube_video_url) && (
+                {/* YouTube */}
+                {profile?.youtube_video_url && getYouTubeEmbed(profile.youtube_video_url) && (
                   <div className="profile-media-item">
-                    <span style={{ fontSize: '11px', fontWeight: '600', color: '#9ca3af' }}>YOUTUBE UPLOAD VIDEOS</span>
-                    <iframe width="100%" height="160" style={{ marginTop: '6px', border: 'none', borderRadius: '4px' }} src={`https://youtube.com{extractYoutubeVideoId(profile.youtube_video_url)}`} allowFullScreen title="YouTube Stream Display"></iframe>
+                    <span style={{ fontSize: "11px", fontWeight: "600", color: "#9ca3af" }}>
+                      YOUTUBE UPLOAD VIDEOS
+                    </span>
+                    <iframe
+                      width="100%"
+                      height="160"
+                      style={{
+                        marginTop: "6px",
+                        border: "none",
+                        borderRadius: "4px",
+                      }}
+                      src={getYouTubeEmbed(profile.youtube_video_url)}
+                      allowFullScreen
+                      title="YouTube Stream Display"
+                    />
                   </div>
                 )}
 
+                {/* SoundCloud */}
                 {profile?.soundcloud_url && (
                   <div className="profile-media-item">
-                    <span style={{ fontSize: '11px', fontWeight: '600', color: '#9ca3af' }}>SOUNDCLOUD INTEGRATION LINK</span>
-                    <iframe width="100%" height="100" style={{ marginTop: '6px', border: 'none' }} scrolling="no" src={`https://soundcloud.com{encodeURIComponent(profile.soundcloud_url)}&color=%23ff5500&auto_play=false&hide_related=true`} title="SoundCloud Track Feed"></iframe>
+                    <span style={{ fontSize: "11px", fontWeight: "600", color: "#9ca3af" }}>
+                      SOUNDCLOUD INTEGRATION LINK
+                    </span>
+                    <iframe
+                      width="100%"
+                      height="120"
+                      style={{ marginTop: "6px", border: "none" }}
+                      scrolling="no"
+                      src={getSoundCloudEmbed(profile.soundcloud_url)}
+                      title="SoundCloud Track Feed"
+                    />
                   </div>
                 )}
               </div>
             )}
 
-            {/* Friends Grid Selection */}
+            {/* ⭐ FRIENDS GRID SELECTION */}
             <div className="profile-content-card">
               <div className="profile-card-title">👥 Top Friends List</div>
+
               {friends.length === 0 ? (
-                <div style={{ fontSize: '12px', color: '#6b7280' }}>No friends added to this user page list yet.</div>
+                <div style={{ fontSize: "12px", color: "#6b7280" }}>
+                  No friends added to this user page list yet.
+                </div>
               ) : (
                 <div className="profile-friends-grid">
                   {friends.map((friendItem) => (
-                    <Link key={friendItem.User_id} to={`/profile/${friendItem.User_id}`} className="profile-friend-link">
-                      <img src={friendItem.avatar_url || "/default-avatar.png"} alt={friendItem.username} onError={(e) => { e.target.src = "https://unsplash.com"; }} />
+                    <Link
+                      key={friendItem.User_id}
+                      to={`/profile/${friendItem.User_id}`}
+                      className="profile-friend-link"
+                    >
+                      <img
+                        src={friendItem.avatar_url || "/default-avatar.png"}
+                        alt={friendItem.username}
+                        onError={(e) => {
+                          e.target.src = "/default-avatar.png";
+                        }}
+                      />
                       <span>{friendItem.username}</span>
                     </Link>
                   ))}
@@ -262,21 +339,21 @@ export default function ProfilePage({ currentUserId }) {
           {/* ➡️ MAIN DISPLAY CANVAS */}
           <div className="profile-right-canvas">
             
-            {/* Core Bio Description Table Data fields */}
+            {/* General Bio */}
             <div className="profile-content-card">
-              <div className="profile-card-title">📋 User General Information</div>
+              <div className="profile-card-title">📋 General Information</div>
               <table className="profile-data-table">
                 <tbody>
                   <tr className="profile-data-row"><td className="profile-data-label">Hometown</td><td className="profile-data-value">{profile?.hometown || 'Unspecified'}</td></tr>
                   <tr className="profile-data-row"><td className="profile-data-label">Gender</td><td className="profile-data-value">{profile?.gender || 'Unspecified'}</td></tr>
-                  <tr className="profile-data-row"><td className="profile-data-label">Status Row</td><td className="profile-data-value">{profile?.status_message || 'No status description saved.'}</td></tr>
+                  <tr className="profile-data-row"><td className="profile-data-label">Status Row</td><td className="profile-data-value">{profile?.status_message || 'No status message saved.'}</td></tr>
                   <tr className="profile-data-row"><td className="profile-data-label">Who I'd Like to Meet</td><td className="profile-data-value">{profile?.meet || 'Unspecified'}</td></tr>
                   <tr className="profile-data-row"><td className="profile-data-label">About Me</td><td className="profile-data-value" style={{ textAlign: 'left', display: 'block', paddingTop: '4px' }}>{profile?.about_me || 'Bio summary empty.'}</td></tr>
                 </tbody>
               </table>
             </div>
 
-            {/* General Interests Display Categories Section */}
+            {/* Interests Section */}
             <div className="profile-content-card">
               <div className="profile-card-title">🏷️ Interests & Favorites</div>
               <table className="profile-data-table">
@@ -287,7 +364,7 @@ export default function ProfilePage({ currentUserId }) {
               </table>
             </div>
 
-            {/* Profile Open Wall Message Board */}
+            {/* Wall Comments */}
             <div className="profile-content-card">
               <div className="profile-card-title">💬 Profile Wall Comments ({comments.length})</div>
               
@@ -311,16 +388,16 @@ export default function ProfilePage({ currentUserId }) {
                       </div>
                       <div style={{ fontSize: '13px', color: '#d1d5db', lineHeight: '1.4' }}>{commentRecord.content}</div>
                       {(user?.id === commentRecord.user_id || user?.id === activeProfileId) && (
-                        <button onClick={() => handleDeleteComment(commentRecord.id)} style={{ background: 'none', border: 'none', color: '#ef4444', fontSize: '10px', padding: 0, cursor: 'pointer', marginTop: '6px', textDecoration: 'underline' }}>Delete Comment</button>
+                        <button onClick={() => handleDeleteComment(commentRecord.id)} style={{ background: 'none', border: 'none', color: '#ef4444', fontSize: '10px', padding: 0, cursor: 'pointer', marginTop: '6px', textDecoration: 'underline' }}>
+                          Delete Comment
+                        </button>
                       )}
                     </div>
                   </div>
                 ))
               )}
             </div>
-
           </div>
-
         </div>
       )}
     </div>
