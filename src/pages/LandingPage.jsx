@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
 import { supabase } from '../supabaseClient';
-import { useAuth } from '../hooks/useAuth'; // Double-check this hook import is present too
-import { Link, useNavigate } from 'react-router-dom'; // ⭐ FIXED: Make sure useNavigate is included here!
-
+import { useAuth } from '../hooks/useAuth';
+import { Link, useNavigate } from 'react-router-dom';
+import './LandingPage.css'; // ⭐ FIXED: Separate CSS stylesheet import cleans up browser text loading
 
 export default function LandingPage() {
   const navigate = useNavigate();
-  const { user } = useAuth(); // ⭐ NEW INJECTION: Reads active session state from your pipeline context
+  const { user } = useAuth(); 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -51,7 +51,6 @@ export default function LandingPage() {
     }
   };
 
-  // ⭐ NEW INJECTION: Handles safe logout directly from the landing card box layout
   const executeLogoutPipeline = async () => {
     setIsSubmitting(true);
     try {
@@ -66,21 +65,21 @@ export default function LandingPage() {
     } finally {
       await supabase.auth.signOut();
       setIsSubmitting(false);
-      window.location.reload(); // Refresh canvas states cleanly
+      window.location.reload();
     }
   };
 
-    return (
+  return (
     <div className="landing-wrapper">
       
-      {/* 🧭 NAVIGATION HEADER STRIP */}
+      {/* 🧭 NAVIGATION HEADER BAR */}
       <nav className="landing-navbar">
         <div>
           <Link to="/" className="landing-logo-text">bfrenz</Link>
         </div>
       </nav>
 
-      {/* Main split feature screen grid */}
+      {/* Main split features grid layout */}
       <div className="landing-content-split">
         
         {/* Left Hand: Typography details blocks */}
@@ -93,10 +92,10 @@ export default function LandingPage() {
           </p>
         </div>
 
-        {/* Right Hand: Dynamic High-Contrast Card Panel */}
+        {/* Right Hand: High-Contrast Boxy Panel */}
         <div className="landing-login-card">
           {user ? (
-            /* ⭐ CASE A: ACTIVE SESSION VIEW (AUTHENTICATED LOGOUT INTERFACE) */
+            /* 🔓 SESSION ACTIVE PORTAL CARD */
             <div style={{ textAlign: 'center' }}>
               <h2 style={{ fontSize: '18px', color: '#ffffff', marginBottom: '12px', fontWeight: 'bold' }}>
                 SESSION ACTIVE
@@ -105,7 +104,6 @@ export default function LandingPage() {
                 Logged in as: {user.email}
               </p>
               
-              {/* Boxy Retro 3D Log Out Button */}
               <button 
                 className="landing-submit-btn" 
                 onClick={executeLogoutPipeline}
@@ -122,7 +120,7 @@ export default function LandingPage() {
               </Link>
             </div>
           ) : (
-            /* ⭐ CASE B: VACANT SESSION VIEW (UNAUTHENTICATED LOGIN INTERFACE) */
+            /* 🔒 LOG IN CREDENTIALS COLLECTION PANEL */
             <>
               <form onSubmit={executeLoginPipeline}>
                 <div className="landing-form-group">
@@ -149,12 +147,10 @@ export default function LandingPage() {
                   />
                 </div>
 
-                {/* Orange Execution Submit Button */}
                 <button 
                   type="submit" 
                   className="landing-submit-btn"
                   disabled={isSubmitting}
-                  onClick={executeLoginPipeline}
                 >
                   {isSubmitting ? 'Authenticating...' : 'Log In'}
                 </button>
@@ -168,7 +164,6 @@ export default function LandingPage() {
 
               <hr className="landing-divider" />
 
-              {/* White Redirection Action Link */}
               <Link to="/register" className="landing-signup-route-btn">
                 Create New Account
               </Link>
