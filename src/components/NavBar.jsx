@@ -6,80 +6,98 @@ import { Link } from 'react-router-dom';
 if (typeof document !== 'undefined') {
   const styleEl = document.createElement('style');
   styleEl.innerHTML = `
-    .nav-links-container { display: flex !important; align-items: center !important; gap: 15px !important; }
+    .nav-links-container { display: flex !important; align-items: center !important; gap: 12px !important; }
     .burger-menu-btn { display: none !important; }
     
-    /* 🎨 RETRO NAVIGATION BUTTONS STYLES */
-    .retro-nav-btn {
+    /* 🌐 CIRCULAR BADGE ICON CONTROLS */
+    .circle-nav-badge {
       display: inline-flex !important;
       align-items: center !important;
-      padding: 5px 12px !important;
-      font-family: 'Courier New', monospace !important;
-      font-weight: bold !important;
-      font-size: 11px !important;
-      text-transform: uppercase !important;
+      justify-content: center !important;
+      width: 40px !important;
+      height: 40px !important;
+      border-radius: 50% !important;
+      background-color: #3A3B3C !important;
+      color: #E4E6EB !important;
       text-decoration: none !important;
-      color: #000000 !important;
-      border: 1px solid #000000 !important;
-      border-radius: 3px !important;
       cursor: pointer !important;
-      box-shadow: 2px 2px 0px #ffffff !important;
-      transition: transform 0.05s ease, box-shadow 0.05s ease !important;
+      border: none !important;
+      transition: background-color 0.2s ease !important;
+      position: relative !important;
     }
-    .retro-nav-btn:active {
-      transform: translate(1px, 1px) !important;
-      box-shadow: 1px 1px 0px #ffffff !important;
+    .circle-nav-badge:hover {
+      background-color: #4E4F50 !important;
     }
-    .retro-nav-btn:hover {
-      filter: brightness(1.1) !important;
-    }
-    .btn-dashboard-orange {
-      background-color: #FF6600 !important;
-    }
-    .btn-inbox-cyan {
-      background-color: #00BCD4 !important;
+    .circle-nav-badge svg {
+      width: 20px !important;
+      height: 20px !important;
+      fill: currentColor !important;
     }
 
-    /* 🔔 NOTIFICATION BELL ALERT KEYFRAMES */
-    @keyframes pulse-alert {
-      0%, 100% { filter: drop-shadow(0 0 2px #FF6600); }
-      50% { filter: drop-shadow(0 0 8px #FF0000); }
+    /* 👤 AVATAR OBJECT MATRIX */
+    .avatar-wrapper {
+      position: relative !important;
+      display: inline-flex !important;
+      cursor: pointer !important;
     }
-    .bell-alert-active { animation: pulse-alert 1.5s infinite; }
+    .nav-avatar-img {
+      width: 40px !important;
+      height: 40px !important;
+      border-radius: 50% !important;
+      object-fit: cover !important;
+    }
+    .presence-dot {
+      position: absolute !important;
+      top: 2px !important;
+      right: 2px !important;
+      width: 10px !important;
+      height: 10px !important;
+      background-color: #E41E3F !important; /* Matches red alert dot */
+      border-radius: 50% !important;
+      border: 2px solid #242526 !important;
+    }
+    .dropdown-arrow-badge {
+      position: absolute !important;
+      bottom: -2px !important;
+      right: -2px !important;
+      width: 16px !important;
+      height: 16px !important;
+      background-color: #3A3B3C !important;
+      border-radius: 50% !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      border: 2px solid #242526 !important;
+    }
+    .dropdown-arrow-badge svg {
+      width: 10px !important;
+      height: 10px !important;
+      fill: #E4E6EB !important;
+    }
 
     @media (max-width: 768px) {
       .nav-links-container {
         display: none !important;
-        flex-direction: column !important;
-        width: 100% !important;
-        background-color: #000000 !important;
-        border-top: 1px solid #FF6600 !important;
-        padding: 10px 0 !important;
-        margin-top: 10px !important;
-        gap: 12px !important;
-        align-items: flex-start !important;
+        position: absolute !important;
+        top: 60px !important;
+        right: 20px !important;
+        flex-direction: row !important;
+        background-color: #242526 !important;
+        padding: 10px !important;
+        border-radius: 8px !important;
+        box-shadow: 0 12px 28px rgba(0,0,0,0.2) !important;
       }
       .nav-links-container.open { display: flex !important; }
       .burger-menu-btn { display: block !important; }
-      
-      /* Mobile expansion adjustment for custom buttons */
-      .retro-nav-btn {
-        width: 100% !important;
-        box-sizing: border-box !important;
-        justify-content: center !important;
-      }
     }
   `;
   document.head.appendChild(styleEl);
 }
 
 const styles = {
-  nav: { backgroundColor: '#000000', padding: '8px 20px', display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', borderBottom: '2px solid #FF6600', fontFamily: 'Verdana, Arial, sans-serif' },
-  logoImage: { height: '50px', width: 'auto', display: 'block' },
-  burgerBtn: { backgroundColor: 'transparent', color: '#FF6600', border: '1px solid #FF6600', fontSize: '18px', padding: '4px 10px', cursor: 'pointer', fontWeight: 'bold' },
-  navLink: { color: '#ffffff', textDecoration: 'none', fontSize: '12px', padding: '4px 0', display: 'flex', alignItems: 'center' },
-  profileLink: { color: '#FF6600', textDecoration: 'none', fontWeight: 'bold', fontSize: '12px', padding: '4px 0' },
-  logoutBtn: { backgroundColor: '#FF6600', color: '#ffffff', border: '1px solid #ffffff', padding: '4px 10px', cursor: 'pointer', fontSize: '11px', fontWeight: 'bold', textAlign: 'center' }
+  nav: { backgroundColor: '#242526', padding: '8px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #393A3B', fontFamily: 'Segoe UI, Helvetica, Arial, sans-serif' },
+  logoImage: { height: '40px', width: 'auto', display: 'block' },
+  burgerBtn: { backgroundColor: 'transparent', color: '#E4E6EB', border: '1px solid #393A3B', fontSize: '18px', padding: '4px 10px', cursor: 'pointer', borderRadius: '4px' },
 };
 
 export default function NavBar() {
@@ -109,23 +127,17 @@ export default function NavBar() {
     return () => { supabase.removeChannel(sub); };
   }, [user]);
 
-   // ⭐ AUTOMATIC STATUS UPDATE: Switches presence tracking tags upon exit requests
   const handleLogout = async () => {
     try {
       if (user) {
-        // 1. Force state parameters to track as offline inside your schema rows database
         await supabase
           .from("profiles")
-          .update({ 
-            status: "offline", 
-            last_seen: new Date().toISOString() 
-          })
+          .update({ status: "offline", last_seen: new Date().toISOString() })
           .eq("User_id", user.id);
       }
     } catch (err) {
-      console.error("Failed to change user presence flag during logout loop:", err);
+      console.error("Presence update failed:", err);
     } finally {
-      // 2. Destroy browser session token parameters and dump user context cleanly back to log in view
       await supabase.auth.signOut();
       window.location.href = "/login";
     }
@@ -135,7 +147,7 @@ export default function NavBar() {
     <nav style={styles.nav}>
       <div>
         <Link to="/" onClick={() => setIsOpen(false)}>
-          <img src="/bfrenzlogo.png" alt="bfrenz" style={styles.logoImage} onError={(e) => { e.target.style.display = 'none'; e.target.parentNode.innerHTML = '<span style="color:#FF6600; font-weight:bold; font-size:14px;">bfrenz</span>'; }} />
+          <img src="/bfrenzlogo.png" alt="bfrenz" style={styles.logoImage} onError={(e) => { e.target.style.display = 'none'; e.target.parentNode.innerHTML = '<span style="color:#E4E6EB; font-weight:bold; font-size:16px;">bfrenz</span>'; }} />
         </Link>
       </div>
 
@@ -144,63 +156,66 @@ export default function NavBar() {
       </button>
 
       <div className={`nav-links-container ${isOpen ? 'open' : ''}`}>
-        <Link to="/" style={styles.navLink} onClick={() => setIsOpen(false)}>Home</Link>
-        <Link to="/browse" style={styles.navLink} onClick={() => setIsOpen(false)}>Browse</Link>
-        
         {user ? (
           <>
-            {/* ⭐ CONVERTED: Dashboard Text Link to Retro Button Layout */}
-            <Link to="/dashboard" className="retro-nav-btn btn-dashboard-orange" onClick={() => setIsOpen(false)}>
-              Dashboard
+            {/* 🎛️ DASHBOARD: Grid Icon */}
+            <Link to="/dashboard" className="circle-nav-badge" onClick={() => setIsOpen(false)} title="Dashboard">
+              <svg viewBox="0 0 24 24">
+                <path d="M4 4h4v4H4zm6 0h4v4h-4zm6 0h4v4h-4zM4 10h4v4H4zm10 0h-4v4h4zm2 0h4v4h-4zM4 16h4v4H4zm6 0h4v4h-4zm6 0h4v4h-4z"/>
+              </svg>
+            </Link>
+
+            {/* 📥 INBOX: Messenger Style Icon */}
+            <Link to="/inbox" className="circle-nav-badge" onClick={() => setIsOpen(false)} title="Inbox">
+              <svg viewBox="0 0 24 24">
+                <path d="M12 2C6.477 2 2 6.145 2 11.26c0 2.915 1.455 5.518 3.733 7.21.194.143.315.367.323.607l.076 2.3c.013.38.384.664.75.545l2.585-.843c.2-.065.418-.046.604.053A10.22 10.22 0 0012 20.52c5.523 0 10-4.146 10-9.26C22 6.145 17.523 2 12 2zm1.03 12.33l-2.12-2.27-4.14 2.27 4.55-4.83 2.12 2.27 4.14-2.27-4.55 4.83z"/>
+              </svg>
             </Link>
             
-            {/* ⭐ FIXED UPDATE: STYLISH VECTOR NOTIFICATION BELL WITH COUNTER SHIELD OBJECT */}
-            <Link to="/notifications" style={styles.navLink} onClick={() => setIsOpen(false)} title="View My Notification Alerts Hub">
-              <div style={{ position: 'relative', display: 'inline-flex', alignItems: 'center', padding: '4px' }} className={unreadCount > 0 ? "bell-alert-active" : ""}>
-                {/* Clean Vector SVG Icon Graphic */}
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={unreadCount > 0 ? "#FF6600" : "#ffffff"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ transition: 'stroke 0.3s ease' }}>
-                  <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
-                  <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+            {/* 🔔 NOTIFICATIONS: Bell Style Icon */}
+            <Link to="/notifications" className="circle-nav-badge" onClick={() => setIsOpen(false)} title="Notifications">
+              <svg viewBox="0 0 24 24">
+                <path d="M12 22a2.98 2.98 0 002.822-2H9.178A2.98 2.98 0 0012 22zm7.184-5.176l-1.01-2.022V10.5c0-3.076-2.05-5.71-4.924-6.326V3.5a1.25 1.25 0 10-2.5 0v.674C7.874 4.79 5.824 7.424 5.824 10.5v4.302l-1.01 2.022A1 1 0 005.702 18h12.596a1 1 0 00.886-1.176z"/>
+              </svg>
+              {unreadCount > 0 && (
+                <span style={{
+                  position: 'absolute',
+                  top: '-2px',
+                  right: '-2px',
+                  backgroundColor: '#E41E3F',
+                  color: '#ffffff',
+                  fontSize: '10px',
+                  fontWeight: 'bold',
+                  borderRadius: '10px',
+                  padding: '1px 5px',
+                  minWidth: '12px',
+                  textAlign: 'center'
+                }}>
+                  {unreadCount}
+                </span>
+              )}
+            </Link>
+
+            {/* 👤 AVATAR CLUSTER FRAME */}
+            <div className="avatar-wrapper" onClick={handleLogout} title="Click to Log Out">
+              <img 
+                src={user.user_metadata?.avatar_url || "/default-avatar.png"} 
+                alt="My Profile" 
+                className="nav-avatar-img"
+                onError={(e) => { e.target.src = "https://unsplash.com"; }} 
+              />
+              <span className="presence-dot"></span>
+              <span className="dropdown-arrow-badge">
+                <svg viewBox="0 0 24 24">
+                  <path d="M12 16.5l-6-6h12z"/>
                 </svg>
-
-                {/* Absolutly Positioned Floating Counter Badge Overlay */}
-                {unreadCount > 0 && (
-                  <span style={{
-                    position: 'absolute',
-                    top: '-4px',
-                    right: '-6px',
-                    backgroundColor: '#FF0000',
-                    color: '#ffffff',
-                    fontSize: '9px',
-                    fontWeight: 'bold',
-                    borderRadius: '50%',
-                    minWidth: '14px',
-                    height: '14px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    padding: '2px',
-                    border: '1px solid #000000',
-                    fontFamily: 'monospace'
-                  }}>
-                    {unreadCount > 9 ? '9+' : unreadCount}
-                  </span>
-                )}
-              </div>
-            </Link>
-
-            {/* ⭐ CONVERTED: Inbox Text Link to Retro Button Layout */}
-            <Link to="/inbox" className="retro-nav-btn btn-inbox-cyan" onClick={() => setIsOpen(false)}>
-              Inbox
-            </Link>
-
-            <Link to={`/profile/${user.id}`} style={styles.profileLink} onClick={() => setIsOpen(false)}>My Profile</Link>
-            <button onClick={handleLogout} style={styles.logoutBtn}>Log Out</button>
+              </span>
+            </div>
           </>
         ) : (
           <>
-            <Link to="/login" style={styles.profileLink} onClick={() => setIsOpen(false)}>Log In</Link>
-            <Link to="/register" style={styles.navLink} onClick={() => setIsOpen(false)}>Sign Up</Link>
+            <Link to="/login" style={{ color: '#E4E6EB', textDecoration: 'none', fontSize: '13px', fontWeight: '500' }}>Log In</Link>
+            <Link to="/register" style={{ color: '#2F80ED', textDecoration: 'none', fontSize: '13px', fontWeight: '500' }}>Sign Up</Link>
           </>
         )}
       </div>
