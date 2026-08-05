@@ -47,18 +47,18 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [status, setStatus] = useState({ type: '', text: '' });
   
-  // Core Profile Info Parameter States
+  /* Core Profile Info Parameter States */
   const [hometown, setHometown] = useState('');
   const [gender, setGender] = useState('');
   const [meet, setMeet] = useState('');
   const [birthday, setBirthday] = useState('');
   
-  // Advanced Privacy Parameter States
+  /* Advanced Privacy Parameter States */
   const [privacy, setPrivacy] = useState('public');
   const [showHometown, setShowHometown] = useState(true);
   const [allowPMs, setAllowPMs] = useState(true);
 
-  // 📥 LOAD PROFILE & PRIVACY RECORD PARAMETERS ON CANVAS INITIALIZATION
+  /* 📥 LOAD PROFILE & PRIVACY RECORD PARAMETERS ON CANVAS INITIALIZATION */
   useEffect(() => {
     if (!user) return;
     
@@ -90,12 +90,12 @@ export default function Dashboard() {
     loadProfileData();
   }, [user]);
 
-    // 💾 TRANSACTION HANDLER: BUNDLES DATA TO PREVENT PARALLEL OPERATION DROPS
+    /* 💾 TRANSACTION HANDLER: BUNDLES DATA TO PREVENT PARALLEL OPERATION DROPS */
   const handleSaveChanges = async (e) => {
     e.preventDefault();
     setStatus({ type: 'info', text: 'Processing configuration flags...' });
 
-    // 🔞 AGE GATE CHECK PIPELINE
+    /* 🔞 AGE GATE CHECK PIPELINE */
     if (birthday) {
       const birthDate = new Date(birthday);
       const today = new Date();
