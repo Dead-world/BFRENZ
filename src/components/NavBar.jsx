@@ -9,7 +9,7 @@ if (typeof document !== 'undefined') {
     .nav-links-container { display: flex !important; align-items: center !important; gap: 15px !important; }
     .burger-menu-btn { display: none !important; }
     
-    /* 🎨 UNIFIED RETRO ORANGE BUTTONS LAYOUT */
+    /* 🎨 UNIFIED RETRO 3D ORANGE BUTTONS (EXACT DASHBOARD STYLE MATCH) */
     .retro-nav-btn {
       display: inline-flex !important;
       align-items: center !important;
@@ -25,7 +25,7 @@ if (typeof document !== 'undefined') {
       cursor: pointer !important;
       box-shadow: 3px 3px 0px #ffffff !important;
       transition: transform 0.05s ease, box-shadow 0.05s ease !important;
-      background-color: #FF6600 !important; /* ⭐ Unified brand orange backing matrix across all buttons */
+      background-color: #FF6600 !important; /* Standard brand orange backing across all items */
     }
     .retro-nav-btn:active {
       transform: translate(2px, 2px) !important;
@@ -35,15 +35,15 @@ if (typeof document !== 'undefined') {
       filter: brightness(1.1) !important;
     }
 
-    /* 🔔 BELL NOTIFICATION ALERTS OVERRIDE */
+    /* 🔔 UNCHANGED: STANDALONE ORANGE VECTOR Activity BELL */
     .retro-bell-wrapper {
       display: inline-flex !important;
       align-items: center !important;
       padding: 4px !important;
-      color: #FF6600 !important; /* ⭐ Set to orange matching the dashboard color specification */
+      color: #FF6600 !important;
     }
 
-    /* 💬 MATCHING ORANGE MESSENGER TRIGGER BADGE */
+    /* 💬 RETRO CIRCULAR MESSENGER TRIGGER BADGE WITH WHITE SHADOW SEAM */
     .retro-messenger-circle {
       display: inline-flex !important;
       align-items: center !important;
@@ -52,10 +52,10 @@ if (typeof document !== 'undefined') {
       height: 36px !important;
       border-radius: 50% !important;
       background-color: #2F3031 !important;
-      color: #FF6600 !important; /* ⭐ Swapped inside icon graphic to matching brand orange style colors */
+      color: #FF6600 !important;
       cursor: pointer !important;
       border: 2px solid #000000 !important;
-      box-shadow: 2px 2px 0px #ffffff !important;
+      box-shadow: 2px 2px 0px #ffffff !important; /* Adds matching white drop shadow */
       transition: transform 0.05s ease, box-shadow 0.05s ease !important;
       position: relative !important;
     }
@@ -69,7 +69,7 @@ if (typeof document !== 'undefined') {
     .retro-messenger-circle svg {
       width: 20px !important;
       height: 20px !important;
-      fill: currentColor !important; /* Forces vector paths to parse active text coloration values */
+      fill: currentColor !important;
     }
 
     /* 📂 FLAT MODERN MESSENGER DROPDOWN POPUP PANEL */
@@ -122,10 +122,9 @@ if (typeof document !== 'undefined') {
 }
 
 const styles = {
-  nav: { backgroundColor: '#000000', padding: '10px 20px', display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', borderBottom: '2px solid #FF6600', fontFamily: 'Verdana, Arial, sans-serif', position: 'relative' },
+  nav: { backgroundColor: '#000000', padding: '10px 20px', display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignIcons: 'center', borderBottom: '2px solid #FF6600', fontFamily: 'Verdana, Arial, sans-serif', position: 'relative' },
   logoImage: { height: '46px', width: 'auto', display: 'block' },
-  burgerBtn: { backgroundColor: 'transparent', color: '#FF6600', border: '1px solid #FF6600', fontSize: '18px', padding: '4px 10px', cursor: 'pointer', fontWeight: 'bold' },
-  logoutBtn: { backgroundColor: '#FF6600', color: '#ffffff', border: '1px solid #ffffff', padding: '5px 12px', cursor: 'pointer', fontSize: '11px', font0weight: 'bold', textAlign: 'center', textTransform: 'uppercase', fontFamily: 'Courier New, monospace', borderRadius: '3px', boxShadow: '2px 2px 0px #ffffff' }
+  burgerBtn: { backgroundColor: 'transparent', color: '#FF6600', border: '1px solid #FF6600', fontSize: '18px', padding: '4px 10px', cursor: 'pointer', fontWeight: 'bold' }
 };
 
 export default function NavBar() {
@@ -278,19 +277,17 @@ export default function NavBar() {
       <div className={`nav-links-container ${isOpen ? 'open' : ''}`} ref={dropdownRef}>
         {user ? (
           <>
-            {/* ⭐ UPDATED: Converted Home Text Link into blocky Orange Button layout */}
+            {/* 🏠 Home Button */}
             <Link to="/" className="retro-nav-btn" onClick={() => setIsOpen(false)}>Home</Link>
             
-            {/* ⭐ UPDATED: Converted Browse Text Link into blocky Orange Button layout */}
+            {/* 👥 Browse Button */}
             <Link to="/browse" className="retro-nav-btn" onClick={() => setIsOpen(false)}>Browse</Link>
             
-            {/* Dashboard Retro Action Button */}
-            <Link to="/dashboard" className="retro-nav-btn" onClick={() => setIsOpen(false)}>
-              Dashboard
-            </Link>
+            {/* 🎛️ Dashboard Button */}
+            <Link to="/dashboard" className="retro-nav-btn" onClick={() => setIsOpen(false)}>Dashboard</Link>
             
-            {/* ⭐ UPDATED: Orange Colorized Activity Bell Notifications Action Icon */}
-            <Link to="/notifications" className="retro-bell-wrapper" onClick={() => setIsOpen(false)} title="View My Notification Alerts Hub">
+            {/* 🔔 STANDALONE Activity Bell Icon (Remains Unchanged) */}
+            <Link to="/notifications" className="retro-bell-wrapper" onClick={() => setIsOpen(false)} title="View Notifications Hub">
               <div style={{ position: 'relative', display: 'inline-flex', alignItems: 'center', padding: '4px' }} className={unreadCount > 0 ? "bell-alert-active" : ""}>
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
@@ -304,7 +301,7 @@ export default function NavBar() {
               </div>
             </Link>
 
-            {/* ⭐ UPDATED: Orange Colorized Facebook Messenger Dropdown Panel Circle Icon */}
+            {/* 💬 Messenger Trigger Button */}
             <div className="retro-messenger-circle" onClick={toggleDropdownDrawer} title="Toggle Messenger Panel">
               <svg viewBox="0 0 24 24">
                 <path d="M12 2C6.477 2 2 6.145 2 11.26c0 2.915 1.455 5.518 3.733 7.21.194.143.315.367.323.607l.076 2.3c.013.38.384.664.75.545l2.585-.843c.2-.065.418-.046.604.053A10.22 10.22 0 0012 20.52c5.523 0 10-4.146 10-9.26C22 6.145 17.523 2 12 2zm1.03 12.33l-2.12-2.27-4.14 2.27 4.55-4.83 2.12 2.27 4.14-2.27-4.55 4.83z"/>
@@ -312,12 +309,13 @@ export default function NavBar() {
               {recentChats.some(c => c.is_unread) && <span style={{ position: 'absolute', top: '-2px', right: '-2px', width: '8px', height: '8px', backgroundColor: '#FF6600', borderRadius: '50%' }}></span>}
             </div>
 
-            {/* ⭐ UPDATED: Converted My Profile Text Link into blocky Orange Button layout */}
+            {/* 👤 My Profile Button */}
             <Link to={`/profile/${user.id}`} className="retro-nav-btn" onClick={() => setIsOpen(false)}>My Profile</Link>
             
-            <button onClick={handleLogout} style={styles.logoutBtn}>Log Out</button>
+            {/* 🚪 Log Out Button */}
+            <button onClick={handleLogout} className="retro-nav-btn">Log Out</button>
 
-            {/* Flat Chat Drawer Popover overlay mapping */}
+            {/* Flat Chat Popover Drawer */}
             {isDropdownOpen && (
               <div className="messenger-dropdown-panel">
                 <div className="messenger-header-line">
@@ -356,7 +354,7 @@ export default function NavBar() {
           </>
         ) : (
           <>
-            {/* Unauthenticated Viewports Options Fallbacks */}
+            {/* Unauthenticated State Buttons */}
             <Link to="/login" className="retro-nav-btn" onClick={() => setIsOpen(false)}>Log In</Link>
             <Link to="/register" className="retro-nav-btn" onClick={() => setIsOpen(false)}>Sign Up</Link>
           </>
