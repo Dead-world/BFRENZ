@@ -57,13 +57,15 @@ export default function LandingPage() {
     if (data?.user) {
       try {
         // ⭐ AUTOMATIC STATUS UPDATE: Force status to online inside your database schema row
-        await supabase
-          .from("profiles")
-          .update({ 
-            status: "online", 
-            last_seen: new Date().toISOString() 
-          })
-          .eq("User_id", data.user.id);
+        // ⭐ CHECK CASING: Ensure it reads exactly "User_id" with a capital 'U'
+await supabase
+  .from("profiles")
+  .update({ 
+    status: "online", 
+    last_seen: new Date().toISOString() 
+  })
+  .eq("User_id", data.user.id); // <-- Capital 'U' is required
+
           
       } catch (err) {
         console.error("Failed to push online presence marker:", err);
