@@ -193,18 +193,40 @@ export default function NavBar() {
     }
   };
 
-    return (
+  return (
     <nav style={styles.nav}>
-      <div>
-        <Link to={user ? "/" : "/login"}>
+      {/* 🧭 LEFT SIDE TRUNK SECTION: LOGO + NEW FLOATING PILL SEARCH CONTAINER */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flex: 1 }}>
+        <Link to={user ? "/" : "/login"} style={{ display: 'flex', alignItems: 'center' }}>
           <img src="/bfrenzlogo.png" alt="bfrenz" style={styles.logoImage} onError={(e) => { e.target.style.display = 'none'; e.target.parentNode.innerHTML = '<span style="color:#E4E6EB; font-weight:bold; font-size:16px;">bfrenz</span>'; }} />
         </Link>
+        
+        {/* ⭐ NEW INJECTION: Search Box pill placeholder component */}
+        <div className="nav-search-container">
+          <div className="nav-search-wrapper">
+            <span className="nav-search-icon">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+            </span>
+            <input 
+              type="text" 
+              className="nav-search-input" 
+              placeholder="Search bfrenz" 
+            />
+          </div>
+        </div>
       </div>
 
-      {/* ⭐ SECURE SEAM: Only displays the controls if the user session token is present */}
+      {/* ⭐ SECURE MATRIX SEAM: Render operational icon items tray context only under valid tokens sessions */}
       {user && (
         <div className="nav-links-container" ref={dropdownRef}>
           
+          {/* ⭐ NEW INJECTION: Active Blue Highlight Home Button Tab Option */}
+          <Link to="/" className="home-tab-badge" title="Home Feed Matrix">
+            <svg viewBox="0 0 24 24">
+              <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/>
+            </svg>
+          </Link>
+
           {/* 📥 Inbox Icon Badge */}
           <Link to="/inbox" className="circle-nav-badge" title="Inbox">
             <svg viewBox="0 0 24 24"><path d="M12 2C6.477 2 2 6.145 2 11.26c0 2.915 1.455 5.518 3.733 7.21.194.143.315.367.323.607l.076 2.3c.013.38.384.664.75.545l2.585-.843c.2-.065.418-.046.604.053A10.22 10.22 0 0012 20.52c5.523 0 10-4.146 10-9.26C22 6.145 17.523 2 12 2zm1.03 12.33l-2.12-2.27-4.14 2.27 4.55-4.83 2.12 2.27 4.14-2.27-4.55 4.83z"/></svg>
@@ -258,7 +280,7 @@ export default function NavBar() {
               <Link to="/dashboard" className="dropdown-action-item" onClick={() => setIsDropdownOpen(false)}>
                 <div className="action-item-left">
                   <div className="dropdown-icon-circle">
-                    <svg viewBox="0 0 24 24"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58a.49.49 0 00.12-.61l-1.92-3.32a.48.48 0 00-.55-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54a.484.484 0 00-.48-.41h-3.84a.48.48 0 00-.48.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96a.48.48 0 00-.55-.22L2.26 6.97a.48.48 0 00.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58a.49.49 0 00-.12.61l1.92 3.32c.12.22.37.29.55.22l2.39-.96c.5.38(1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.48-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .55-.22l1.92-3.32a.48.48 0 00-.12-.61l-2.03-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg>
+                    <svg viewBox="0 0 24 24"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58a.49.49 0 00.12-.61l-1.92-3.32a.48.48 0 00-.55-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54a.484.484 0 00-.48-.41h-3.84a.48.48 0 00-.48.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96a.48.48 0 00-.55-.22L2.26 6.97a.48.48 0 00.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58a.49.49 0 00-.12.61l1.92 3.32c.12.22.37.29.55.22l2.39-.96c.5.38C1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.48-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .55-.22l1.92-3.32a.48.48 0 00-.12-.61l-2.03-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg>
                   </div>
                   <div>
                     <span className="action-item-title">Settings & Privacy</span>
@@ -310,3 +332,4 @@ export default function NavBar() {
     </nav>
   );
 }
+

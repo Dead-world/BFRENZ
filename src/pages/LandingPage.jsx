@@ -1,270 +1,137 @@
-import { useState, useEffect } from "react";
-import { supabase } from "../supabaseClient";
-import { Link, useNavigate } from "react-router-dom";
-import NavBar from "../components/NavBar";
-import React from 'react';
-import { useAuth } from '../hooks/useAuth';
+import React, { useState } from 'react';
+import { supabase } from '../supabaseClient';
+import { Link, useNavigate } from 'react-router-dom';
 
-export default function LandingPage() {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [user, setUser] = useState(null);
-  const [featuredUsers, setFeaturedUsers] = useState([]);
-  const [index, setIndex] = useState(0);
-  const [totalCount, setTotalCount] = useState(0);
-  const navigate = useNavigate();
-
-  // Load dynamic session data on mount
-  useEffect(() => {
-    async function loadUser() {
-      const { data } = await supabase.auth.getUser();
-      setUser(data?.user || null);
-    }
-    loadUser();
-  }, []);
-
-  // Fetch real user spaces with avatars while pulling aggregate network stats
-  useEffect(() => {
-    async function loadUsers() {
-      const { data, count } = await supabase
-        .from("profiles")
-        .select("User_id, username, avatar_url", { count: 'exact' })
-        .not("avatar_url", "is", null)
-        .limit(10);
-      
-      if (data) setFeaturedUsers(data);
-      if (count) setTotalCount(count);
-    }
-    loadUsers();
-  }, []);
-
-  // Interval loop ticker for featured network rotator
-  useEffect(() => {
-    if (featuredUsers.length === 0) return;
-    const interval = setInterval(() => {
-      setIndex((prev) => (prev + 1) % featuredUsers.length);
-    }, 4000);
-    return () => clearInterval(interval);
-  }, [featuredUsers]);
-
-  // ⭐ FULLY FIXED AUTHENTICATION DISPATCH PIPIELINE
-  async function handleLogin(e) {
-    e.preventDefault();
+if (typeof document !== 'undefined') {
+  const styleEl = document.createElement('style');
+  styleEl.innerHTML = `
+    .login-splash-container { background-color: #18191A; color: #E4E6EB; min-height: 100vh; display: flex; align-items: center; justify-content: center; font-family: 'Segoe UI', sans-serif; padding: 20px; box-sizing: border-box; }
+    .login-box-card { background-color: #242526; border: 1px solid #393A3B; border-radius: 8px; padding: 30px; width: 100%; max-width: 400px; box-shadow: 0 12px 28px rgba(0, 0, 0, 0.2); }
+    .login-logo-header { text-align: center; margin-bottom: 24px; }
+    .login-logo-text { color: #E4E6EB; font-size: 28px; font-weight: bold; letter-spacing: 0.5px; }
     
-    // 1. Guard against uninitialized state values
-    if (!email || !password) {
-      alert("Please provide both an email address and password token.");
-      return;
-    }
+    .login-form-group { margin-bottom: 20px; }
+    .login-label { font-weight: 500; font-size: 14px; color: #B0B3B8; display: block; margin-bottom: 8px; }
+    .login-input { width: 100%; box-sizing: border-box; background-color: #3A3B3C; color: #E4E6EB; border: 1px solid #393A3B; padding: 12px; border-radius: 6px; font-size: 15px; outline: none; transition: border-color 0.2s; }
+    .login-input:focus { border-color: #FF6600; }
+    
+    /* 🚀 SUBMIT BLOCK PANEL */
+    .login-submit-btn { background-color: #FF6600; color: #ffffff; border: none; padding: 12px; width: 100%; font-size: 16px; font-weight: bold; border-radius: 6px; cursor: pointer; transition: background-color 0.2s; margin-top: 8px; }
+    .login-submit-btn:hover { background-color: #E05500; }
+    .login-submit-btn:disabled { background-color: #555555; color: #aaaaaa; cursor: not-allowed; }
+    
+    /* 🔗 RECONSTRUCTED FOOTER PANEL links */
+    .login-footer-redirect { text-align: center; margin-top: 24px; border-top: 1px solid #393A3B; padding-top: 16px; font-size: 14px; }
+    .login-redirect-link { color: #FF6600; text-decoration: none; font-weight: 600; }
+    .login-redirect-link:hover { text-decoration: underline; }
+    
+    .login-status-alert { text-align: center; margin-top: 16px; font-size: 13px; font-weight: 500; color: #E41E3F; }
+  `;
+  document.head.appendChild(styleEl);
+}
+
+export default function LoginPage() {
+  const navigate = useNavigate();
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
+
+  const handleLoginTransaction = async (e) => {
+    e.preventDefault();
+    setErrorMessage('');
+    setIsSubmitting(true); // Lock triggers instantly on submission loop start
 
     try {
-      // 2. Validate user credentials securely with Supabase Auth
-      const { data, error } = await supabase.auth.signInWithPassword({ 
-        email: email.trim(), 
-        password: password 
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: email,
+        password: password,
       });
-      
-      if (error) {
-        alert("Authentication Refused: " + error.message);
-        return;
-      }
+
+      if (error) throw error;
       
       if (data?.user) {
-        try {
-          // 3. ⭐ AUTOMATIC SYNC FORCE: Flips status safely inside your public.profiles table
-          await supabase
-            .from("profiles")
-            .update({ 
-              status: "online", 
-              last_seen: new Date().toISOString() 
-            })
-            .eq("User_id", data.user.id); // Validates exact table key casing parameters
-            
-        } catch (dbErr) {
-          console.error("Database connection trigger update dropped:", dbErr);
-        }
-        
-        // 4. Clean exit: Redirect directly into your bfrenz dashboard workspace shell
-        window.location.href = "/dashboard";
+        // Force database layout indicators to switch presence profile flags to online
+        await supabase
+          .from('profiles')
+          .update({ status: 'online', last_seen: new Date().toISOString() })
+          .eq('User_id', data.user.id);
+          
+        navigate('/');
       }
-    } catch (globalErr) {
-      console.error("Critical login transactional boundary exception: ", globalErr);
-      alert("System connection processing timeout. Please try again.");
+    } catch (err) {
+      console.error("Authentication mapping crash caught:", err);
+      setErrorMessage(err.message || 'Invalid authorization parameters. Please try again.');
+    } finally {
+      // ⭐ FIXED: The compilation lock is cleared inside finally to always release button controls on fault
+      setIsSubmitting(false);
     }
-  }
-
-
-    const styles = {
-    pageWrapper: { backgroundColor: "#000000", minHeight: "100vh", color: "#FFFFFF", display: "flex", flexDirection: "column", fontFamily: "Verdana, Arial, sans-serif" },
-    mainContainer: { flexGrow: 1, width: "100%", maxWidth: "1150px", margin: "25px auto", padding: "20px", backgroundColor: "#0b0b0b", border: "1px solid #FF6600", boxShadow: "0 0 20px rgba(255, 102, 0, 0.15)" },
-    statsHeader: { backgroundColor: "#111111", border: "1px dashed #FF6600", padding: "8px 15px", marginBottom: "20px", display: "flex", justifyContent: "space-between", flexWrap: "wrap", gap: "10px", fontSize: "11px", letterSpacing: "0.5px" },
-    heroBox: { borderLeft: "4px solid #FF6600", padding: "15px 20px", marginBottom: "25px", backgroundColor: "#161616", borderRadius: "0 4px 4px 0" },
-    gridWrapper: { display: "flex", flexWrap: "wrap", gap: "25px" },
-    leftSidebar: { flex: "1 1 320px" },
-    rightMediaArea: { flex: "1 1 600px", display: "flex", flexDirection: "column", gap: "20px" },
-    contentBox: { border: "1px solid #FF6600", marginBottom: "20px", backgroundColor: "#111111", borderRadius: "2px" },
-    boxTitle: { backgroundColor: "#FF6600", color: "#000000", padding: "6px 12px", fontSize: '11px', fontWeight: 'bold', margin: 0, textTransform: "uppercase", letterSpacing: "1px" },
-    inputField: { width: "100%", padding: "8px", fontSize: "12px", border: "1px solid #333333", backgroundColor: "#1a1a1a", color: "#ffffff", fontFamily: "Verdana", outline: "none", marginBottom: "10px" },
-    primaryBtn: { backgroundColor: "#FF6600", color: "#000000", border: "1px solid #FF6600", padding: "6px 14px", fontSize: "11px", cursor: "pointer", fontWeight: "bold", textTransform: "uppercase", letterSpacing: "0.5px", transition: "all 0.2s" }
   };
 
-  return (
-    <div style={styles.pageWrapper}>
-      <NavBar />
-
-      <main style={styles.mainContainer}>
+    return (
+    <div className="login-splash-container">
+      <div className="login-box-card">
         
-        {/* PREMIUM NETWORK STATISTICAL TRACKER BAR */}
-        <div style={styles.statsHeader}>
-          <span style={{ color: "#888888" }}>NETWORK ADDRESS: <b style={{ color: "#ffffff" }}>BFRENZ // GLOBAL</b></span>
-          <span style={{ color: "#FF6600", fontWeight: "bold" }}>PROFILES ENROLLED: <span style={{ color: "#ffffff" }}>{totalCount || "2,114"}</span></span>
-        </div>
-        
-        {/* HERO BRANDING DESCRIPTION BLOCK */}
-        <div style={styles.heroBox}>
-          <h1 style={{ fontSize: "20px", fontWeight: "bold", color: "#FF6600", margin: "0 0 6px 0", letterSpacing: "0.5px" }}>
-            The Nostalgic Web, Re-Engineered.
-          </h1>
-          <p style={{ fontSize: "11px", color: "#b3b3b3", lineHeight: "1.6", margin: 0 }}>
-            Welcome back to your blank slate. Customize your full-screen profile canvas with raw markup styles, share your aesthetic timeline, and interface across independent music tracks, custom text bulletins, and community visual highlights. bfrenz preserves the authentic boxy soul of 2005 MySpace—accelerated inside a professional ultra-fast deployment node.
-          </p>
+        {/* Logo Title Bar */}
+        <div className="login-logo-header">
+          <span className="login-logo-text">bfrenz</span>
         </div>
 
-        <div style={styles.gridWrapper}>
-
-          {/* LEFT SIDEBAR CONTROLS */}
-          <div style={styles.leftSidebar}>
-            
-            {/* CLEAN AUTH PANEL */}
-            {!user ? (
-              <div style={styles.contentBox}>
-                <h2 style={styles.boxTitle}>Member Login</h2>
-             {/* ⭐ FORM ELEMENT SUBMIT ANCHOR VIEW */}
-<form onSubmit={handleLogin}>
-  {/* Ensure your input fields map onChange hook updates correctly to email and password states */}
-  <input 
-    type="email" 
-    value={email} 
-    onChange={(e) => setEmail(e.target.value)} 
-    placeholder="Email Address"
-    required
-    className="myspace-input"
-  />
-  <input 
-    type="password" 
-    value={password} 
-    onChange={(e) => setPassword(e.target.value)} 
-    placeholder="••••••••"
-    required
-    className="myspace-input"
-  />
-
-  {/* ⭐ RESTORED STYLED SUBMIT BUTTON BLOCK */}
-<button 
-  type="submit" 
-  style={{
-    backgroundColor: '#FF6600', 
-    color: '#ffffff', 
-    border: '1px solid #000000', 
-    padding: '6px 15px', 
-    fontSize: '12px',
-    fontWeight: 'bold', 
-    cursor: 'pointer',
-    textTransform: 'uppercase',
-    marginTop: '10px',
-    width: '100%',
-    fontFamily: 'Verdana, Arial, sans-serif'
-  }}
->
-  Log In »
-</button>
-
-</form>
-
-{/* ⭐ RESTORED SIGN UP NAVIGATION LINK BLOCK */}
-<div style={{ textAlign: 'center', marginTop: '15px', paddingTop: '10px', borderTop: '1px dotted #FF6600', fontFamily: 'Verdana' }}>
-  <span style={{ fontSize: '11px', color: '#666666' }}>New to bfrenz? </span>
-  <Link 
-    to="/register" 
-    style={{ color: '#FF6600', fontSize: '11px', fontWeight: 'bold', textDecoration: 'none' }}
-    title="Create a fresh bfrenz profile layout room space"
-  >
-    Sign Up for an Account Now »
-  </Link>
-</div>
-
-
-              </div>
-            ) : (
-              <div style={{ ...styles.contentBox, backgroundColor: "#161616", borderStyle: "dashed" }}>
-                <h2 style={{ ...styles.boxTitle, backgroundColor: "#222222", color: "#FF6600" }}>Active Connection Session</h2>
-                <div style={{ padding: "15px", fontSize: "11px" }}>
-                  <p style={{ margin: "0 0 10px 0", color: "#b3b3b3" }}>Securely synchronized as: <br/><b style={{ color: "#ffffff", fontSize: "12px", fontFamily: "monospace" }}>{user.email}</b></p>
-                  <button onClick={() => navigate("/dashboard")} style={styles.primaryBtn}>Enter Dashboard Control Room</button>
-                </div>
-              </div>
-            )}
-
-            {/* HIGH-CONTRAST ROTATING NETWORK SPOTLIGHT */}
-            <div style={styles.contentBox}>
-              <h3 style={styles.boxTitle}>Cool New People Space</h3>
-              <div style={{ padding: "20px", textAlign: "center", backgroundColor: "#131313" }}>
-                {featuredUsers.length > 0 ? (
-                  <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "10px" }}>
-                    <Link to={`/profile/${featuredUsers[index].User_id}`} style={{ color: "#ffffff", fontWeight: "bold", fontSize: "13px", textDecoration: "none", borderBottom: "1px dotted #FF6600", paddingBottom: "2px", letterSpacing: "0.5px" }}>
-                      {featuredUsers[index].username}
-                    </Link>
-                    <div style={{ padding: "4px", backgroundColor: "#000000", border: "1px solid #FF6600", display: "inline-block" }}>
-                      <img src={featuredUsers[index].avatar_url} alt="Showcase Space" style={{ width: "130px", height: "130px", objectFit: "cover", display: "block" }} />
-                    </div>
-                    <button onClick={() => navigate(`/profile/${featuredUsers[index].User_id}`)} style={{ ...styles.primaryBtn, padding: "3px 10px", fontSize: "10px", marginTop: "4px" }}>
-                      Enter Profile Space »
-                    </button>
-                  </div>
-                ) : (
-                  <p style={{ fontSize: "11px", color: "#666666", margin: 0, fontStyle: "italic" }}>Mapping real-time profile nodes...</p>
-                )}
-              </div>
-            </div>
+        <form onSubmit={handleLoginTransaction}>
+          {/* Email Element Slot */}
+          <div className="login-form-group">
+            <label className="login-label">Email Address</label>
+            <input 
+              type="email" 
+              className="login-input" 
+              required 
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="Enter your registered email"
+              disabled={isSubmitting}
+            />
           </div>
 
-          {/* RIGHT MEDIA EXPLORATION DIRECTORIES */}
-          <div style={styles.rightMediaArea}>
-            
-            {/* MUSIC SECTION CARD */}
-            <div style={styles.contentBox}>
-              <h3 style={styles.boxTitle}> bfrenz Independent Audio Library</h3>
-              <div style={{ padding: "15px 20px" }}>
-                <p style={{ margin: "0 0 12px 0", fontSize: "11px", color: "#b3b3b3", lineHeight: "1.5" }}>
-                  Discover raw background mp3 tracks uploaded by developers, musicians, and creators across the grid directory. Select and preview track streams instantly to follow individual workspace rooms.
-                </p>
-                <button onClick={() => navigate("/music")} style={styles.primaryBtn}>
-                  ▶ Launch Music Explorer Matrix
-                </button>
-              </div>
-            </div>
-
-            {/* VIDEOS SECTION CARD */}
-            <div style={styles.contentBox}>
-              <h3 style={styles.boxTitle}>Community Video Showcase Channel</h3>
-              <div style={{ padding: "15px 20px" }}>
-                <p style={{ margin: "0 0 12px 0", fontSize: "11px", color: "#b3b3b3", lineHeight: "1.5" }}>
-                  Watch creative community highlights, interactive media logs, and design portfolio features. Parse and embed standard YouTube video components directly into your custom profile canvas grids.
-                </p>
-                <button onClick={() => navigate("/videos")} style={styles.primaryBtn}>
-                  ▶ Launch Video Media Portal
-                </button>
-              </div>
-            </div>
-
+          {/* Password Element Slot */}
+          <div className="login-form-group">
+            <label className="login-label">Password</label>
+            <input 
+              type="password" 
+              className="login-input" 
+              required 
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="Enter your account password"
+              disabled={isSubmitting}
+            />
           </div>
-        </div>
-      </main>
 
-      {/* SOLID HIGH-CONTRAST FOOTER BLOCK */}
-      <footer style={{ backgroundColor: "#111111", color: "#888888", textAlign: "center", padding: "12px", fontSize: "10px", borderTop: "1px solid #FF6600", width: "100%", letterSpacing: "1px" }}>
-        © {new Date().getFullYear()} BFRENZ — <span style={{ color: "#FF6600", fontWeight: "bold" }}>A PLACE FOR FRIENDS</span>
-      </footer>
+          {/* Submit Trigger Execution Action Button */}
+          <button 
+            type="submit" 
+            className="login-submit-btn" 
+            disabled={isSubmitting}
+          >
+            {isSubmitting ? 'Authenticating Matrix...' : 'Log In'}
+          </button>
+
+          {/* Error Message Dispatches */}
+          {errorMessage && (
+            <div className="login-status-alert">
+              ⚠️ {errorMessage}
+            </div>
+          )}
+        </form>
+
+        {/* ⭐ RESTORED REDIRECTION FOOTER LINK */}
+        <div className="login-footer-redirect">
+          <span>New to the ecosystem? </span>
+          <Link to="/register" className="login-redirect-link">
+            Sign Up for an Account Now »
+          </Link>
+        </div>
+
+      </div>
     </div>
   );
 }
