@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import { supabase } from '../supabaseClient';
-import NavBar from '../components/NavBar'; // ⭐ Ensures your updated navbar is rendered up top
+import NavBar from '../components/NavBar';
 
 if (typeof document !== 'undefined') {
   const styleEl = document.createElement('style');
@@ -11,7 +11,7 @@ if (typeof document !== 'undefined') {
     .settings-card { background-color: #242526; border: 1px solid #393A3B; border-radius: 8px; padding: 20px; margin-bottom: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
     .card-title { font-size: 18px; font-weight: bold; margin-bottom: 16px; color: #ffffff; border-bottom: 1px solid #393A3B; padding-bottom: 8px; display: flex; align-items: center; gap: 8px; }
     
-    /* Input & Textarea Elements */
+    /* Form Element Inputs */
     .form-group { margin-bottom: 16px; }
     .form-label { font-weight: 500; font-size: 14px; color: #ffffff; display: block; margin-bottom: 6px; }
     .form-input { width: 100%; box-sizing: border-box; background-color: #3A3B3C; color: #E4E6EB; border: 1px solid #4E4F50; padding: 10px; border-radius: 6px; font-size: 14px; outline: none; }
@@ -19,17 +19,23 @@ if (typeof document !== 'undefined') {
     .form-textarea { width: 100%; box-sizing: border-box; background-color: #3A3B3C; color: #E4E6EB; border: 1px solid #4E4F50; padding: 10px; border-radius: 6px; font-size: 14px; outline: none; min-height: 80px; resize: vertical; }
     .form-textarea:focus { border-color: #2F80ED; }
     
-    /* Code and Media Styling Overrides */
     .code-input { font-family: 'Courier New', Courier, monospace !important; background-color: #1C1D1E !important; border-color: #393A3B !important; font-size: 13px !important; }
     
-    /* Layout Selector and Toggle Toggles */
+    /* 📁 FILE UPLOAD ROW ALIGNMENTS */
+    .file-upload-row { display: flex; align-items: center; gap: 12px; margin-top: 4px; }
+    .custom-file-btn { background-color: #3A3B3C; color: #E4E6EB; border: 1px solid #4E4F50; padding: 8px 16px; font-size: 13px; font-weight: 600; border-radius: 6px; cursor: pointer; transition: background-color 0.2s; display: inline-flex; align-items: center; gap: 6px; }
+    .custom-file-btn:hover { background-color: #4E4F50; }
+    .file-status-label { font-size: 12px; color: #B0B3B8; font-family: monospace; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 280px; }
+    .file-hidden { display: none; }
+
+    /* Privacy Grid Layout Styles */
     .setting-row { display: flex; align-items: flex-start; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid #2F3031; }
     .setting-info { max-width: 75%; }
     .setting-label { font-weight: 500; font-size: 15px; color: #ffffff; display: block; }
     .setting-desc { font-size: 12px; color: #B0B3B8; margin-top: 2px; }
     .privacy-select { background-color: #3A3B3C; color: #E4E6EB; border: 1px solid #4E4F50; padding: 8px 12px; border-radius: 6px; cursor: pointer; outline: none; font-size: 14px; }
     
-    /* Slider switches */
+    /* Sliding Toggle Mechanisms */
     .switch-label { position: relative; display: inline-block; width: 44px; height: 24px; cursor: pointer; }
     .switch-label input { opacity: 0; width: 0; height: 0; }
     .switch-slider { position: absolute; top: 0; left: 0; right: 0; bottom: 0; background-color: #3A3B3C; transition: .3s; border-radius: 24px; }
@@ -50,33 +56,37 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [status, setStatus] = useState({ type: '', text: '' });
   
-  /* ⚙️ Core Profile Space Info States */
+  /* Core Account Bio Parameter States */
   const [aboutMe, setAboutMe] = useState('');
   const [meet, setMeet] = useState('');
   const [gender, setGender] = useState('');
   const [hometown, setHometown] = useState('');
   const [birthday, setBirthday] = useState('');
   
-  /* 📚 Expanded Interests States */
+  /* Expanded Interests Form States */
   const [interestsGeneral, setInterestsGeneral] = useState('');
   const [interestsMusic, setInterestsMusic] = useState('');
   
-  /* 🎨 HTML/CSS Custom Layout Injection States */
+  /* HTML/CSS Layout Manipulation States */
   const [customHtml, setCustomHtml] = useState('');
   const [customCss, setCustomCss] = useState('');
   
-  /* 🎵 Media Embedding Link Pipeline States */
+  /* Dynamic Media Path String Pointers States */
   const [profileSongUrl, setProfileSongUrl] = useState('');
+  const [profileMp4Url, setProfileMp4Url] = useState('');
   const [youtubeVideoUrl, setYoutubeVideoUrl] = useState('');
   const [soundcloudUrl, setSoundcloudUrl] = useState('');
-  const [profileMp4Url, setProfileMp4Url] = useState('');
+
+  /* Dynamic File Status Labels Tracking States */
+  const [mp3UploadState, setMp3UploadState] = useState('No file selected');
+  const [mp4UploadState, setMp4UploadState] = useState('No file selected');
   
-  /* 🛡️ Privacy Controls Parameter Matrix States */
+  /* Advanced Privacy Options States */
   const [privacy, setPrivacy] = useState('public');
   const [showHometown, setShowHometown] = useState(true);
   const [allowPMs, setAllowPMs] = useState(true);
 
-  /* 📥 LOAD PROFILE METADATA RECORD FROM SCHEMA CACHE */
+  /* 📥 LOAD PROFILE ROW RECORD UPON COMPONENT INITIALIZATION */
   useEffect(() => {
     if (!user) return;
     
@@ -106,9 +116,12 @@ export default function Dashboard() {
           setPrivacy(data.profile_privacy || 'public');
           setShowHometown(data.show_hometown !== false);
           setAllowPMs(data.allow_private_messages !== false);
+
+          if (data.profile_song_url) setMp3UploadState('Linked successfully');
+          if (data.profile_mp4_url) setMp4UploadState('Linked successfully');
         }
       } catch (err) {
-        console.error('Failed to parse database environment parameters:', err);
+        console.error('Failed to parse active database profiles record:', err);
       } finally {
         setLoading(false);
       }
@@ -117,12 +130,51 @@ export default function Dashboard() {
     loadProfileData();
   }, [user]);
 
-    /* 💾 TRANSACTION UPDATE HANDLER */
+    /* 🛰️ SUPABASE STORAGE MULTIPART ROUTING ENGINE (SONGS & VIDEOS BUCKETS) */
+  const handleFileUpload = async (event, type) => {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const setStatusLabel = type === 'mp3' ? setMp3UploadState : setMp4UploadState;
+    const targetBucket = type === 'mp3' ? 'songs' : 'videos';
+    
+    setStatusLabel(`Uploading to '${targetBucket}'...`);
+
+    try {
+      const fileExtension = file.name.split('.').pop();
+      const fileRoute = `${user.id}/${type}-${Date.now()}.${fileExtension}`;
+
+      const { data, error: uploadError } = await supabase.storage
+        .from(targetBucket)
+        .upload(fileRoute, file, { cacheControl: '3600', upsert: true });
+
+      if (uploadError) throw uploadError;
+
+      const { data: publicUrlData } = supabase.storage
+        .from(targetBucket)
+        .getPublicUrl(fileRoute);
+
+      const generatedPublicUrl = publicUrlData.publicUrl;
+
+      if (type === 'mp3') {
+        setProfileSongUrl(generatedPublicUrl);
+        setStatusLabel(`Uploaded to songs: ${file.name}`);
+      } else {
+        setProfileMp4Url(generatedPublicUrl);
+        setStatusLabel(`Uploaded to videos: ${file.name}`);
+      }
+    } catch (err) {
+      console.error(err);
+      setStatusLabel('Upload aborted.');
+      setStatus({ type: 'error', text: `Storage streaming failed: ${err.message}` });
+    }
+  };
+
+  /* 💾 DB TRANSACTION HANDLER & AGE GATE SCRIPT PIPELINE */
   const handleSaveChanges = async (e) => {
     e.preventDefault();
-    setStatus({ type: 'info', text: 'Processing dashboard updates...' });
+    setStatus({ type: 'info', text: 'Saving account parameters...' });
 
-    /* 🔞 STRICT 16+ AGE GATE VERIFICATION CHECK */
     if (birthday) {
       const birthDate = new Date(birthday);
       const today = new Date();
@@ -132,15 +184,14 @@ export default function Dashboard() {
         age--;
       }
       if (age < 16) {
-        setStatus({ type: 'error', text: 'Access Denied: You must be 16 years or older to modify configuration parameters.' });
+        setStatus({ type: 'error', text: 'Access Denied: Core account operations require an age parameter of 16 or higher.' });
         return;
       }
     }
 
-    /* 🛡️ SCRIPT INJECTION SANITIZATION SYSTEM */
     const dangerousHtmlRegex = /<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>|<iframe\b[^<]*(?:(?!<\/iframe>)<[^<]*)*<\/iframe>|on\w+\s*=/gi;
     if (dangerousHtmlRegex.test(customHtml)) {
-      setStatus({ type: 'error', text: 'Security Exception: JavaScript scripts, execution triggers, or raw iFrames are blocked.' });
+      setStatus({ type: 'error', text: 'Security Exception: Banned code structure caught inside custom HTML container.' });
       return;
     }
 
@@ -168,9 +219,9 @@ export default function Dashboard() {
         .eq('User_id', user.id);
 
       if (error) throw error;
-      setStatus({ type: 'success', text: 'All space information, media, and privacy configurations applied successfully!' });
+      setStatus({ type: 'success', text: 'All information, file mappings, and visibility flags applied successfully!' });
     } catch (err) {
-      setStatus({ type: 'error', text: 'Failed to synchronize row matrix properties.' });
+      setStatus({ type: 'error', text: 'Failed to push row updates to Supabase.' });
       console.error(err);
     }
   };
@@ -179,242 +230,139 @@ export default function Dashboard() {
 
     return (
     <div className="dashboard-page-wrapper">
-      {/* 🧭 Navbar rendered up top */}
       <NavBar />
       
       <div className="dashboard-container">
         <form onSubmit={handleSaveChanges}>
           
-          {/* CARD A: ORIGINAL ACCOUNT REGRESTRATION & BIO PROFILE FIELDS */}
+          {/* CARD A: CORE PROFILE DETAILS MANAGEMENT */}
           <div className="settings-card">
             <h2 className="card-title">⚙️ Space Manager Settings</h2>
-            
             <div className="form-group">
               <label className="form-label">About Me (Bio Description)</label>
-              <textarea 
-                className="form-textarea" 
-                value={aboutMe} 
-                onChange={(e) => setAboutMe(e.target.value)} 
-                placeholder="Tell users looking up your profile grid about yourself..."
-              />
+              <textarea className="form-textarea" value={aboutMe} onChange={(e) => setAboutMe(e.target.value)} placeholder="Tell users looking up your profile grid about yourself..." />
             </div>
-
             <div className="form-group">
               <label className="form-label">Who I'd Like to Meet</label>
-              <textarea 
-                className="form-textarea" 
-                value={meet} 
-                onChange={(e) => setMeet(e.target.value)} 
-                placeholder="Describe who you want to build network connections with..."
-              />
+              <textarea className="form-textarea" value={meet} onChange={(e) => setMeet(e.target.value)} placeholder="Describe who you want to build network connections with..." />
             </div>
-
             <div className="form-group">
               <label className="form-label">Gender Identity</label>
-              <input 
-                type="text" 
-                className="form-input" 
-                value={gender} 
-                onChange={(e) => setGender(e.target.value)} 
-                placeholder="e.g. Non-binary, Male, Female"
-              />
+              <input type="text" className="form-input" value={gender} onChange={(e) => setGender(e.target.value)} placeholder="e.g. Non-binary, Male, Female" />
             </div>
-
             <div className="form-group">
               <label className="form-label">Hometown Location</label>
-              <input 
-                type="text" 
-                className="form-input" 
-                value={hometown} 
-                onChange={(e) => setHometown(e.target.value)} 
-                placeholder="e.g. Los Angeles, CA"
-              />
+              <input type="text" className="form-input" value={hometown} onChange={(e) => setHometown(e.target.value)} placeholder="e.g. Los Angeles, CA" />
             </div>
-
             <div className="form-group">
               <label className="form-label">Birthday (Age Verification Required)</label>
-              <input 
-                type="date" 
-                className="form-input" 
-                value={birthday} 
-                onChange={(e) => setBirthday(e.target.value)} 
-              />
+              <input type="date" className="form-input" value={birthday} onChange={(e) => setBirthday(e.target.value)} />
             </div>
           </div>
 
-          {/* CARD B: USER INTERST AND MUSIC FIELDS */}
+          {/* CARD B: USER CATEGORIZED INTERESTS TEXTAREAS */}
           <div className="settings-card">
             <h2 className="card-title">🏷️ Interests Category Categories</h2>
-            
             <div className="form-group">
               <label className="form-label">General Interests</label>
-              <textarea 
-                className="form-textarea" 
-                value={interestsGeneral} 
-                onChange={(e) => setInterestsGeneral(e.target.value)} 
-                placeholder="e.g. Coding, Retro Design, Web Design, Skateboarding..."
-              />
+              <textarea className="form-textarea" value={interestsGeneral} onChange={(e) => setInterestsGeneral(e.target.value)} placeholder="e.g. Coding, Retro Design, Skateboarding..." />
             </div>
-
             <div className="form-group">
               <label className="form-label">Music Interests & Favorite Bands</label>
-              <textarea 
-                className="form-textarea" 
-                value={interestsMusic} 
-                onChange={(e) => setInterestsMusic(e.target.value)} 
-                placeholder="e.g. Synthwave, Chiptunes, Punk Rock, Vaporwave..."
-              />
+              <textarea className="form-textarea" value={interestsMusic} onChange={(e) => setInterestsMusic(e.target.value)} placeholder="e.g. Synthwave, Chiptunes, Punk Rock..." />
             </div>
           </div>
 
-          {/* CARD C: RETRO CODE OVERRIDES (HTML/CSS) */}
+          {/* CARD C: RETRO ENVIRONMENT CUSTOM LAYOUT CODEBOXES */}
           <div className="settings-card">
             <h2 className="card-title">🎨 Space Layout Customization</h2>
-            
             <div className="form-group">
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
                 <label className="form-label" style={{ marginBottom: 0 }}>Custom HTML Sandbox Block</label>
                 <span style={{ fontSize: '11px', color: '#B0B3B8' }}>Unsafe tags disabled</span>
               </div>
-              <textarea 
-                className="form-textarea code-input" 
-                style={{ color: '#A2E35C' }}
-                value={customHtml} 
-                onChange={(e) => setCustomHtml(e.target.value)} 
-                placeholder="<div><h3>Custom container item header!</h3></div>"
-              />
+              <textarea className="form-textarea code-input" style={{ color: '#A2E35C' }} value={customHtml} onChange={(e) => setCustomHtml(e.target.value)} placeholder="<div><h3>Custom container item header!</h3></div>" />
             </div>
-
             <div className="form-group">
               <label className="form-label">Custom CSS Overrides Block</label>
-              <textarea 
-                className="form-textarea code-input" 
-                style={{ color: '#A2E35C' }}
-                value={customCss} 
-                onChange={(e) => setCustomCss(e.target.value)} 
-                placeholder=".profile-sidebar { background: linear-gradient(cyan, magenta); }"
-              />
+              <textarea className="form-textarea code-input" style={{ color: '#A2E35C' }} value={customCss} onChange={(e) => setCustomCss(e.target.value)} placeholder=".profile-sidebar { background: linear-gradient(cyan, magenta); }" />
             </div>
           </div>
 
-          {/* CARD D: EMBEDDED MEDIA CAPTURE HUB */}
+          {/* CARD D: FILE REPLICATION AUDIO & VIDEO MEDIA HUBS */}
           <div className="settings-card">
             <h2 className="card-title">🎵 Media Showcase Hub</h2>
             
+            {/* MP3 Native Audio Bucket Stream Upload Box */}
             <div className="form-group">
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
-                <label className="form-label" style={{ marginBottom: 0 }}>Profile Theme Song Track</label>
-                <span style={{ fontSize: '11px', color: '#00BCD4', fontWeight: 'bold' }}>Direct .mp3 Link</span>
+              <label className="form-label">Profile Theme Song Audio Upload (.mp3)</label>
+              <div className="file-upload-row">
+                <label className="custom-file-btn">
+                  📁 Choose Audio File
+                  <input type="file" accept="audio/mp3,audio/mpeg" className="file-hidden" onChange={(e) => handleFileUpload(e, 'mp3')} />
+                </label>
+                <span className="file-status-label" style={{ color: profileSongUrl ? '#00BCD4' : '#B0B3B8' }}>{mp3UploadState}</span>
               </div>
-              <input 
-                type="url" 
-                className="form-input code-input" 
-                style={{ color: '#00BCD4' }}
-                value={profileSongUrl} 
-                onChange={(e) => setProfileSongUrl(e.target.value)} 
-                placeholder="https://yourdomain.com"
-              />
             </div>
 
+            {/* MP4 Native Video Bucket Stream Upload Box */}
             <div className="form-group">
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
-                <label className="form-label" style={{ marginBottom: 0 }}>Featured YouTube Video Embed</label>
-                <span style={{ fontSize: '11px', color: '#FF0000', fontWeight: 'bold' }}>Watch Link</span>
+              <label className="form-label">Featured Video Showcase Upload (.mp4)</label>
+              <div className="file-upload-row">
+                <label className="custom-file-btn">
+                  🎬 Choose Video File
+                  <input type="file" accept="video/mp4,video/quicktime" className="file-hidden" onChange={(e) => handleFileUpload(e, 'mp4')} />
+                </label>
+                <span className="file-status-label" style={{ color: profileMp4Url ? '#6A5ACD' : '#B0B3B8' }}>{mp4UploadState}</span>
               </div>
-              <input 
-                type="text" 
-                className="form-input code-input" 
-                style={{ color: '#FF0000' }}
-                value={youtubeVideoUrl} 
-                onChange={(e) => setYoutubeVideoUrl(e.target.value)} 
-                placeholder="https://youtube.com"
-              />
             </div>
 
+            {/* Social Integration Linking Cards Slots */}
             <div className="form-group">
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
-                <label className="form-label" style={{ marginBottom: 0 }}>SoundCloud Track Resource</label>
-                <span style={{ fontSize: '11px', color: '#FF5500', fontWeight: 'bold' }}>URL Link</span>
-              </div>
-              <input 
-                type="url" 
-                className="form-input code-input" 
-                style={{ color: '#FF5500' }}
-                value={soundcloudUrl} 
-                onChange={(e) => setSoundcloudUrl(e.target.value)} 
-                placeholder="https://soundcloud.com"
-              />
+              <label className="form-label">Featured YouTube Video Embed Link</label>
+              <input type="text" className="form-input code-input" style={{ color: '#FF0000' }} value={youtubeVideoUrl} onChange={(e) => setYoutubeVideoUrl(e.target.value)} placeholder="https://youtube.com" />
             </div>
-
             <div className="form-group">
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
-                <label className="form-label" style={{ marginBottom: 0 }}>Featured Video Track Showcase</label>
-                <span style={{ fontSize: '11px', color: '#6A5ACD', fontWeight: 'bold' }}>Direct .mp4 Link</span>
-              </div>
-              <input 
-                type="url" 
-                className="form-input code-input" 
-                style={{ color: '#6A5ACD' }}
-                value={profileMp4Url} 
-                onChange={(e) => setProfileMp4Url(e.target.value)} 
-                placeholder="https://yourdomain.com"
-              />
+              <label className="form-label">SoundCloud Track Resource Link</label>
+              <input type="url" className="form-input code-input" style={{ color: '#FF5500' }} value={soundcloudUrl} onChange={(e) => setSoundcloudUrl(e.target.value)} placeholder="https://soundcloud.com" />
             </div>
           </div>
 
-          {/* CARD E: ADVANCED VISIBILITY AND NETWORK PRIVACY SETTINGS */}
+          {/* CARD E: ADVANCED PRIVACY AND VISIBILITY CONTROL CHANNELS */}
           <div className="settings-card">
             <h2 className="card-title">🛡️ Privacy & Profile Settings</h2>
-            
             <div className="setting-row">
               <div className="setting-info">
                 <span className="setting-label">Profile Lookup Visibility</span>
-                <span className="setting-desc">Control who is permitted to look up your profile parameters across the lookup matrix.</span>
+                <span className="setting-desc">Control who is permitted to look up your details inside the lookup matrix.</span>
               </div>
-              <select 
-                className="privacy-select" 
-                value={privacy} 
-                onChange={(e) => setPrivacy(e.target.value)}
-              >
+              <select className="privacy-select" value={privacy} onChange={(e) => setPrivacy(e.target.value)}>
                 <option value="public">Public (Everyone)</option>
                 <option value="friends">Friends Only</option>
                 <option value="private">Private (Only Me)</option>
               </select>
             </div>
-
             <div className="setting-row">
               <div className="setting-info">
                 <span className="setting-label">Display Hometown Location</span>
                 <span className="setting-desc">Show your hometown coordinate information fields on your public profile card canvas.</span>
               </div>
               <label className="switch-label">
-                <input 
-                  type="checkbox" 
-                  checked={showHometown} 
-                  onChange={(e) => setShowHometown(e.target.checked)}
-                />
+                <input type="checkbox" checked={showHometown} onChange={(e) => setShowHometown(e.target.checked)} />
                 <span className="switch-slider"></span>
               </label>
             </div>
-
             <div className="setting-row">
               <div className="setting-info">
                 <span className="setting-label">Allow Direct Private Messaging</span>
-                <span className="setting-desc">Permit other users to drop raw string private mail packages inside your inbox feed card matrix.</span>
+                <span className="setting-desc">Permit other members to deliver raw string inbox mail items directly to your cards feed.</span>
               </div>
               <label className="switch-label">
-                <input 
-                  type="checkbox" 
-                  checked={allowPMs} 
-                  onChange={(e) => setAllowPMs(e.target.checked)}
-                />
+                <input type="checkbox" checked={allowPMs} onChange={(e) => setAllowPMs(e.target.checked)} />
                 <span className="switch-slider"></span>
               </label>
             </div>
-
-            <button className="save-settings-btn" type="submit">
-              Save All Configurations
-            </button>
+            <button type="submit" className="save-settings-btn">Save All Configurations</button>
 
             {status.text && (
               <div className="status-msg" style={{ color: status.type === 'success' ? '#4BAC4E' : status.type === 'error' ? '#E41E3F' : '#B0B3B8' }}>
@@ -422,6 +370,7 @@ export default function Dashboard() {
               </div>
             )}
           </div>
+
         </form>
       </div>
     </div>
