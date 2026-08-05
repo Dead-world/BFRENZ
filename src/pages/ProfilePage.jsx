@@ -121,7 +121,74 @@ export default function ProfilePage({ currentUserId }) {
     }
   }, [routeProfileId, currentUserId, user, authLoading]);
 
-    /* 💾 TRANSACTION HANDLER: WRITE NEW MAIN PARENT WALL POST */
+  
+  const fetchProfileData = async () => {
+    try {
+      setLoading(true);
+      const { data: profileRecord, error: profileError } = await supabase
+        .from('profiles')
+        .select('User_id, username, avatar_url, hometown, gender, birthday, status, status_message, meet, about_me, interests_general, interests_music, custom_html, custom_css, profile_song_url, youtube_video_url, soundcloud_url, profile_mp4_url')
+        .eq('User_id', activeProfileId)
+        .single();
+        
+      if (profileError) throw profileError;
+      setProfile(profileRecord);
+
+      // Inject Scoped Custom Style Layer Override Rule
+      if (profileRecord.custom_css && typeof document !== 'undefined') {
+        const oldStyleElement = document.getElementById(`user-styles-${activeProfileId}`);
+        if (oldStyleElement) oldStyleElement.remove();
+        const newStyleElement = document.createElement('style');
+        newStyleElement.id = `user-styles-${activeProfileId}`;
+        newStyleElement.innerHTML = profileRecord.custom_css;
+        document.head.appendChild(newStyleElement);
+      }
+
+      // Fetch dynamic bulletins and blog posts logs rows records
+      const { data: bulletinsData } = await supabase.from('bulletins').select('*').eq('user_id', activeProfileId).order('created_at', { ascending: false });
+      setBulletins(bulletinsData || []);
+
+      const { data: blogsData } = await supabase.from('blogs').select('*').eq('author_id', activeProfileId).order('created_at', { ascending: false });
+      setBlogs(blogsData || []);
+
+      // Pull active comments stream log lines sorted conversationally (Ascending)
+      const { data: commentsRecords } = await supabase.from('comments').select('*, profiles!comments_user_id_fkey(username, avatar_url)').eq('profile_id', activeProfileId).order('created_at', { ascending: true });
+      
+      if (commentsRecords) {
+        const parentComments = commentsRecords.filter(c => !c.parent_id);
+        const replyComments = commentsRecords.filter(c => c.parent_id);
+
+        const organizedThreads = parentComments.map(parent => ({
+          ...parent,
+          replies: replyComments.filter(child => child.parent_id === parent.id)
+        })).reverse(); // Place latest conversation chains at the top of the stack
+
+        setComments(organizedThreads);
+      }
+
+      const { count: viewRecordsCount } = await supabase.from('profile_views').select('*', { count: 'exact', head: true }).eq('profile_id', activeProfileId);
+      setViewCount(viewRecordsCount || 0);
+
+      const { data: topEightRecords, error: topEightError } = await supabase
+        .from('top_eight')
+        .select('friend_id, profiles!top_eight_friend_id_fkey(User_id, username, avatar_url)')
+        .eq('user_id', activeProfileId)
+        .order('position_rank', { ascending: true })
+        .limit(8);
+
+      if (!topEightError && topEightRecords && topEightRecords.length > 0) {
+        setFriends(topEightRecords.map(row => row.profiles).filter(Boolean));
+      } else {
+        const { data: standardFriendsRecords } = await supabase.from('friends').select('friend_id, profiles!friends_friend_id_fkey(User_id, username, avatar_url)').eq('user_id', activeProfileId).limit(8);
+        if (standardFriendsRecords) setFriends(standardFriendsRecords.map(f => f.profiles).filter(Boolean));
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
+  /* 💾 TRANSACTION HANDLER: WRITE NEW MAIN PARENT WALL POST */
   const handlePostComment = async (e) => {
     e.preventDefault();
     const posterId = currentUserId || user?.id;
@@ -196,73 +263,6 @@ export default function ProfilePage({ currentUserId }) {
     if (!window.confirm('Delete this comment?')) return;
     const { error } = await supabase.from('comments').delete().eq('id', commentId);
     if (!error) fetchProfileData();
-  };
-
-  const fetchProfileData = async () => {
-    try {
-      setLoading(true);
-      const { data: profileRecord, error: profileError } = await supabase
-        .from('profiles')
-        .select('User_id, username, avatar_url, hometown, gender, birthday, status, status_message, meet, about_me, interests_general, interests_music, custom_html, custom_css, profile_song_url, youtube_video_url, soundcloud_url, profile_mp4_url')
-        .eq('User_id', activeProfileId)
-        .single();
-        
-      if (profileError) throw profileError;
-      setProfile(profileRecord);
-
-      // Inject Scoped Custom Style Layer Override Rule
-      if (profileRecord.custom_css && typeof document !== 'undefined') {
-        const oldStyleElement = document.getElementById(`user-styles-${activeProfileId}`);
-        if (oldStyleElement) oldStyleElement.remove();
-        const newStyleElement = document.createElement('style');
-        newStyleElement.id = `user-styles-${activeProfileId}`;
-        newStyleElement.innerHTML = profileRecord.custom_css;
-        document.head.appendChild(newStyleElement);
-      }
-
-      // Fetch dynamic bulletins and blog posts logs rows records
-      const { data: bulletinsData } = await supabase.from('bulletins').select('*').eq('user_id', activeProfileId).order('created_at', { ascending: false });
-      setBulletins(bulletinsData || []);
-
-      const { data: blogsData } = await supabase.from('blogs').select('*').eq('author_id', activeProfileId).order('created_at', { ascending: false });
-      setBlogs(blogsData || []);
-
-      // Pull active comments stream log lines sorted conversationally (Ascending)
-      const { data: commentsRecords } = await supabase.from('comments').select('*, profiles!comments_user_id_fkey(username, avatar_url)').eq('profile_id', activeProfileId).order('created_at', { ascending: true });
-      
-      if (commentsRecords) {
-        const parentComments = commentsRecords.filter(c => !c.parent_id);
-        const replyComments = commentsRecords.filter(c => c.parent_id);
-
-        const organizedThreads = parentComments.map(parent => ({
-          ...parent,
-          replies: replyComments.filter(child => child.parent_id === parent.id)
-        })).reverse(); // Place latest conversation chains at the top of the stack
-
-        setComments(organizedThreads);
-      }
-
-      const { count: viewRecordsCount } = await supabase.from('profile_views').select('*', { count: 'exact', head: true }).eq('profile_id', activeProfileId);
-      setViewCount(viewRecordsCount || 0);
-
-      const { data: topEightRecords, error: topEightError } = await supabase
-        .from('top_eight')
-        .select('friend_id, profiles!top_eight_friend_id_fkey(User_id, username, avatar_url)')
-        .eq('user_id', activeProfileId)
-        .order('position_rank', { ascending: true })
-        .limit(8);
-
-      if (!topEightError && topEightRecords && topEightRecords.length > 0) {
-        setFriends(topEightRecords.map(row => row.profiles).filter(Boolean));
-      } else {
-        const { data: standardFriendsRecords } = await supabase.from('friends').select('friend_id, profiles!friends_friend_id_fkey(User_id, username, avatar_url)').eq('user_id', activeProfileId).limit(8);
-        if (standardFriendsRecords) setFriends(standardFriendsRecords.map(f => f.profiles).filter(Boolean));
-      }
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setLoading(false);
-    }
   };
 
     return (
