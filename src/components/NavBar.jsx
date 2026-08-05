@@ -66,32 +66,21 @@ if (typeof document !== 'undefined') {
       fill: #ffffff !important;
     }
 
-    /* 📂 FB MESSENGER EMBEDDED DROPDOWN POPUP PANEL */
+        /* 📂 UPDATE: CLEAN FLAT MESSENGER DROPDOWN POPUP PANEL */
     .messenger-dropdown-panel {
       position: absolute !important;
       top: 52px !important;
       right: 0 !important;
       width: 360px !important;
-      background-color: #242526 !important;
+      background-color: #242526 !important; /* Flat background color matches image */
       border-radius: 8px !important;
       padding: 16px 8px 8px 8px !important;
       box-sizing: border-box !important;
-      border: 2px solid #000000 !important;
-      box-shadow: 4px 4px 0px #ffffff !important;
+      border: none !important; /* ❌ REMOVED: Black border lines */
+      box-shadow: 0 12px 28px rgba(0, 0, 0, 0.4) !important; /* ❌ REMOVED: White box-shadow overrides */
       z-index: 1000 !important;
     }
-    .messenger-header-line {
-      display: flex !important;
-      justify-content: space-between !important;
-      align-items: center !important;
-      padding: 0 8px 12px 8px !important;
-    }
-    .messenger-header-title {
-      font-size: 22px !important;
-      font-weight: 800 !important;
-      color: #ffffff !important;
-      font-family: 'Segoe UI', sans-serif !important;
-    }
+
     
     /* Horizontal Chat Stream Items Rows */
     .messenger-chat-row {
