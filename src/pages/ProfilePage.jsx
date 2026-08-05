@@ -229,11 +229,10 @@ export default function ProfilePage({ currentUserId }) {
             <div>
               <h1 style={{ fontSize: '18px', margin: '0 0 5px 0', fontWeight: 'bold' }}>{profile.username}</h1>
               
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                <div style={{ display: 'flex', gap: '10px', alignItems: 'flex-start' }}>
-                  <img src={profile.avatar_url || 'https://placehold.co'} alt="Avatar" style={{ width: '150px', height: '150px', border: '1px solid #000000', objectFit: 'cover' }} />
-                  <div style={{ fontSize: '11px', lineHeight: '1.5' }}>
+                             <div style={{ fontSize: '11px', lineHeight: '1.5' }}>
                     <p style={{ margin: '0 0 4px 0' }}>Hometown: <b>{profile.hometown || 'Unknown'}</b></p>
+                    
+                    {/* ⭐ FIXED DYNAMIC ENGINE: References the profile state object explicitly to update on live broadcasts */}
                     <p style={{ margin: '0 0 4px 0' }}>
                       Status: <span style={{ 
                         color: profile.status === 'online' ? '#00cc00' : '#666666', 
@@ -248,9 +247,10 @@ export default function ProfilePage({ currentUserId }) {
                         {profile.status === 'online' ? '● ONLINE' : '○ OFFLINE'}
                       </span>
                     </p>
+                    
                     <p style={{ margin: '0' }}>Views: <b>{viewCount}</b></p>
                   </div>
-                </div>
+
                 
                 <div style={{ border: '1px dotted #FF6600', padding: '8px', backgroundColor: '#000000', width: '100%', boxSizing: 'border-box' }}>
                   <a href={`/album/${activeProfileId}/pictures`} style={{ color: '#00ffff', textDecoration: 'none', fontWeight: 'bold', display: 'block', marginBottom: '4px', fontSize: '11px' }}>
