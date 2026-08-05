@@ -7,7 +7,7 @@ import { useParams, Link } from "react-router-dom";
 if (typeof document !== 'undefined') {
   const styleEl = document.createElement('style');
   styleEl.innerHTML = `
-    /* 🌐 GLOBAL VIEW STYLES */
+    /* 🌐 GLOBAL DARK VIEW THEME */
     .profile-page-background { background-color: #0d0e10; min-height: 100vh; color: #f3f4f6; font-family: 'Segoe UI', system-ui, sans-serif; }
     .profile-main-layout { display: grid; grid-template-columns: 340px 1fr; gap: 24px; max-width: 1300px; margin: 0 auto; padding: 24px 16px; }
     
@@ -29,7 +29,7 @@ if (typeof document !== 'undefined') {
     
     /* Media Containers */
     .profile-media-item { background: #1c1d22; border: 1px solid #26282c; border-radius: 8px; padding: 12px; margin-bottom: 12px; }
-    .profile-media-item audio { width: 100%; margin-top: 6px; border-radius: 4px; }
+    .profile-media-item audio, .profile-media-item video { width: 100%; margin-top: 6px; border-radius: 4px; }
     
     /* Comment Section */
     .profile-comment-textarea { width: 100%; background: #1c1d22; border: 1px solid #26282c; border-radius: 6px; padding: 10px; color: #fff; font-size: 13px; resize: vertical; min-height: 50px; outline: none; margin-bottom: 8px; }
@@ -40,9 +40,16 @@ if (typeof document !== 'undefined') {
     
     /* Friends Grid */
     .profile-friends-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; text-align: center; }
-    .profile-friend-link { font-size: 11px; text-decoration: none; color: #e5e7eb; font-weight: 500; }
+    .profile-friend-link { font-size: 11px; text-decoration: none; color: #e5e7eb; font-weight: 500; display: block; }
     .profile-friend-link img { width: 100%; aspect-ratio: 1/1; object-fit: cover; border-radius: 6px; border: 1px solid #26282c; margin-bottom: 4px; }
     .profile-friend-link span { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+    /* Blogs & Bulletins Lists styles */
+    .profile-list-item { border-bottom: 1px solid #26282c; padding: 12px 0; }
+    .profile-list-item:last-child { border-bottom: none; }
+    .profile-item-title { font-size: 15px; font-weight: bold; color: #ffffff; margin-bottom: 4px; }
+    .profile-item-date { font-size: 11px; color: #9ca3af; margin-bottom: 6px; }
+    .profile-item-body { font-size: 13px; color: #d1d5db; line-height: 1.5; }
 
     @media (max-width: 850px) {
       .profile-main-layout { grid-template-columns: 1fr; }
@@ -59,6 +66,8 @@ export default function ProfilePage({ currentUserId }) {
   const [profile, setProfile] = useState(null);
   const [comments, setComments] = useState([]);
   const [friends, setFriends] = useState([]);
+  const [bulletins, setBulletins] = useState([]);
+  const [blogs, setBlogs] = useState([]);
   const [viewCount, setViewCount] = useState(0);
   const [newComment, setNewComment] = useState('');
   const [loading, setLoading] = useState(true);
@@ -93,6 +102,7 @@ export default function ProfilePage({ currentUserId }) {
       if (profileError) throw profileError;
       setProfile(profileRecord);
 
+      // Inject custom styling safely
       if (profileRecord.custom_css && typeof document !== 'undefined') {
         const oldStyleElement = document.getElementById(`user-styles-${activeProfileId}`);
         if (oldStyleElement) oldStyleElement.remove();
@@ -101,6 +111,13 @@ export default function ProfilePage({ currentUserId }) {
         newStyleElement.innerHTML = profileRecord.custom_css;
         document.head.appendChild(newStyleElement);
       }
+
+      // Fetch dynamic Blogs and Bulletins entries from database rows
+      const { data: bulletinsData } = await supabase.from('bulletins').select('*').eq('user_id', activeProfileId).order('created_at', { ascending: false });
+      setBulletins(bulletinsData || []);
+
+      const { data: blogsData } = await supabase.from('blogs').select('*').eq('author_id', activeProfileId).order('created_at', { ascending: false });
+      setBlogs(blogsData || []);
 
       const { data: commentsRecords } = await supabase.from('comments').select('*, profiles!comments_user_id_fkey(username, avatar_url)').eq('profile_id', activeProfileId).order('created_at', { ascending: false });
       setComments(commentsRecords || []);
@@ -168,14 +185,11 @@ export default function ProfilePage({ currentUserId }) {
     }
   };
 
-  /* ⭐ Utility: Safe YouTube ID Extractor */
+  /* 🛠️ Utility: Safe YouTube ID Extractor */
   const getYouTubeEmbed = (url) => {
     if (!url) return null;
-
     try {
-      const rx =
-        /^.*(?:(?:youtu\.be\/|v\/|vi\/|u\/\w\/|embed\/|shorts\/)|(?:(?:watch)?\?v(?:i)?=|\&v(?:i)?=))([^#\&\?]*).*/;
-
+      const rx = /^.*(?:(?:youtu\.be\/|v\/|vi\/|u\/\w\/|embed\/|shorts\/)|(?:(?:watch)?\?v(?:i)?=|\&v(?:i)?=))([^#\&\?]*).*/;
       const match = url.match(rx);
       if (match && match[1]) {
         let id = match[1].trim();
@@ -186,31 +200,32 @@ export default function ProfilePage({ currentUserId }) {
     } catch (e) {
       console.error("YouTube ID parse error:", e);
     }
-
     return null;
   };
 
-  /* ⭐ Utility: Safe SoundCloud Embed */
+  /* 🛠️ Utility: Safe SoundCloud Embed */
   const getSoundCloudEmbed = (url) => {
     if (!url) return null;
     return `https://w.soundcloud.com/player/?url=${encodeURIComponent(url)}&color=%23ff5500&auto_play=false&hide_related=true`;
   };
 
-  if (loading) return <div style={{ color: '#FF6600', padding: '60px', textAlign: 'center', fontFamily: 'monospace', fontWeight: 'bold' }}>LOADING PROFILE...</div>;
+  if (loading) return <div style={{ color: '#FF6600', padding: '60px', textAlign: 'center', fontFamily: 'monospace', fontWeight: 'bold' }}>LOADING USER PROFILE...</div>;
 
-   return (
+    return (
     <div className="profile-page-background">
       <NavBar />
       
       {profile?.custom_html ? (
+        /* If custom HTML is saved, completely bypass the fallback framework */
         <div className="custom-html-override-container" dangerouslySetInnerHTML={{ __html: profile.custom_html }} />
       ) : (
+        /* Default Modern Double-Column Layout Grid */
         <div className="profile-main-layout">
           
-          {/* ⬅️ SIDEBAR PANEL */}
+          {/* ⬅️ LEFT COLUMN: IDENTITY, MEDIA STREAMS & FRIENDS MATRIX */}
           <div className="profile-left-sidebar">
             
-            {/* Identity Card */}
+            {/* Identity Card Block */}
             <div className="profile-content-card profile-image-container">
               <h2 style={{ fontSize: '20px', fontWeight: '800', margin: '0 0 12px 0', color: '#fff' }}>{profile?.username}</h2>
               <img src={profile?.avatar_url || "/default-avatar.png"} alt="User Profile Avatar" className="profile-main-avatar" onError={(e) => { e.target.src = "https://unsplash.com"; }} />
@@ -223,15 +238,12 @@ export default function ProfilePage({ currentUserId }) {
               <div style={{ fontSize: '12px', color: '#9ca3af', marginTop: '10px' }}>Total Profile Views: {viewCount}</div>
             </div>
 
-            {/* ⭐ USER MEDIA STREAM HUB */}
-            {(profile?.profile_song_url ||
-              profile?.youtube_video_url ||
-              profile?.soundcloud_url ||
-              profile?.profile_mp4_url) && (
+            {/* 🎵 MEDIA HUB SHOWCASE CONTAINER PANEL */}
+            {(profile?.profile_song_url || profile?.youtube_video_url || profile?.soundcloud_url || profile?.profile_mp4_url) && (
               <div className="profile-content-card">
                 <div className="profile-card-title">🔊 User Media Stream</div>
 
-                {/* MP3 */}
+                {/* MP3 - Audio player features standard autoPlay configuration hooks */}
                 {profile?.profile_song_url && (
                   <div className="profile-media-item">
                     <span style={{ fontSize: "11px", fontWeight: "600", color: "#9ca3af" }}>
@@ -240,12 +252,13 @@ export default function ProfilePage({ currentUserId }) {
                     <audio
                       src={profile.profile_song_url}
                       controls
+                      autoPlay /* ⭐ Synchronized Auto-Play activation parameter loop */
                       style={{ width: "100%", marginTop: "6px" }}
                     />
                   </div>
                 )}
 
-                {/* MP4 */}
+                {/* MP4 - Custom video display element containing an orange framing rule border */}
                 {profile?.profile_mp4_url && (
                   <div className="profile-media-item">
                     <span style={{ fontSize: "11px", fontWeight: "600", color: "#9ca3af" }}>
@@ -258,13 +271,13 @@ export default function ProfilePage({ currentUserId }) {
                         width: "100%",
                         marginTop: "6px",
                         borderRadius: "4px",
-                        border: "1px solid #FF6600",
+                        border: "1px solid #FF6600", /* Standardized brand orange accent boundary line */
                       }}
                     />
                   </div>
                 )}
 
-                {/* YouTube */}
+                {/* YouTube Video Stream - Harnesses your safe rx extractor tool method */}
                 {profile?.youtube_video_url && getYouTubeEmbed(profile.youtube_video_url) && (
                   <div className="profile-media-item">
                     <span style={{ fontSize: "11px", fontWeight: "600", color: "#9ca3af" }}>
@@ -285,7 +298,7 @@ export default function ProfilePage({ currentUserId }) {
                   </div>
                 )}
 
-                {/* SoundCloud */}
+                {/* SoundCloud Streaming Widget Track Element */}
                 {profile?.soundcloud_url && (
                   <div className="profile-media-item">
                     <span style={{ fontSize: "11px", fontWeight: "600", color: "#9ca3af" }}>
@@ -304,7 +317,7 @@ export default function ProfilePage({ currentUserId }) {
               </div>
             )}
 
-            {/* ⭐ FRIENDS GRID SELECTION */}
+            {/* Friends Grid Selection Card */}
             <div className="profile-content-card">
               <div className="profile-card-title">👥 Top Friends List</div>
 
@@ -336,69 +349,105 @@ export default function ProfilePage({ currentUserId }) {
 
           </div>
 
-          {/* ➡️ MAIN DISPLAY CANVAS */}
+          {/* ➡️ RIGHT COLUMN: BIO FIELDS, EXPANDED SOCIAL PANELS & MESSAGE BOARD WALL */}
           <div className="profile-right-canvas">
             
-            {/* General Bio */}
+            {/* Core General Information Table Panel */}
             <div className="profile-content-card">
-              <div className="profile-card-title">📋 General Information</div>
+              <div className="profile-card-title">📋 User General Information</div>
               <table className="profile-data-table">
                 <tbody>
                   <tr className="profile-data-row"><td className="profile-data-label">Hometown</td><td className="profile-data-value">{profile?.hometown || 'Unspecified'}</td></tr>
                   <tr className="profile-data-row"><td className="profile-data-label">Gender</td><td className="profile-data-value">{profile?.gender || 'Unspecified'}</td></tr>
-                  <tr className="profile-data-row"><td className="profile-data-label">Status Row</td><td className="profile-data-value">{profile?.status_message || 'No status message saved.'}</td></tr>
+                  <tr className="profile-data-row"><td className="profile-data-label">Status Row</td><td className="profile-data-value">{profile?.status_message || 'No status headline message text.'}</td></tr>
                   <tr className="profile-data-row"><td className="profile-data-label">Who I'd Like to Meet</td><td className="profile-data-value">{profile?.meet || 'Unspecified'}</td></tr>
-                  <tr className="profile-data-row"><td className="profile-data-label">About Me</td><td className="profile-data-value" style={{ textAlign: 'left', display: 'block', paddingTop: '4px' }}>{profile?.about_me || 'Bio summary empty.'}</td></tr>
+                  <tr className="profile-data-row"><td className="profile-data-label">About Me</td><td className="profile-data-value" style={{ textAlign: 'left', display: 'block', paddingTop: '4px' }}>{profile?.about_me || 'Bio description body vacant.'}</td></tr>
                 </tbody>
               </table>
             </div>
 
-            {/* Interests Section */}
+            {/* Synchronized Core Interests Categories Display Block */}
             <div className="profile-content-card">
-              <div className="profile-card-title">🏷️ Interests & Favorites</div>
+              <div className="profile-card-title">🏷️ Interests Categories</div>
               <table className="profile-data-table">
                 <tbody>
-                  <tr className="profile-data-row"><td className="profile-data-label">General Interests</td><td className="profile-data-value">{profile?.interests_general || 'No interests added yet.'}</td></tr>
-                  <tr className="profile-data-row"><td className="profile-data-label">Music & Bands</td><td className="profile-data-value">{profile?.interests_music || 'No bands tracked yet.'}</td></tr>
+                  <tr className="profile-data-row"><td className="profile-data-label">General Interests</td><td className="profile-data-value">{profile?.interests_general || 'No interest selections saved yet.'}</td></tr>
+                  <tr className="profile-data-row"><td className="profile-data-label">Music & Bands</td><td className="profile-data-value">{profile?.interests_music || 'No band listings saved yet.'}</td></tr>
                 </tbody>
               </table>
             </div>
 
-            {/* Wall Comments */}
+            {/* 📰 RESTORED: APP BULLETINS NOTICES SYSTEM PANEL */}
             <div className="profile-content-card">
-              <div className="profile-card-title">💬 Profile Wall Comments ({comments.length})</div>
+              <div className="profile-card-title">📌 Space Bulletins Board ({bulletins.length})</div>
+              {bulletins.length === 0 ? (
+                <div style={{ fontSize: '12px', color: '#6b7280', padding: '4px' }}>No active user board bulletins posted.</div>
+              ) : (
+                bulletins.map((bulletin) => (
+                  <div key={bulletin.id} style={{ borderBottom: '1px solid #26282c', padding: '10px 4px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 'bold', fontSize: '13px', color: '#fff' }}>
+                      <span>{bulletin.title}</span>
+                      <span style={{ fontSize: '10px', color: '#6b7280' }}>{new Date(bulletin.created_at).toLocaleDateString()}</span>
+                    </div>
+                    <p style={{ fontSize: '12.5px', color: '#d1d5db', margin: '6px 0 0 0', lineHeight: '1.4' }}>{bulletin.content}</p>
+                  </div>
+                ))
+              )}
+            </div>
+
+            {/* 📂 RESTORED: CHRONOLOGICAL BLOG POSTS LOGS FEED CARD */}
+            <div className="profile-content-card">
+              <div className="profile-card-title">✍️ Recent Journal Blogs ({blogs.length})</div>
+              {blogs.length === 0 ? (
+                <div style={{ fontSize: '12px', color: '#6b7280', padding: '4px' }}>No user journal entries written yet.</div>
+              ) : (
+                blogs.map((blog) => (
+                  <div key={blog.id} style={{ borderBottom: '1px solid #26282c', padding: '12px 4px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: '800', fontSize: '14px', color: '#FF6600' }}>
+                      <span>{blog.title}</span>
+                      <span style={{ fontSize: '10px', color: '#6b7280', fontWeight: 'normal' }}>{new Date(blog.created_at).toLocaleDateString()}</span>
+                    </div>
+                    <p style={{ fontSize: '13px', color: '#e5e7eb', margin: '8px 0 0 0', lineHeight: '1.5', whiteSpace: 'pre-wrap' }}>{blog.content}</p>
+                  </div>
+                ))
+              )}
+            </div>
+
+            {/* Profile Interactive Connection Wall Message Board */}
+            <div className="profile-content-card">
+              <div className="profile-card-title">💬 Connection Wall Comments ({comments.length})</div>
               
               {user && (
                 <form onSubmit={handlePostComment} style={{ marginBottom: '20px' }}>
-                  <textarea className="profile-comment-textarea" value={newComment} onChange={(e) => setNewComment(e.target.value)} placeholder="Post an open public message on this user's profile wall..." required />
+                  <textarea className="profile-comment-textarea" value={newComment} onChange={(e) => setNewComment(e.target.value)} placeholder="Post an open public message on this profile wall..." required />
                   <button type="submit" className="profile-comment-submit">Post Comment</button>
                 </form>
               )}
 
               {comments.length === 0 ? (
-                <div style={{ textAlign: 'center', color: '#6b7280', fontSize: '13px', padding: '10px' }}>No messages left on this user's wall yet.</div>
+                <div style={{ textAlign: 'center', color: '#6b7280', fontSize: '13px', padding: '10px' }}>No entries written on this wall message card yet.</div>
               ) : (
-                comments.map((commentRecord) => (
+                comments.map((commentRow) => (
                   <div key={commentRecord.id} className="profile-comment-item">
-                    <img src={commentRecord.profiles?.avatar_url || "/default-avatar.png"} alt="Commenter Avatar" className="profile-commenter-avatar" onError={(e) => { e.target.src = "https://unsplash.com"; }} />
+                    <img src={commentRow.profiles?.avatar_url || "/default-avatar.png"} alt="User Thumbnail Avatar" className="profile-commenter-avatar" onError={(e) => { e.target.src = "https://unsplash.com"; }} />
                     <div style={{ flex: 1 }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
-                        <span style={{ fontWeight: '600', fontSize: '13px', color: '#fff' }}>{commentRecord.profiles?.username || 'User'}</span>
-                        <span style={{ fontSize: '10px', color: '#6b7280' }}>{new Date(commentRecord.created_at).toLocaleDateString()}</span>
+                        <span style={{ fontWeight: '600', fontSize: '13px', color: '#fff' }}>{commentRow.profiles?.username || 'User'}</span>
+                        <span style={{ fontSize: '10px', color: '#6b7280' }}>{new Date(commentRow.created_at).toLocaleDateString()}</span>
                       </div>
-                      <div style={{ fontSize: '13px', color: '#d1d5db', lineHeight: '1.4' }}>{commentRecord.content}</div>
-                      {(user?.id === commentRecord.user_id || user?.id === activeProfileId) && (
-                        <button onClick={() => handleDeleteComment(commentRecord.id)} style={{ background: 'none', border: 'none', color: '#ef4444', fontSize: '10px', padding: 0, cursor: 'pointer', marginTop: '6px', textDecoration: 'underline' }}>
-                          Delete Comment
-                        </button>
+                      <div style={{ fontSize: '13px', color: '#d1d5db', lineHeight: '1.4' }}>{commentRow.content}</div>
+                      {(user?.id === commentRow.user_id || user?.id === activeProfileId) && (
+                        <button onClick={() => handleDeleteComment(commentRow.id)} style={{ background: 'none', border: 'none', color: '#ef4444', fontSize: '10px', padding: 0, cursor: 'pointer', marginTop: '6px', textDecoration: 'underline' }}>Delete Comment</button>
                       )}
                     </div>
                   </div>
                 ))
               )}
             </div>
-          </div>
-        </div>
+
+          </div> {/* Canvas Column wrapper closing tags seam */}
+
+        </div> /* Main Layout Grid closing tag split */
       )}
     </div>
   );
