@@ -85,6 +85,17 @@ export default function Dashboard() {
   const [privacy, setPrivacy] = useState('public');
   const [showHometown, setShowHometown] = useState(true);
   const [allowPMs, setAllowPMs] = useState(true);
+  
+  /* 📌 Bulletin Board Submission Form States */
+  const [bulletinTitle, setBulletinTitle] = useState('');
+  const [bulletinContent, setBulletinContent] = useState('');
+  const [bulletinStatus, setBulletinStatus] = useState({ type: '', text: '' });
+
+  /* ✍️ Journal Blog Submission Form States */
+  const [blogTitle, setBlogTitle] = useState('');
+  const [blogContent, setBlogContent] = useState('');
+  const [blogStatus, setBlogStatus] = useState({ type: '', text: '' });
+
 
   /* 📥 LOAD PROFILE ROW RECORD UPON COMPONENT INITIALIZATION */
   useEffect(() => {
@@ -225,6 +236,59 @@ export default function Dashboard() {
       console.error(err);
     }
   };
+  /* 📌 HANDLER: COMMIT NEW BULLETIN RECORD TO SUPABASE */
+  const handlePostBulletin = async (e) => {
+    e.preventDefault();
+    if (!bulletinTitle.trim() || !bulletinContent.trim()) return;
+    setBulletinStatus({ type: 'info', text: 'Posting bulletin notice...' });
+
+    try {
+      const { error } = await supabase
+        .from('bulletins')
+        .insert([
+          {
+            user_id: user.id,
+            title: bulletinTitle.trim(),
+            content: bulletinContent.trim()
+          }
+        ]);
+
+      if (error) throw error;
+      setBulletinTitle('');
+      setBulletinContent('');
+      setBulletinStatus({ type: 'success', text: 'Bulletin successfully published to your wall!' });
+    } catch (err) {
+      console.error(err);
+      setBulletinStatus({ type: 'error', text: 'Failed to broadcast bulletin row.' });
+    }
+  };
+
+  /* ✍️ HANDLER: COMMIT NEW JOURNAL ENTRY TO SUPABASE */
+  const handlePostBlog = async (e) => {
+    e.preventDefault();
+    if (!blogTitle.trim() || !blogContent.trim()) return;
+    setBlogStatus({ type: 'info', text: 'Publishing journal entry...' });
+
+    try {
+      const { error } = await supabase
+        .from('blogs')
+        .insert([
+          {
+            author_id: user.id,
+            title: blogTitle.trim(),
+            content: blogContent.trim()
+          }
+        ]);
+
+      if (error) throw error;
+      setBlogTitle('');
+      setBlogContent('');
+      setBlogStatus({ type: 'success', text: 'Journal blog published to your profile feed!' });
+    } catch (err) {
+      console.error(err);
+      setBlogStatus({ type: 'error', text: 'Failed to write blog entry.' });
+    }
+  };
 
   if (loading) return <div className="loading-display">Reading environment profile properties...</div>;
 
@@ -288,6 +352,70 @@ export default function Dashboard() {
               <textarea className="form-textarea code-input" style={{ color: '#A2E35C' }} value={customCss} onChange={(e) => setCustomCss(e.target.value)} placeholder=".profile-sidebar { background: linear-gradient(cyan, magenta); }" />
             </div>
           </div>
+        {/* 📌 CARD F: SPACE BULLETIN BOARD BROADCASTER FORM */}
+        <div className="settings-card">
+          <h2 className="card-title">📌 Post a Space Bulletin Notice</h2>
+          <div className="form-group">
+            <label className="form-label">Bulletin Heading Title</label>
+            <input 
+              type="text" 
+              className="form-input" 
+              value={bulletinTitle} 
+              onChange={(e) => setBulletinTitle(e.target.value)} 
+              placeholder="e.g. Out of town this weekend / Checking out new tracks"
+            />
+          </div>
+          <div className="form-group">
+            <label className="form-label">Bulletin Board Content Announcement</label>
+            <textarea 
+              className="form-textarea" 
+              value={bulletinContent} 
+              onChange={(e) => setBulletinContent(e.target.value)} 
+              placeholder="Drop a quick update message that appears across your public bulletins grid board..."
+            />
+          </div>
+          <button type="button" onClick={handlePostBulletin} className="save-settings-btn" style={{ backgroundColor: '#FF6600', marginTop: '4px' }}>
+            Publish Bulletin Update
+          </button>
+          {bulletinStatus.text && (
+            <div className="status-msg" style={{ color: bulletinStatus.type === 'success' ? '#4BAC4E' : bulletinStatus.type === 'error' ? '#E41E3F' : '#B0B3B8' }}>
+              {bulletinStatus.text}
+            </div>
+          )}
+        </div>
+
+        {/* ✍️ CARD G: JOURNAL JOURNAL BLOG WRITER FORM */}
+        <div className="settings-card">
+          <h2 className="card-title">✍️ Write a Recent Journal Blog Entry</h2>
+          <div className="form-group">
+            <label className="form-label">Journal Article Entry Title</label>
+            <input 
+              type="text" 
+              className="form-input" 
+              value={blogTitle} 
+              onChange={(e) => setBlogTitle(e.target.value)} 
+              placeholder="e.g. Thoughts on HTML customization setups"
+            />
+          </div>
+          <div className="form-group">
+            <label className="form-label">Blog Content Body</label>
+            <textarea 
+              className="form-textarea" 
+              style={{ minHeight: '120px' }}
+              value={blogContent} 
+              onChange={(e) => setBlogContent(e.target.value)} 
+              placeholder="Write out your full journal entry narrative blocks here..."
+            />
+          </div>
+          <button type="button" onClick={handlePostBlog} className="save-settings-btn" style={{ backgroundColor: '#2F80ED', marginTop: '4px' }}>
+            Post Journal Entry
+          </button>
+          {blogStatus.text && (
+            <div className="status-msg" style={{ color: blogStatus.type === 'success' ? '#4BAC4E' : blogStatus.type === 'error' ? '#E41E3F' : '#B0B3B8' }}>
+              {blogStatus.text}
+            </div>
+          )}
+        </div>
 
           {/* CARD D: FILE REPLICATION AUDIO & VIDEO MEDIA HUBS */}
           <div className="settings-card">
