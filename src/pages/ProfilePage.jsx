@@ -184,6 +184,42 @@ export default function ProfilePage({ currentUserId }) {
       setComments(prev => prev.filter(c => c.id !== commentId));
     }
   };
+    /* 📌 HANDLER: PURGE BULLETIN FROM SUPABASE */
+  const handleDeleteBulletin = async (bulletinId) => {
+    if (!window.confirm('Delete this bulletin notice permanently?')) return;
+    try {
+      const { error } = await supabase
+        .from('bulletins')
+        .delete()
+        .eq('id', bulletinId);
+        
+      if (error) throw error;
+      // Filter the local array state instantly to update the UI
+      setBulletins(prev => prev.filter(b => b.id !== bulletinId));
+    } catch (err) {
+      console.error('Failed to delete bulletin:', err);
+      alert('Error: Could not delete bulletin.');
+    }
+  };
+
+  /* ✍️ HANDLER: PURGE JOURNAL BLOG FROM SUPABASE */
+  const handleDeleteBlog = async (blogId) => {
+    if (!window.confirm('Delete this journal blog entry permanently?')) return;
+    try {
+      const { error } = await supabase
+        .from('blogs')
+        .delete()
+        .eq('id', blogId);
+        
+      if (error) throw error;
+      // Filter the local array state instantly to update the UI
+      setBlogs(prev => prev.filter(b => b.id !== blogId));
+    } catch (err) {
+      console.error('Failed to delete blog entry:', err);
+      alert('Error: Could not delete blog entry.');
+    }
+  };
+
 
   /* 🛠️ Utility: Safe YouTube ID Extractor */
   const getYouTubeEmbed = (url) => {
@@ -377,9 +413,9 @@ export default function ProfilePage({ currentUserId }) {
               </table>
             </div>
 
-            {/* 📰 RESTORED: APP BULLETINS NOTICES SYSTEM PANEL */}
+                        {/* 📰 SPACE BULLETINS BOARD */}
             <div className="profile-content-card">
-              <div className="profile-card-title">📌 Space Bulletins Board ({bulletins.length})</div>
+              <div className="profile-card-title">A Space Bulletins Board ({bulletins.length})</div>
               {bulletins.length === 0 ? (
                 <div style={{ fontSize: '12px', color: '#6b7280', padding: '4px' }}>No active user board bulletins posted.</div>
               ) : (
@@ -390,14 +426,24 @@ export default function ProfilePage({ currentUserId }) {
                       <span style={{ fontSize: '10px', color: '#6b7280' }}>{new Date(bulletin.created_at).toLocaleDateString()}</span>
                     </div>
                     <p style={{ fontSize: '12.5px', color: '#d1d5db', margin: '6px 0 0 0', lineHeight: '1.4' }}>{bulletin.content}</p>
+                    
+                    {/* ⭐ NEW: Conditional Deletion Button for Profile Owners */}
+                    {user?.id === activeProfileId && (
+                      <button 
+                        onClick={() => handleDeleteBulletin(bulletin.id)} 
+                        style={{ background: 'none', border: 'none', color: '#ef4444', fontSize: '10px', padding: 0, cursor: 'pointer', marginTop: '6px', textDecoration: 'underline' }}
+                      >
+                        Delete Bulletin
+                      </button>
+                    )}
                   </div>
                 ))
               )}
             </div>
 
-            {/* 📂 RESTORED: CHRONOLOGICAL BLOG POSTS LOGS FEED CARD */}
+            {/* 📂 RECENT JOURNAL BLOGS */}
             <div className="profile-content-card">
-              <div className="profile-card-title">✍️ Recent Journal Blogs ({blogs.length})</div>
+              <div className="profile-card-title">Recent Journal Blogs ({blogs.length})</div>
               {blogs.length === 0 ? (
                 <div style={{ fontSize: '12px', color: '#6b7280', padding: '4px' }}>No user journal entries written yet.</div>
               ) : (
@@ -408,10 +454,21 @@ export default function ProfilePage({ currentUserId }) {
                       <span style={{ fontSize: '10px', color: '#6b7280', fontWeight: 'normal' }}>{new Date(blog.created_at).toLocaleDateString()}</span>
                     </div>
                     <p style={{ fontSize: '13px', color: '#e5e7eb', margin: '8px 0 0 0', lineHeight: '1.5', whiteSpace: 'pre-wrap' }}>{blog.content}</p>
+                    
+                    {/* ⭐ NEW: Conditional Deletion Button for Profile Owners */}
+                    {user?.id === activeProfileId && (
+                      <button 
+                        onClick={() => handleDeleteBlog(blog.id)} 
+                        style={{ background: 'none', border: 'none', color: '#ef4444', fontSize: '10px', padding: 0, cursor: 'pointer', marginTop: '6px', textDecoration: 'underline' }}
+                      >
+                        Delete Entry
+                      </button>
+                    )}
                   </div>
                 ))
               )}
             </div>
+
 
             {/* Profile Interactive Connection Wall Message Board */}
             <div className="profile-content-card">
