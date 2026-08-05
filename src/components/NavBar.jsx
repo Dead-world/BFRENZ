@@ -3,21 +3,19 @@ import { useAuth } from '../hooks/useAuth';
 import { supabase } from '../supabaseClient';
 import { Link } from 'react-router-dom';
 
-// Inject fluid mobile responsive styles directly into the document head
 if (typeof document !== 'undefined') {
   const styleEl = document.createElement('style');
   styleEl.innerHTML = `
-    /* Base Desktop View rules are completely standard */
-    .nav-links-container {
-      display: flex !important;
-      align-items: center !important;
-      gap: 15px !important;
+    .nav-links-container { display: flex !important; align-items: center !important; gap: 15px !important; }
+    .burger-menu-btn { display: none !important; }
+    
+    /* 🔔 NOTIFICATION BELL ALERT KEYFRAMES */
+    @keyframes pulse-alert {
+      0%, 100% { filter: drop-shadow(0 0 2px #FF6600); }
+      50% { filter: drop-shadow(0 0 8px #FF0000); }
     }
-    .burger-menu-btn {
-      display: none !important;
-    }
+    .bell-alert-active { animation: pulse-alert 1.5s infinite; }
 
-    /* 📱 RESPONSIVE SMARTPHONE BREAKPOINT RULESETS */
     @media (max-width: 768px) {
       .nav-links-container {
         display: none !important;
@@ -30,51 +28,20 @@ if (typeof document !== 'undefined') {
         gap: 12px !important;
         align-items: flex-start !important;
       }
-      /* Toggles vertical visibility loop when menu context state is flagged open */
-      .nav-links-container.open {
-        display: flex !important;
-      }
-      .burger-menu-btn {
-        display: block !important;
-      }
+      .nav-links-container.open { display: flex !important; }
+      .burger-menu-btn { display: block !important; }
     }
   `;
   document.head.appendChild(styleEl);
 }
 
 const styles = {
-  nav: {
-    backgroundColor: '#000000', 
-    padding: '8px 20px', 
-    display: 'flex', 
-    flexWrap: 'wrap', // Key: Drops mobile panel to its own row on collapse toggle
-    justifyContent: 'space-between', 
-    alignItems: 'center',
-    borderBottom: '2px solid #FF6600',
-    fontFamily: 'Verdana, Arial, sans-serif'
-  },
+  nav: { backgroundColor: '#000000', padding: '8px 20px', display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', borderBottom: '2px solid #FF6600', fontFamily: 'Verdana, Arial, sans-serif' },
   logoImage: { height: '50px', width: 'auto', display: 'block' },
-  burgerBtn: {
-    backgroundColor: 'transparent',
-    color: '#FF6600',
-    border: '1px solid #FF6600',
-    fontSize: '18px',
-    padding: '4px 10px',
-    cursor: 'pointer',
-    fontWeight: 'bold'
-  },
-  navLink: { color: '#ffffff', textDecoration: 'none', fontSize: '12px', padding: '4px 0', width: '100%' },
-  profileLink: { color: '#FF6600', textDecoration: 'none', fontWeight: 'bold', fontSize: '12px', padding: '4px 0', width: '100%' },
-  logoutBtn: { 
-    backgroundColor: '#FF6600', 
-    color: '#ffffff', 
-    border: '1px solid #ffffff', 
-    padding: '4px 10px', 
-    cursor: 'pointer',
-    fontSize: '11px',
-    fontWeight: 'bold',
-    textAlign: 'center'
-  }
+  burgerBtn: { backgroundColor: 'transparent', color: '#FF6600', border: '1px solid #FF6600', fontSize: '18px', padding: '4px 10px', cursor: 'pointer', fontWeight: 'bold' },
+  navLink: { color: '#ffffff', textDecoration: 'none', fontSize: '12px', padding: '4px 0', display: 'flex', alignItems: 'center' },
+  profileLink: { color: '#FF6600', textDecoration: 'none', fontWeight: 'bold', fontSize: '12px', padding: '4px 0' },
+  logoutBtn: { backgroundColor: '#FF6600', color: '#ffffff', border: '1px solid #ffffff', padding: '4px 10px', cursor: 'pointer', fontSize: '11px', fontWeight: 'bold', textAlign: 'center' }
 };
 
 export default function NavBar() {
@@ -82,7 +49,6 @@ export default function NavBar() {
   const [isOpen, setIsOpen] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
 
-  // Notifications live badge listener
   useEffect(() => {
     if (!user) return;
     const fetchUnreadCount = async () => {
@@ -120,23 +86,16 @@ export default function NavBar() {
 
   return (
     <nav style={styles.nav}>
-      {/* Brand Anchor Logo */}
       <div>
         <Link to="/" onClick={() => setIsOpen(false)}>
-          <img src="/bfrenzlogo.png" alt="bfrenz" style={styles.logoImage} onError={(e) => { e.target.style.display = 'none'; e.target.parentNode.innerHTML = '<span style="color:#FF6600; font-weight:bold; font-size:14px;">ProfileDig</span>'; }} />
+          <img src="/ProfileDigLogo.png" alt="bfrenz" style={styles.logoImage} onError={(e) => { e.target.style.display = 'none'; e.target.parentNode.innerHTML = '<span style="color:#FF6600; font-weight:bold; font-size:14px;">bfrenz</span>'; }} />
         </Link>
       </div>
 
-      {/* ⭐ ADDED: Responsive Mobile Burger Trigger Icon Toggle Button */}
-      <button 
-        className="burger-menu-btn" 
-        style={styles.burgerBtn} 
-        onClick={() => setIsOpen(!isOpen)}
-      >
+      <button className="burger-menu-btn" style={styles.burgerBtn} onClick={() => setIsOpen(!isOpen)}>
         {isOpen ? '✕' : '☰'}
       </button>
 
-      {/* Navigation Tree Container Context Layout */}
       <div className={`nav-links-container ${isOpen ? 'open' : ''}`}>
         <Link to="/" style={styles.navLink} onClick={() => setIsOpen(false)}>Home</Link>
         <Link to="/browse" style={styles.navLink} onClick={() => setIsOpen(false)}>Browse</Link>
@@ -144,9 +103,42 @@ export default function NavBar() {
         {user ? (
           <>
             <Link to="/dashboard" style={styles.navLink} onClick={() => setIsOpen(false)}>Dashboard</Link>
-            <Link to="/notifications" style={styles.navLink} onClick={() => setIsOpen(false)}>
-              Notifications {unreadCount > 0 && <span style={{ backgroundColor: '#FF6600', color: '#000', padding: '1px 5px', fontSize: '10px', borderRadius: '3px' }}>{unreadCount}</span>}
+            
+            {/* ⭐ FIXED UPDATE: STYLISH VECTOR NOTIFICATION BELL WITH COUNTER SHIELD OBJECT */}
+            <Link to="/notifications" style={styles.navLink} onClick={() => setIsOpen(false)} title="View My Notification Alerts Hub">
+              <div style={{ position: 'relative', display: 'inline-flex', alignItems: 'center', padding: '4px' }} className={unreadCount > 0 ? "bell-alert-active" : ""}>
+                {/* Clean Vector SVG Icon Graphic */}
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={unreadCount > 0 ? "#FF6600" : "#ffffff"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ transition: 'stroke 0.3s ease' }}>
+                  <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                  <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+                </svg>
+
+                {/* Absolutly Positioned Floating Counter Badge Overlay */}
+                {unreadCount > 0 && (
+                  <span style={{
+                    position: 'absolute',
+                    top: '-4px',
+                    right: '-6px',
+                    backgroundColor: '#FF0000',
+                    color: '#ffffff',
+                    fontSize: '9px',
+                    fontWeight: 'bold',
+                    borderRadius: '50%',
+                    minWidth: '14px',
+                    height: '14px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    padding: '2px',
+                    border: '1px solid #000000',
+                    fontFamily: 'monospace'
+                  }}>
+                    {unreadCount > 9 ? '9+' : unreadCount}
+                  </span>
+                )}
+              </div>
             </Link>
+
             <Link to="/inbox" style={styles.navLink} onClick={() => setIsOpen(false)}>Inbox</Link>
             <Link to={`/profile/${user.id}`} style={styles.profileLink} onClick={() => setIsOpen(false)}>My Profile</Link>
             <button onClick={handleLogout} style={styles.logoutBtn}>Log Out</button>
