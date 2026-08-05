@@ -1,205 +1,149 @@
-import { useState, useEffect } from "react";
-import { supabase } from "../supabaseClient";
-import { Link, useNavigate } from "react-router-dom";
-import NavBar from "../components/NavBar";
+import React, { useState } from 'react';
+import { supabase } from '../supabaseClient';
+import { Link, useNavigate } from 'react-router-dom';
 
-export default function LandingPage() {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [user, setUser] = useState(null);
-  const [featuredUsers, setFeaturedUsers] = useState([]);
-  const [index, setIndex] = useState(0);
-  const navigate = useNavigate();
-
-  // Load logged-in user
-  useEffect(() => {
-    async function loadUser() {
-      const { data } = await supabase.auth.getUser();
-      setUser(data.user);
-    }
-    loadUser();
-  }, []);
-
-  // Load featured users
-  useEffect(() => {
-    async function loadUsers() {
-      const { data } = await supabase
-        .from("profiles")
-        .select("username, avatar_url")
-        .limit(10);
-      if (data) setFeaturedUsers(data);
-    }
-    loadUsers();
-  }, []);
-
-  // Rotate featured users
-  useEffect(() => {
-    if (featuredUsers.length === 0) return;
-    const interval = setInterval(() => {
-      setIndex((prev) => (prev + 1) % featuredUsers.length);
-    }, 3000);
-    return () => clearInterval(interval);
-  }, [featuredUsers]);
-
-  async function handleLogin(e) {
-    e.preventDefault();
-    setLoading(true); // Locks the button to prevent duplicate spamming
+if (typeof document !== 'undefined') {
+  const styleEl = document.createElement('style');
+  styleEl.innerHTML = `
+    .login-splash-container { background-color: #18191A; color: #E4E6EB; min-height: 100vh; display: flex; align-items: center; justify-content: center; font-family: 'Segoe UI', sans-serif; padding: 20px; box-sizing: border-box; }
+    .login-box-card { background-color: #242526; border: 1px solid #393A3B; border-radius: 8px; padding: 30px; width: 100%; max-width: 400px; box-shadow: 0 12px 28px rgba(0, 0, 0, 0.2); }
+    .login-logo-header { text-align: center; margin-bottom: 24px; }
+    .login-logo-text { color: #E4E6EB; font-size: 28px; font-weight: bold; letter-spacing: 0.5px; }
     
-    try {
-      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-      
-      if (error) {
-        alert(error.message);
-        setLoading(false); // 🟢 RELEASE THE BUTTON IMMEDIATELY IF PASSWORD IS WRONG
-        return;
+    .login-form-group { margin-bottom: 20px; }
+    .login-label { font-weight: 500; font-size: 14px; color: #B0B3B8; display: block; margin-bottom: 8px; }
+    .login-input { width: 100%; box-sizing: border-box; background-color: #3A3B3C; color: #E4E6EB; border: 1px solid #393A3B; padding: 12px; border-radius: 6px; font-size: 15px; outline: none; transition: border-color 0.2s; }
+    .login-input:focus { border-color: #FF6600; }
+    
+    /* 🚀 SUBMIT BLOCK PANEL */
+    .login-submit-btn { background-color: #FF6600; color: #ffffff; border: none; padding: 12px; width: 100%; font-size: 16px; font-weight: bold; border-radius: 6px; cursor: pointer; transition: background-color 0.2s; margin-top: 8px; display: block; text-align: center; }
+    .login-submit-btn:hover { background-color: #E05500; }
+    .login-submit-btn:disabled { background-color: #555555; color: #aaaaaa; cursor: not-allowed; }
+    
+    /* 🔗 RECONSTRUCTED FOOTER PANEL LINKS */
+    .login-footer-redirect { text-align: center; margin-top: 24px; border-top: 1px solid #393A3B; padding-top: 16px; font-size: 14px; }
+    .login-redirect-link { color: #FF6600; text-decoration: none; font-weight: 600; }
+    .login-redirect-link:hover { text-decoration: underline; }
+    
+    .login-status-alert { text-align: center; margin-top: 16px; font-size: 13px; font-weight: 500; color: #E41E3F; }
+  `;
+  document.head.appendChild(styleEl);
+}
+
+export default function LoginPage() {
+  const navigate = useNavigate();
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
+
+  const handleLoginTransaction = async (e) => {
+    // 🛑 Prevent standard anchor refresh triggers
+    if (e && e.preventDefault) e.preventDefault();
+    
+    if (isSubmitting) return; // Block fast multi-click double submits
+    
+    setErrorMessage('');
+    setIsSubmitting(true);
+
+    // 🛡️ EMERGENCY LOCK RELEASE TIMEOUT FALLBACK
+    const lockReleaseTimeout = setTimeout(() => {
+      if (isSubmitting) {
+        setIsSubmitting(false);
+        setErrorMessage('Authentication request timed out. Please try clicking submit again.');
       }
+    }, 8000);
+
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: email.trim(),
+        password: password,
+      });
+
+      if (error) throw error;
       
       if (data?.user) {
-        // Run database status updates safely inside a secondary try wrapper
-        try {
-          await supabase
-            .from("profiles")
-            .update({ status: "online", last_seen: new Date().toISOString() })
-            .eq("User_id", data.user.id);
-        } catch (dbErr) {
-          console.error("Database status update failed:", dbErr);
-        }
-        
-        // Route straight into your bfrenz workspace control panel
-        window.location.href = "/dashboard";
+        // Toggle user status columns inside profiles layout to track presence online
+        await supabase
+          .from('profiles')
+          .update({ status: 'online', last_seen: new Date().toISOString() })
+          .eq('User_id', data.user.id);
+          
+        clearTimeout(lockReleaseTimeout);
+        navigate('/');
       }
-    } catch (globalErr) {
-      console.error("Global auth exception:", globalErr);
-      alert("An unexpected authentication error occurred.");
-      setLoading(false); // 🟢 RELEASE THE BUTTON AS A SAFETY FALLBACK
+    } catch (err) {
+      console.error("Authentication mapping crash caught:", err);
+      setErrorMessage(err.message || 'Invalid registration credentials match. Check entries.');
+      clearTimeout(lockReleaseTimeout);
+      setIsSubmitting(false); // Clean explicit release trigger fallback
     }
-  }
+  };
 
+    return (
+    <div className="login-splash-container">
+      <div className="login-box-card">
+        
+        {/* Title Brand Bar */}
+        <div className="login-logo-header">
+          <span className="login-logo-text">bfrenz</span>
+        </div>
 
-  return (
-    <div className="flex flex-col min-h-screen bg-gradient-to-b from-black via-[#0a0a0a] to-[#1a1a1a] text-white font-[Verdana]">
-      {/* NAVBAR */}
-      <NavBar />
-
-      {/* MAIN CONTENT */}
-      <main className="flex-grow flex flex-col items-center justify-center text-center px-4">
-        {/* INTRO */}
-        <h1 className="text-3xl font-bold text-orange-500 mb-2">
-          A Modern Spin on the Classic MySpace
-        </h1>
-        <p className="text-sm text-gray-300 leading-relaxed max-w-xl mb-10">
-          Customize your profile, share your vibe, and connect through music, videos, and creativity.
-          bfrenz brings back the nostalgia — with a fresh, modern twist.
-        </p>
-
-        {/* LOGIN BOX — disappears when logged in */}
-        {!user && (
-          <div className="bg-[#0f0f0f] border border-orange-600 rounded-lg p-6 w-80 text-center shadow-lg mb-10">
-            <h2 className="text-orange-500 font-bold mb-3">Member Login</h2>
-
-           {/* ⭐ FORM ELEMENT SUBMIT ANCHOR VIEW */}
-<form onSubmit={handleLogin}>
-  {/* Ensure your input fields map onChange hook updates correctly to email and password states */}
-  <input 
-    type="email" 
-    value={email} 
-    onChange={(e) => setEmail(e.target.value)} 
-    placeholder="Email Address"
-    required
-    className="myspace-input"
-  />
-  <input 
-    type="password" 
-    value={password} 
-    onChange={(e) => setPassword(e.target.value)} 
-    placeholder="••••••••"
-    required
-    className="myspace-input"
-  />
-
-  {/* Button properties must explicitly carry type="submit" or it will do nothing when clicked */}
-  <button 
-    type="submit" 
-    style={{
-      backgroundColor: '#FF6600', 
-      color: '#ffffff', 
-      border: '1px solid #000000', 
-      padding: '6px 15px', 
-      fontSize: '12px',
-      fontWeight: 'bold', 
-      cursor: 'pointer',
-      textTransform: 'uppercase',
-      marginTop: '10px',
-      width: '100%'
-    }}
-  >
-    Log In »
-  </button>
-</form>
-
-
-            <p className="text-xs mt-3 text-gray-400">
-              Don’t have an account?{" "}
-              <Link to="/signup" className="text-orange-400 hover:text-orange-300 font-bold">
-                Sign up here
-              </Link>
-            </p>
+        {/* Form control container element explicit click loop maps */}
+        <form onSubmit={handleLoginTransaction}>
+          
+          <div className="login-form-group">
+            <label className="login-label">Email Address</label>
+            <input 
+              type="email" 
+              className="login-input" 
+              required 
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="Enter your registered email"
+              disabled={isSubmitting}
+            />
           </div>
-        )}
 
-        {/* COOL NEW PEOPLE */}
-        <div className="mb-10">
-          <h3 className="text-orange-400 font-bold mb-3">Cool New People</h3>
-          {featuredUsers.length > 0 ? (
-            <div className="flex flex-col items-center gap-3">
-              <img
-                src={featuredUsers[index].avatar_url}
-                alt="User avatar"
-                className="w-16 h-16 rounded border border-orange-600"
-              />
-              <p className="text-lg font-bold text-orange-400">
-                {featuredUsers[index].username}
-              </p>
+          <div className="login-form-group">
+            <label className="login-label">Password</label>
+            <input 
+              type="password" 
+              className="login-input" 
+              required 
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="Enter your account password"
+              disabled={isSubmitting}
+            />
+          </div>
+
+          {/* Submit Action Execution Panel */}
+          <button 
+            type="submit" 
+            className="login-submit-btn" 
+            disabled={isSubmitting}
+            onClick={handleLoginTransaction} // ⭐ DUAL ACCESSIBILITY SEAM: Traps clicks even if forms form submission handlers crash down
+          >
+            {isSubmitting ? 'Authenticating...' : 'Log In'}
+          </button>
+
+          {errorMessage && (
+            <div className="login-status-alert">
+              ⚠️ {errorMessage}
             </div>
-          ) : (
-            <p className="text-sm text-gray-400">Loading users...</p>
           )}
+        </form>
+
+        {/* Redirecting Redirection Link Layout */}
+        <div className="login-footer-redirect">
+          <span>New to the ecosystem? </span>
+          <Link to="/register" className="login-redirect-link">
+            Sign Up for an Account Now »
+          </Link>
         </div>
 
-        {/* MUSIC + VIDEOS */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl w-full">
-          <div className="border border-orange-600 bg-black p-4 rounded text-white">
-            <h3 className="font-bold text-orange-400 mb-2">ProfileDig Music</h3>
-            <p className="text-sm text-gray-300">
-              Stream tracks from independent artists and share your own playlists.
-            </p>
-            <button
-              onClick={() => navigate("/music")}
-              className="mt-3 bg-orange-600 text-black font-bold px-3 py-1 rounded hover:bg-orange-400 transition"
-            >
-              ▶ Explore Music
-            </button>
-          </div>
-
-          <div className="border border-orange-600 bg-black p-4 rounded text-white">
-            <h3 className="font-bold text-orange-400 mb-2">ProfileDig Videos</h3>
-            <p className="text-sm text-gray-300">
-              Watch creative videos, short films, and community highlights — all in one place.
-            </p>
-            <button
-              onClick={() => navigate("/videos")}
-              className="mt-3 bg-orange-600 text-black font-bold px-3 py-1 rounded hover:bg-orange-400 transition"
-            >
-              ▶ Watch Videos
-            </button>
-          </div>
-        </div>
-      </main>
-
-      {/* FOOTER */}
-      <footer className="bg-orange-600 text-black text-center py-3 text-xs border-t border-orange-400">
-        © {new Date().getFullYear()} BFRENZ — A Place for Friends
-      </footer>
+      </div>
     </div>
   );
 }
