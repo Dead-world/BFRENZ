@@ -121,6 +121,83 @@ export default function ProfilePage({ currentUserId }) {
     }
   }, [routeProfileId, currentUserId, user, authLoading]);
 
+    /* 💾 TRANSACTION HANDLER: WRITE NEW MAIN PARENT WALL POST */
+  const handlePostComment = async (e) => {
+    e.preventDefault();
+    const posterId = currentUserId || user?.id;
+    if (!newComment.trim() || !posterId) return;
+
+    try {
+      const { error } = await supabase.from('comments').insert([{ user_id: posterId, profile_id: activeProfileId, content: newComment.trim() }]);
+      if (error) throw error;
+
+      if (posterId !== activeProfileId) {
+        await supabase.from('notifications').insert([{
+          user_id: activeProfileId,
+          actor_name: user?.user_metadata?.username || 'Someone',
+          alert_type: 'posted on your profile wall'
+        }]);
+      }
+      setNewComment('');
+      fetchProfileData();
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  /* 💾 TRANSACTION HANDLER: SUBMIT AN INLINE THREAD REPLY */
+  const handlePostReply = async (parentCommentId, parentAuthorId) => {
+    const text = replyText[parentCommentId];
+    const posterId = currentUserId || user?.id;
+    if (!text || !text.trim() || !posterId) return;
+
+    try {
+      const { error } = await supabase.from('comments').insert([{
+        user_id: posterId,
+        profile_id: activeProfileId,
+        parent_id: parentCommentId,
+        content: text.trim()
+      }]);
+      if (error) throw error;
+
+      const alerts = [];
+      if (posterId !== parentAuthorId) {
+        alerts.push({ user_id: parentAuthorId, actor_name: user?.user_metadata?.username || 'A friend', alert_type: 'replied to your wall comment' });
+      }
+      if (posterId !== activeProfileId && parentAuthorId !== activeProfileId) {
+        alerts.push({ user_id: activeProfileId, actor_name: user?.user_metadata?.username || 'A friend', alert_type: 'left a message on your page thread' });
+      }
+      if (alerts.length > 0) await supabase.from('notifications').insert(alerts);
+
+      setReplyText(prev => ({ ...prev, [parentCommentId]: '' }));
+      setActiveReplyBoxId(null);
+      fetchProfileData();
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  /* 📌 HANDLER: PURGE BULLETIN FROM SUPABASE */
+  const handleDeleteBulletin = async (id) => {
+    if (!window.confirm('Delete this bulletin notice?')) return;
+    const { error } = await supabase.from('bulletins').delete().eq('id', id);
+    if (!error) setBulletins(prev => prev.filter(b => b.id !== id));
+  };
+
+  /* ✍️ HANDLER: PURGE JOURNAL BLOG FROM SUPABASE */
+  const handleDeleteBlog = async (id) => {
+    if (!window.confirm('Delete this blog entry?')) return;
+    const { error } = await supabase.from('blogs').delete().eq('id', id);
+    if (!error) setBlogs(prev => prev.filter(b => b.id !== id));
+  };
+
+  /* 🗑️ HANDLER: PURGE COMMENT OR REPLY FROM SUPABASE */
+  const handleDeleteComment = async (commentId) => {
+    if (!window.confirm('Delete this comment?')) return;
+    const { error } = await supabase.from('comments').delete().eq('id', commentId);
+    if (!error) fetchProfileData();
+  };
+
   const fetchProfileData = async () => {
     try {
       setLoading(true);
