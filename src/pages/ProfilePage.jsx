@@ -52,6 +52,7 @@ export default function ProfilePage({ currentUserId }) {
   const [newComment, setNewComment] = useState('');
   const [loading, setLoading] = useState(true);
 
+    // Sync state targets whenever route hooks drop changes
   useEffect(() => {
     if (authLoading) return;
 
@@ -74,15 +75,64 @@ export default function ProfilePage({ currentUserId }) {
     }
   }, [routeProfileId, currentUserId, user, authLoading]);
 
-  // ⭐ FIXED: Listens directly to PostgreSQL system updates to change status tags live
+  // Core baseline profile snapshot retrieval data block
+  const fetchProfileData = async () => {
+    try {
+      setLoading(true);
+      const { data: prof, error: pErr } = await supabase.from('profiles').select('*').eq('User_id', activeProfileId).single();
+      if (pErr) throw pErr;
+      setProfile(prof);
+
+      const { data: bulls } = await supabase.from('bulletins').select('*').eq('user_id', activeProfileId).order('created_at', { ascending: false });
+      setBulletins(bulls || []);
+
+      const { data: blogPosts } = await supabase.from('blogs').select('*').eq('author_id', activeProfileId).order('created_at', { ascending: false });
+      setBlogs(blogPosts || []);
+
+      const { data: comms } = await supabase.from('comments').select('*, profiles!comments_user_id_fkey(username, avatar_url)').eq('profile_id', activeProfileId).order('created_at', { ascending: false });
+      setComments(comms || []);
+
+      const { count } = await supabase.from('profile_views').select('*', { count: 'exact', head: true }).eq('profile_id', activeProfileId);
+      setViewCount(count || 0);
+
+      const { data: top8Rows, error: t8Err } = await supabase
+        .from('top_eight')
+        .select('friend_id, profiles!top_eight_friend_id_fkey(User_id, username, avatar_url)')
+        .eq('user_id', activeProfileId)
+        .order('position_rank', { ascending: true })
+        .limit(8);
+
+      if (!t8Err && top8Rows && top8Rows.length > 0) {
+        setFriends(top8Rows.map(row => row.profiles).filter(Boolean));
+      } else {
+        const { data: frRows } = await supabase.from('friends').select('friend_id, profiles!friends_friend_id_fkey(User_id, username, avatar_url)').eq('user_id', activeProfileId).limit(8);
+        if (frRows) setFriends(frRows.map(f => f.profiles).filter(Boolean));
+      }
+
+      if (user?.id && user.id !== activeProfileId) {
+        const { data: connection } = await supabase.from('friends').select('*').eq('user_id', user.id).eq('friend_id', activeProfileId);
+        setIsFriend(connection && connection.length > 0);
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const recordProfileView = async () => {
+    const vId = currentUserId || user?.id;
+    if (!vId || vId === activeProfileId) return;
+    await supabase.from('profile_views').insert([{ viewer_id: vId, profile_id: activeProfileId }]);
+  };
+
+  // Live real-time Supabase status presence row synchronization tunnel
   useEffect(() => {
     if (!activeProfileId) return;
 
-    // 1. Initial baseline snapshot pull
     fetchProfileData();
     recordProfileView();
 
-    // 2. ⭐ REAL-TIME PRESENCE BROADCAST: Subscribes to changes on this user's profile row
     const presenceChannel = supabase
       .channel(`live_status_${activeProfileId}`)
       .on(
@@ -94,27 +144,17 @@ export default function ProfilePage({ currentUserId }) {
           filter: `User_id=eq.${activeProfileId}` 
         },
         (payload) => {
-          console.log("🛰️ Live Status Update Captured:", payload.new.status);
-          // Directly swap the active profile state data container on the fly
           setProfile(prev => prev ? { ...prev, status: payload.new.status } : payload.new);
         }
       )
       .subscribe();
 
-    // Cleanup connection channels on window collapse or navigation shift
     return () => {
       supabase.removeChannel(presenceChannel);
     };
   }, [activeProfileId, user?.id]);
 
-
-  const recordProfileView = async () => {
-    const vId = currentUserId || user?.id;
-    if (!vId || vId === activeProfileId) return;
-    await supabase.from('profile_views').insert([{ viewer_id: vId, profile_id: activeProfileId }]);
-  };
-
-  const handlePostComment = async (e) => {
+    const handlePostComment = async (e) => {
     e.preventDefault();
     const pId = currentUserId || user?.id;
     if (!newComment.trim() || !pId) return;
@@ -165,12 +205,12 @@ export default function ProfilePage({ currentUserId }) {
     return null;
   };
 
-    if (loading || authLoading) return <div style={{ color: '#FF6600', textAlign: 'center', padding: '50px', fontSize: '14px', fontWeight: 'bold', backgroundColor: '#000', minHeight: '100vh' }}>LOADING RETRO CANVAS...</div>;
+  if (loading || authLoading) return <div style={{ color: '#FF6600', textAlign: 'center', padding: '50px', fontSize: '14px', fontWeight: 'bold', backgroundColor: '#000', minHeight: '100vh' }}>LOADING RETRO CANVAS...</div>;
   if (!profile) return <div style={{ color: '#FF6600', textAlign: 'center', padding: '50px', fontSize: '14px', fontWeight: 'bold', backgroundColor: '#000', minHeight: '100vh' }}>PROFILE NOT FOUND</div>;
 
   const youtubeEmbed = getYouTubeEmbedUrl(profile.youtube_url);
 
-  return (
+    return (
     <div style={{ backgroundColor: '#000000', minHeight: '100vh' }}>
       <NavBar user={user} />
       {profile.custom_css && <style>{profile.custom_css}</style>}
@@ -194,8 +234,6 @@ export default function ProfilePage({ currentUserId }) {
                   <img src={profile.avatar_url || 'https://placehold.co'} alt="Avatar" style={{ width: '150px', height: '150px', border: '1px solid #000000', objectFit: 'cover' }} />
                   <div style={{ fontSize: '11px', lineHeight: '1.5' }}>
                     <p style={{ margin: '0 0 4px 0' }}>Hometown: <b>{profile.hometown || 'Unknown'}</b></p>
-                    
-                    {/* ⭐ REBRANDED AND WIRED REAL-TIME PRESENCE DISPLAY BADGE */}
                     <p style={{ margin: '0 0 4px 0' }}>
                       Status: <span style={{ 
                         color: profile.status === 'online' ? '#00cc00' : '#666666', 
@@ -210,12 +248,10 @@ export default function ProfilePage({ currentUserId }) {
                         {profile.status === 'online' ? '● ONLINE' : '○ OFFLINE'}
                       </span>
                     </p>
-                    
                     <p style={{ margin: '0' }}>Views: <b>{viewCount}</b></p>
                   </div>
                 </div>
                 
-                {/* RETRO MEDIA ALBUM SIDEBAR LINK REGION LINK PANEL */}
                 <div style={{ border: '1px dotted #FF6600', padding: '8px', backgroundColor: '#000000', width: '100%', boxSizing: 'border-box' }}>
                   <a href={`/album/${activeProfileId}/pictures`} style={{ color: '#00ffff', textDecoration: 'none', fontWeight: 'bold', display: 'block', marginBottom: '4px', fontSize: '11px' }}>
                     📸 View My Pictures Album »
@@ -294,7 +330,6 @@ export default function ProfilePage({ currentUserId }) {
 
           {/* RIGHT COLUMN */}
           <div style={styles.rightColumn}>
-            {/* ⭐ REBRANDED EXTENDED NETWORK BANNER */}
             <div style={{ backgroundColor: '#ffe5d4', border: '1px solid #FF6600', padding: '8px', marginBottom: '15px', fontSize: '11px', fontWeight: 'bold' }}>
               {profile.username} is in your Extended Network on bfrenz
             </div>
@@ -319,7 +354,7 @@ export default function ProfilePage({ currentUserId }) {
               </div>
             </div>
 
-      {/* ⭐ FIXED — FULLY WORKING YOUTUBE SHOWCASE GATEWAY */}
+           {/* ⭐ FIXED — FULLY WORKING YOUTUBE SHOWCASE GATEWAY */}
 {profile.youtube_url && (
   <div style={styles.box} id="youtube-showcase-window">
     <h2 style={styles.orangeHeader}>{profile.username}'s Featured Showcase Video</h2>
@@ -399,6 +434,8 @@ export default function ProfilePage({ currentUserId }) {
   </div>
 )}
 
+
+            {/* BULLETINS HUB BLAST PANEL */}
             <div style={styles.box}>
               <h2 style={styles.orangeHeader}>Bulletins</h2>
               <div style={styles.contentPadding}>
@@ -425,6 +462,7 @@ export default function ProfilePage({ currentUserId }) {
               </div>
             </div>
 
+            {/* RETRO BLOG LOG ENTRIES SUB-TREE */}
             <div style={styles.box}>
               <h2 style={styles.orangeHeader}>Blog Entries</h2>
               <div style={styles.contentPadding}>
@@ -455,7 +493,7 @@ export default function ProfilePage({ currentUserId }) {
               </div>
             </div>
 
-            {/* RETRO TOP 8 FRIENDS GRID MAP */}
+            {/* CLASSIC 4x2 GRID FRAME FOR TOP 8 FRIENDS */}
             <div style={styles.box}>
               <h2 style={styles.orangeHeader}>{profile.username}'s Space // Top 8 Friends</h2>
               <div style={styles.contentPadding}>
@@ -470,11 +508,7 @@ export default function ProfilePage({ currentUserId }) {
                             {f.username}
                           </div>
                           <div style={{ padding: '3px', backgroundColor: '#ffffff', border: '1px solid #000000', display: 'inline-block', width: '100%' }}>
-                            <img 
-                              src={f.avatar_url || 'https://placehold.co'} 
-                              alt="pic" 
-                              style={{ width: '100%', aspectRatio: '1/1', objectFit: 'cover', display: 'block' }} 
-                            />
+                            <img src={f.avatar_url || 'https://placehold.co'} alt="pic" style={{ width: '100%', aspectRatio: '1/1', objectFit: 'cover', display: 'block' }} />
                           </div>
                         </a>
                       </div>
@@ -484,6 +518,7 @@ export default function ProfilePage({ currentUserId }) {
               </div>
             </div>
 
+            {/* PUBLIC WALL COMMENTS TIMELINE */}
             <div style={styles.box}>
               <h2 style={styles.orangeHeader}>Comments</h2>
               <div style={styles.contentPadding}>
