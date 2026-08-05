@@ -404,4 +404,3 @@ export default function ProfilePage({ currentUserId }) {
   );
 }
 
-export default ProfilePage;
