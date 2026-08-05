@@ -427,21 +427,28 @@ export default function ProfilePage({ currentUserId }) {
               {comments.length === 0 ? (
                 <div style={{ textAlign: 'center', color: '#6b7280', fontSize: '13px', padding: '10px' }}>No entries written on this wall message card yet.</div>
               ) : (
-                comments.map((commentRow) => (
-                  <div key={commentRecord.id} className="profile-comment-item">
-                    <img src={commentRow.profiles?.avatar_url || "/default-avatar.png"} alt="User Thumbnail Avatar" className="profile-commenter-avatar" onError={(e) => { e.target.src = "https://unsplash.com"; }} />
-                    <div style={{ flex: 1 }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
-                        <span style={{ fontWeight: '600', fontSize: '13px', color: '#fff' }}>{commentRow.profiles?.username || 'User'}</span>
-                        <span style={{ fontSize: '10px', color: '#6b7280' }}>{new Date(commentRow.created_at).toLocaleDateString()}</span>
-                      </div>
-                      <div style={{ fontSize: '13px', color: '#d1d5db', lineHeight: '1.4' }}>{commentRow.content}</div>
-                      {(user?.id === commentRow.user_id || user?.id === activeProfileId) && (
-                        <button onClick={() => handleDeleteComment(commentRow.id)} style={{ background: 'none', border: 'none', color: '#ef4444', fontSize: '10px', padding: 0, cursor: 'pointer', marginTop: '6px', textDecoration: 'underline' }}>Delete Comment</button>
-                      )}
-                    </div>
-                  </div>
-                ))
+              comments.map((commentRow) => (
+  /* ⭐ FIXED: Key binding now correctly points to your commentRow iterator item */
+  <div key={commentRow.id} className="profile-comment-item">
+    <img 
+      src={commentRow.profiles?.avatar_url || "/default-avatar.png"} 
+      alt="User Thumbnail Avatar" 
+      className="profile-commenter-avatar" 
+      onError={(e) => { e.target.src = "https://unsplash.com"; }} 
+    />
+    <div style={{ flex: 1 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
+        <span style={{ fontWeight: '600', fontSize: '13px', color: '#fff' }}>{commentRow.profiles?.username || 'User'}</span>
+        <span style={{ fontSize: '10px', color: '#6b7280' }}>{new Date(commentRow.created_at).toLocaleDateString()}</span>
+      </div>
+      <div style={{ fontSize: '13px', color: '#d1d5db', lineHeight: '1.4' }}>{commentRow.content}</div>
+      {(user?.id === commentRow.user_id || user?.id === activeProfileId) && (
+        <button onClick={() => handleDeleteComment(commentRow.id)} style={{ background: 'none', border: 'none', color: '#ef4444', fontSize: '10px', padding: 0, cursor: 'pointer', marginTop: '6px', textDecoration: 'underline' }}>Delete Comment</button>
+      )}
+    </div>
+  </div>
+))
+
               )}
             </div>
 
