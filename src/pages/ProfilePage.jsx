@@ -7,46 +7,49 @@ import { useParams, Link } from "react-router-dom";
 if (typeof document !== 'undefined') {
   const styleEl = document.createElement('style');
   styleEl.innerHTML = `
-    * { font-family: Verdana, Arial, Helvetica, sans-serif; box-sizing: border-box; }
-    body { background-color: #000000; margin: 0; padding: 0; color: #000000; width: 100%; }
-    ::-webkit-scrollbar { width: 8px; }
-    ::-webkit-scrollbar-track { background: #000000; }
-    ::-webkit-scrollbar-thumb { background: #FF6600; border: 1px solid #ffffff; }
-    @keyframes blink { 0%, 49% { opacity: 1; } 50%, 100% { opacity: 0; } }
-    .retro-blink { animation: blink 1s infinite; }
-
-    /* 📱 GLOBAL IOS SAFARI CLICK REPAIR OVERRIDES */
-    button, [role="button"], input[type="submit"] {
-      cursor: pointer !important;
-      touch-action: manipulation !important;
-      -webkit-tap-highlight-color: transparent !important;
-    }
+    /* 🌐 BASELINE MODERN DARK ACCENT LAYOUT RULES */
+    .profile-viewport-wrapper { background-color: #0d0e10; min-height: 100vh; color: #f3f4f6; font-family: 'Segoe UI', system-ui, sans-serif; }
+    .profile-master-grid { display: grid; grid-template-columns: 340px 1fr; gap: 24px; max-width: 1300px; margin: 0 auto; padding: 24px 16px; }
     
-    /* Media player container overrides */
-    .media-player-box { background: #111; border: 1px solid #FF6600; padding: 10px; margin-bottom: 12px; border-radius: 4px; }
-    .media-title-banner { font-size: 10px; font-weight: bold; color: #FF6600; margin-bottom: 6px; font-family: monospace; text-transform: uppercase; }
+    /* 🎛️ CORE PANEL WRAPPERS */
+    .profile-glass-card { background: #16171a; border: 1px solid #26282c; border-radius: 12px; padding: 20px; margin-bottom: 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.2); }
+    .profile-card-header { font-size: 14px; font-weight: 700; color: #FF6600; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+    
+    /* Left Sidebar Components */
+    .avatar-hero-container { text-align: center; position: relative; }
+    .avatar-hero-img { width: 100%; aspect-ratio: 1/1; object-fit: cover; border-radius: 8px; border: 1px solid #26282c; background: #222; }
+    .status-presence-indicator { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; margin-top: 10px; padding: 4px 10px; border-radius: 20px; background: rgba(0,0,0,0.3); }
+    
+    /* Data Grid Formats */
+    .modern-info-table { width: 100%; border-collapse: collapse; margin-top: 8px; }
+    .modern-info-row { border-bottom: 1px solid #26282c; }
+    .modern-info-row:last-child { border-bottom: none; }
+    .modern-info-label { padding: 10px 0; color: #9ca3af; font-size: 13px; font-weight: 500; width: 35%; }
+    .modern-info-value { padding: 10px 0; color: #f3f4f6; font-size: 13px; font-weight: 600; text-align: right; }
+    
+    /* Media Containers */
+    .showcase-media-item { background: #1c1d22; border: 1px solid #26282c; border-radius: 8px; padding: 12px; margin-bottom: 12px; }
+    .showcase-media-item audio, .showcase-media-item video { width: 100%; margin-top: 6px; border-radius: 4px; }
+    
+    /* Comment Ledger System */
+    .comment-board-input { width: 100%; background: #1c1d22; border: 1px solid #26282c; border-radius: 6px; padding: 10px; color: #fff; font-size: 13px; resize: vertical; min-height: 50px; outline: none; margin-bottom: 8px; }
+    .comment-board-input:focus { border-color: #FF6600; }
+    .comment-submit-btn { background: #FF6600; color: #fff; border: none; font-size: 12px; font-weight: 700; padding: 8px 16px; border-radius: 6px; cursor: pointer; }
+    .comment-row-tile { display: flex; gap: 12px; padding: 12px 0; border-bottom: 1px solid #1c1d22; }
+    .comment-tile-avatar { width: 32px; height: 32px; border-radius: 50%; object-fit: cover; background: #333; }
+    
+    /* Top Friends Grid Layout */
+    .top8-flex-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; text-align: center; }
+    .top8-flex-card { font-size: 11px; text-decoration: none; color: #e5e7eb; font-weight: 500; }
+    .top8-flex-card img { width: 100%; aspect-ratio: 1/1; object-fit: cover; border-radius: 6px; border: 1px solid #26282c; margin-bottom: 4px; }
+    .top8-flex-card span { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+    @media (max-width: 850px) {
+      .profile-master-grid { grid-template-columns: 1fr; }
+    }
   `;
   document.head.appendChild(styleEl);
 }
-
-const styles = {
-  container: { width: '100%', minHeight: '100vh', backgroundColor: '#ffffff', borderLeft: '4px solid #FF6600', borderRight: '4px solid #FF6600', padding: '20px' },
-  mainLayout: { display: 'flex', flexWrap: 'wrap', gap: '20px', maxWidth: '1250px', margin: '0 auto' },
-  leftColumn: { flex: '1 1 35%', minWidth: '300px' },
-  rightColumn: { flex: '1 1 60%', minWidth: '400px' },
-  box: { border: '1px solid #000000', marginBottom: '15px', backgroundColor: '#ffffff' },
-  orangeHeader: { backgroundColor: '#FF6600', color: '#ffffff', padding: '4px 8px', fontSize: '12px', fontWeight: 'bold', margin: 0, borderBottom: '1px solid #000000' },
-  contentPadding: { padding: '10px', fontSize: '11px', lineHeight: '1.4' },
-  table: { width: '100%', borderCollapse: 'collapse', fontSize: '11px' },
-  tableLabel: { backgroundColor: '#ffe5d4', color: '#000000', fontWeight: 'bold', padding: '5px', width: '35%', border: '1px solid #ffffff' },
-  tableValue: { padding: '5px', border: '1px solid #ffe5d4', backgroundColor: '#ffffff' },
-  friendGrid: { display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '8px', textAlign: 'center', marginTop: '10px' },
-  friendCard: { fontSize: '10px', fontWeight: 'bold' },
-  friendImage: { width: '100%', aspectRatio: '1/1', objectFit: 'cover', border: '1px solid #000000', display: 'block', marginBottom: '4px' },
-  orangeLink: { color: '#FF6600', textDecoration: 'none', fontWeight: 'bold', fontSize: '12px' },
-  button: { backgroundColor: '#FF6600', color: '#ffffff', border: '1px solid #000000', padding: '4px 8px', fontSize: '11px', cursor: 'pointer', fontWeight: 'bold' },
-  textarea: { width: '100%', height: '60px', border: '1px solid #000000', fontSize: '11px', padding: '5px', marginBottom: '5px', resize: 'vertical' }
-};
 
 export default function ProfilePage({ currentUserId }) {
   const { id: routeProfileId } = useParams();
@@ -65,7 +68,6 @@ export default function ProfilePage({ currentUserId }) {
 
   useEffect(() => {
     if (authLoading) return;
-
     if (routeProfileId) {
       setActiveProfileId(routeProfileId);
     } else if (currentUserId) {
@@ -75,11 +77,8 @@ export default function ProfilePage({ currentUserId }) {
     } else {
       const fetchGlobalHostFallback = async () => {
         const { data } = await supabase.from('profiles').select('User_id').limit(1);
-        if (data && data.length > 0) {
-          setActiveProfileId(data.User_id);
-        } else {
-          setLoading(false);
-        }
+        if (data && data.length > 0) setActiveProfileId(data[0].User_id);
+        else setLoading(false);
       };
       fetchGlobalHostFallback();
     }
@@ -88,7 +87,6 @@ export default function ProfilePage({ currentUserId }) {
   const fetchProfileData = async () => {
     try {
       setLoading(true);
-      // ⭐ DYNAMIC REPAIR: Explicit selection matches all newly synchronized layout customization, interests rows, and media columns
       const { data: prof, error: pErr } = await supabase
         .from('profiles')
         .select('User_id, username, avatar_url, hometown, gender, birthday, status, status_message, meet, about_me, interests_general, interests_music, custom_html, custom_css, profile_song_url, youtube_video_url, soundcloud_url, profile_mp4_url')
@@ -98,12 +96,12 @@ export default function ProfilePage({ currentUserId }) {
       if (pErr) throw pErr;
       setProfile(prof);
 
-      // Dynamic custom style rules injector
+      // Inject custom styling variables dynamically
       if (prof.custom_css && typeof document !== 'undefined') {
-        const legacyStyle = document.getElementById(`custom-css-${activeProfileId}`);
+        const legacyStyle = document.getElementById(`user-custom-css-${activeProfileId}`);
         if (legacyStyle) legacyStyle.remove();
         const sheetEl = document.createElement('style');
-        sheetEl.id = `custom-css-${activeProfileId}`;
+        sheetEl.id = `user-custom-css-${activeProfileId}`;
         sheetEl.innerHTML = prof.custom_css;
         document.head.appendChild(sheetEl);
       }
@@ -180,29 +178,21 @@ export default function ProfilePage({ currentUserId }) {
   const handleRemoveFriend = async () => {
     if (!user) return;
     if (!window.confirm(`Remove ${profile.username} from your friends list?`)) return;
-    const { error } = await supabase.supabase
+    const { error } = await supabase
       .from('friends')
       .delete()
       .or(`and(user_id.eq.${user.id},friend_id.eq.${activeProfileId}),and(user_id.eq.${activeProfileId},friend_id.eq.${user.id})`);
     if (!error) { setIsFriend(false); fetchProfileData(); }
   };
 
-  // ⭐ RECONSTRUCTED COMPLETION: Finished dangling code handler seamlessly
   const handleDeleteComment = async (commentId) => {
     if (!window.confirm('Delete this comment permanently?')) return;
-    const { error } = await supabase
-      .from('comments')
-      .delete()
-      .eq('id', commentId);
-      
+    const { error } = await supabase.from('comments').delete().eq('id', commentId);
     if (!error) {
       setComments(prev => prev.filter(c => c.id !== commentId));
-    } else {
-      console.error('Failed to purge comment:', error);
     }
   };
 
-  // Advanced extractor logic to cleanly convert standard watch links into responsive embed codes
   const extractYoutubeId = (url) => {
     if (!url) return null;
     const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
@@ -210,197 +200,154 @@ export default function ProfilePage({ currentUserId }) {
     return (match && match[2].length === 11) ? match[2] : null;
   };
 
-  if (loading) return <div style={{ color: '#FF6600', padding: '40px', textAlign: 'center', fontFamily: 'monospace', fontWeight: 'bold' }}>LOADING PROFILE PARAMETERS...</div>;
+  if (loading) return <div style={{ color: '#FF6600', padding: '60px', textAlign: 'center', fontFamily: 'monospace', fontWeight: 'bold' }}>LOADING PROFILE PARAMETERS...</div>;
 
     return (
-    <div style={{ backgroundColor: '#000000', minHeight: '100vh' }}>
+    <div className="profile-viewport-wrapper">
       <NavBar />
       
-      <div style={styles.container}>
-        <div style={styles.mainLayout}>
+      {/* 🛠️ MASTER HTML EDITABLE HOOK CONTAINER ELEMENT */}
+      {profile?.custom_html ? (
+        /* If custom html state parameters populate, bypass entire default structure */
+        <div className="user-html-override-block" dangerouslySetInnerHTML={{ __html: profile.custom_html }} />
+      ) : (
+        /* Standard Modern Fallback Canvas View Layer Grid */
+        <div className="profile-master-grid">
           
-          {/* ⬅️ LEFT UTILITY SIDEBAR GRID HEADER COLUMN */}
-          <div style={styles.leftColumn}>
+          {/* ⬅️ COLUMN 1: SIDEBAR INTERFACE SECTION */}
+          <div className="profile-sidebar-pane">
             
-            {/* Box 1: User Identity Framing Card */}
-            <div style={styles.box}>
-              <h2 style={styles.orangeHeader}>{profile?.username || 'User Space'}</h2>
-              <div style={styles.contentPadding}>
-                <img 
-                  src={profile?.avatar_url || "/default-avatar.png"} 
-                  alt="Avatar" 
-                  style={{ width: '100%', border: '1px solid #000000', display: 'block', marginBottom: '8px' }} 
-                  onError={(e) => { e.target.src = "https://unsplash.com"; }}
-                />
-                <div style={{ fontWeight: 'bold', marginBottom: '4px' }}>
-                  Status: {profile?.status === 'online' ? <span style={{ color: 'green' }}>● ONLINE</span> : <span style={{ color: '#666' }}>○ OFFLINE</span>}
-                </div>
-                {profile?.status_message && (
-                  <div style={{ fontStyle: 'italic', color: '#555', marginBottom: '8px' }}>
-                    "{profile.status_message}"
-                  </div>
-                )}
-                <div style={{ fontSize: '10px', color: '#666' }}>Views: {viewCount}</div>
+            {/* Identity Shield Block */}
+            <div className="profile-glass-card avatar-hero-container">
+              <h2 style={{ fontSize: '20px', fontWeight: '800', margin: '0 0 12px 0', color: '#fff' }}>{profile?.username}</h2>
+              <img src={profile?.avatar_url || "/default-avatar.png"} alt="Avatar" className="avatar-hero-img" onError={(e) => { e.target.src = "https://unsplash.com"; }} />
+              
+              <div>
+                <span className="status-presence-indicator">
+                  {profile?.status === 'online' ? <span style={{ color: '#4bac4e' }}>● ONLINE</span> : <span style={{ color: '#74767a' }}>○ OFFLINE</span>}
+                </span>
               </div>
+              <div style={{ fontSize: '12px', color: '#9ca3af', marginTop: '10px' }}>Profile Matrix Views: {viewCount}</div>
             </div>
 
-            {/* ⭐ NEW INJECTION: MEDIA SHOWCASE PLUGS CONTAINER PANEL */}
+            {/* Media Showcase Block */}
             {(profile?.profile_song_url || profile?.youtube_video_url || profile?.soundcloud_url || profile?.profile_mp4_url) && (
-              <div style={styles.box}>
-                <h2 style={styles.orangeHeader}>🎵 Media Showcase</h2>
-                <div style={styles.contentPadding}>
-                  
-                  {/* MP3 Audio Player */}
-                  {profile?.profile_song_url && (
-                    <div className="media-player-box">
-                      <div className="media-title-banner">🔊 Profile Theme Track</div>
-                      <audio src={profile.profile_song_url} controls style={{ width: '100%' }} />
-                    </div>
-                  )}
+              <div className="profile-glass-card">
+                <div className="profile-card-header">🔊 Portfolio Stream</div>
+                
+                {profile?.profile_song_url && (
+                  <div className="showcase-media-item">
+                    <span style={{ fontSize: '11px', fontWeight: '600', color: '#9ca3af' }}>THEME SONG (.MP3)</span>
+                    <audio src={profile.profile_song_url} controls />
+                  </div>
+                )}
 
-                  {/* MP4 Native Video Screen */}
-                  {profile?.profile_mp4_url && (
-                    <div className="media-player-box">
-                      <div className="media-title-banner">🎬 Video Clip Feature</div>
-                      <video src={profile.profile_mp4_url} controls style={{ width: '100%' }} />
-                    </div>
-                  )}
+                {profile?.profile_mp4_url && (
+                  <div className="showcase-media-item">
+                    <span style={{ fontSize: '11px', fontWeight: '600', color: '#9ca3af' }}>FEATURED CLIPS (.MP4)</span>
+                    <video src={profile.profile_mp4_url} controls />
+                  </div>
+                )}
 
-                  {/* YouTube Embed Stream Frame */}
-                  {profile?.youtube_video_url && extractYoutubeId(profile.youtube_video_url) && (
-                    <div className="media-player-box">
-                      <div className="media-title-banner">📺 YouTube Stream</div>
-                      <iframe width="100%" height="180" src={`https://www.youtube.com/embed/${extractYoutubeId(profile.youtube_video_url)}`} frameBorder="0" allowFullScreen title="YouTube"></iframe>
-                    </div>
-                  )}
+                {profile?.youtube_video_url && extractYoutubeId(profile.youtube_video_url) && (
+                  <div className="showcase-media-item">
+                    <span style={{ fontSize: '11px', fontWeight: '600', color: '#9ca3af' }}>YOUTUBE FEATURE</span>
+                    <iframe width="100%" height="160" style={{ marginTop: '6px', borderRadius: '4px' }} src={`https://youtube.com{extractYoutubeId(profile.youtube_video_url)}`} frameBorder="0" allowFullScreen title="YouTube"></iframe>
+                  </div>
+                )}
 
-                  {/* SoundCloud Embed String */}
-                  {profile?.soundcloud_url && (
-                    <div className="media-player-box">
-                      <div className="media-title-banner">☁️ SoundCloud Stream</div>
-                      <iframe width="100%" height="120" scrolling="no" frameBorder="no" src={`https://soundcloud.com{encodeURIComponent(profile.soundcloud_url)}&color=%23ff5500&auto_play=false&hide_related=true`} title="SoundCloud"></iframe>
-                    </div>
-                  )}
-
-                </div>
-              </div>
-            )}
-
-            {/* Box 3: Friends Top Eight Display Matrix */}
-            <div style={styles.box}>
-              <h2 style={styles.orangeHeader}>{profile?.username}'s Top Friends Grid</h2>
-              <div style={styles.contentPadding}>
-                {friends.length === 0 ? (
-                  <span style={{ color: '#666' }}>No friends linked to this network matrix container yet.</span>
-                ) : (
-                  <div style={styles.friendGrid}>
-                    {friends.map((fr) => (
-                      <div key={fr.User_id} style={styles.friendCard}>
-                        <Link to={`/profile/${fr.User_id}`} style={styles.orangeLink}>
-                          <img src={fr.avatar_url || "/default-avatar.png"} alt={fr.username} style={styles.friendImage} onError={(e) => { e.target.src = "https://unsplash.com"; }} />
-                          <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', display: 'block', whiteSpace: 'nowrap' }}>{fr.username}</span>
-                        </Link>
-                      </div>
-                    ))}
+                {profile?.soundcloud_url && (
+                  <div className="showcase-media-item">
+                    <span style={{ fontSize: '11px', fontWeight: '600', color: '#9ca3af' }}>SOUNDCLOUD EMBED</span>
+                    <iframe width="100%" height="100" style={{ marginTop: '6px' }} scrolling="no" frameBorder="no" src={`https://soundcloud.com{encodeURIComponent(profile.soundcloud_url)}&color=%23ff5500&auto_play=false&hide_related=true`} title="SoundCloud"></iframe>
                   </div>
                 )}
               </div>
-            </div>
-
-          </div>
-
-          {/* ➡️ RIGHT MAIN CONTENT FRAME COLUMN */}
-          <div style={styles.rightColumn}>
-            
-            {/* ⭐ ADVANCED INJECTION: CUSTOM HTML SCRIPT CONTENT EXECUTION MATRIX */}
-            {profile?.custom_html && (
-              <div style={{ border: '2px dashed #FF6600', padding: '12px', marginBottom: '15px', backgroundColor: '#fcfcfc' }} dangerouslySetInnerHTML={{ __html: profile.custom_html }} />
             )}
 
-            {/* Box 1: Core Profile Info Parameter Matrix Table */}
-            <div style={styles.box}>
-              <h2 style={styles.orangeHeader}>Bio & Information Parameters</h2>
-              <table style={styles.table}>
-                <tbody>
-                  <tr>
-                    <td style={styles.tableLabel}>Hometown</td>
-                    <td style={styles.tableValue}>{profile?.hometown || 'Not Specified'}</td>
-                  </tr>
-                  <tr>
-                    <td style={styles.tableLabel}>Gender</td>
-                    <td style={styles.tableValue}>{profile?.gender || 'Not Specified'}</td>
-                  </tr>
-                  <tr>
-                    <td style={styles.tableLabel}>Birthday</td>
-                    <td style={styles.tableValue}>{profile?.birthday || 'Not Specified'}</td>
-                  </tr>
-                  <tr>
-                    <td style={styles.tableLabel}>Who I'd Like to Meet</td>
-                    <td style={styles.tableValue}>{profile?.meet || 'Not Specified'}</td>
-                  </tr>
-                  <tr>
-                    <td style={styles.tableLabel}>About Me</td>
-                    <td style={styles.tableValue}>{profile?.about_me || 'No bio description filled out yet.'}</td>
-                  </tr>
-                </tbody>
-              </table>
+            {/* Friends Top 8 Grid Block */}
+            <div className="profile-glass-card">
+              <div className="profile-card-header">👥 Connections Matrix</div>
+              {friends.length === 0 ? (
+                <div style={{ fontSize: '12px', color: '#6b7280' }}>No friends linked yet.</div>
+              ) : (
+                <div className="top8-flex-grid">
+                  {friends.map((fr) => (
+                    <Link key={fr.User_id} to={`/profile/${fr.User_id}`} className="top8-flex-card">
+                      <img src={fr.avatar_url || "/default-avatar.png"} alt={fr.username} onError={(e) => { e.target.src = "https://unsplash.com"; }} />
+                      <span>{fr.username}</span>
+                    </Link>
+                  ))}
+                </div>
+              )}
             </div>
 
-            {/* ⭐ CORE DATA SYNC FIX: Display newly synchronized parameters categories */}
-            <div style={styles.box}>
-              <h2 style={styles.orangeHeader}>🏷️ User Category Interests</h2>
-              <table style={styles.table}>
-                <tbody>
-                  <tr>
-                    <td style={styles.tableLabel}>General Interests</td>
-                    <td style={styles.tableValue}>{profile?.interests_general || 'No interest data provided yet.'}</td>
-                  </tr>
-                  <tr>
-                    <td style={styles.tableLabel}>Music & Bands</td>
-                    <td style={styles.tableValue}>{profile?.interests_music || 'No band selections tracked yet.'}</td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-
-            {/* Box 3: Comments Ledger Submission Board */}
-            <div style={styles.box}>
-              <h2 style={styles.orangeHeader}>Ecosystem Connection Wall Comments ({comments.length})</h2>
-              <div style={styles.contentPadding}>
-                {user && (
-                  <form onSubmit={handlePostComment} style={{ marginBottom: '15px' }}>
-                    <textarea style={styles.textarea} value={newComment} onChange={(e) => setNewComment(e.target.value)} placeholder="Write an open message on this profile wall..." required />
-                    <button type="submit" style={styles.button}>Post Comment</button>
-                  </form>
-                )}
-                
-                {comments.length === 0 ? (
-                  <div style={{ color: '#666', textAlign: 'center', padding: '10px' }}>No wall comments posted. Be the first!</div>
-                ) : (
-                  comments.map((comm) => (
-                    <div key={comm.id} style={{ borderBottom: '1px solid #ffe5d4', padding: '8px 0', display: 'flex', gap: '10px', alignItems: 'flex-start' }}>
-                      <img src={comm.profiles?.avatar_url || "/default-avatar.png"} alt="Commenter" style={{ width: '32px', height: '32px', borderRadius: '50%', objectFit: 'cover', border: '1px solid #000' }} />
-                      <div style={{ flex: 1 }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '3px' }}>
-                          <span style={{ fontWeight: 'bold', color: '#FF6600' }}>{comm.profiles?.username || 'User'}</span>
-                          <span style={{ fontSize: '9px', color: '#999' }}>{new Date(comm.created_at).toLocaleDateString()}</span>
-                        </div>
-                        <div style={{ fontSize: '11px', color: '#333' }}>{comm.content}</div>
-                        {(user?.id === comm.user_id || user?.id === activeProfileId) && (
-                          <button onClick={() => handleDeleteComment(comm.id)} style={{ background: 'none', border: 'none', color: 'red', fontSize: '9px', padding: 0, cursor: 'pointer', marginTop: '4px', textDecoration: 'underline' }}>
-                            Delete
-                          </button>
-                        )}
-                      </div>
-                    </div>
-                  ))
-                )}
-              </div>
-            </div>
           </div>
+
+          {/* ➡️ COLUMN 2: MAIN CONTENT DISPLAY WRAPPERS */}
+          <div className="profile-main-canvas">
+            
+            {/* Metadata Parameters Matrix Tables */}
+            <div className="profile-glass-card">
+              <div className="profile-card-header">📋 Profile Metadata</div>
+              <table className="modern-info-table">
+                <tbody>
+                  <tr className="modern-info-row"><td className="modern-info-label">Hometown</td><td className="modern-info-value">{profile?.hometown || 'Unspecified'}</td></tr>
+                  <tr className="modern-info-row"><td className="modern-info-label">Gender</td><td className="modern-info-value">{profile?.gender || 'Unspecified'}</td></tr>
+                  <tr className="modern-info-row"><td className="modern-info-label">Status Row</td><td className="modern-info-value">{profile?.status_message || 'No headline message asset.'}</td></tr>
+                  <tr className="modern-info-row"><td className="modern-info-label">Who I'd Like to Meet</td><td className="modern-info-value">{profile?.meet || 'Unspecified'}</td></tr>
+                  <tr className="modern-info-row"><td className="modern-info-label">About Me / Bio</td><td className="modern-info-value" style={{ textAlign: 'left', display: 'block', paddingTop: '4px' }}>{profile?.about_me || 'Bio description data vacant.'}</td></tr>
+                </tbody>
+              </table>
+            </div>
+
+            {/* Synchronized Core Categories Intersts Tables */}
+            <div className="profile-glass-card">
+              <div className="profile-card-header">🏷️ Synchronized Fields Interests</div>
+              <table className="modern-info-table">
+                <tbody>
+                  <tr className="modern-info-row"><td className="modern-info-label">General Hobbies</td><td className="modern-info-value">{profile?.interests_general || 'No interest rows saved.'}</td></tr>
+                  <tr className="modern-info-row"><td className="modern-info-label">Music & Bands</td><td className="modern-info-value">{profile?.interests_music || 'No band indexes tracked.'}</td></tr>
+                </tbody>
+              </table>
+            </div>
+
+            {/* Connections Wall Comments System */}
+            <div className="profile-glass-card">
+              <div className="profile-card-header">💬 Connections Wall Comments ({comments.length})</div>
+              
+              {user && (
+                <form onSubmit={handlePostComment} style={{ marginBottom: '20px' }}>
+                  <textarea className="comment-board-input" value={newComment} onChange={(e) => setNewComment(e.target.value)} placeholder="Drop an open message on this profile grid..." required />
+                  <button type="submit" className="comment-submit-btn">Post Comment</button>
+                </form>
+              )}
+
+              {comments.length === 0 ? (
+                <div style={{ textAlign: 'center', color: '#6b7280', fontSize: '13px', padding: '10px' }}>No messages recorded on this profile wall yet.</div>
+              ) : (
+                comments.map((comm) => (
+                  <div key={comm.id} className="comment-row-tile">
+                    <img src={comm.profiles?.avatar_url || "/default-avatar.png"} alt="User Avatar" className="comment-tile-avatar" onError={(e) => { e.target.src = "https://unsplash.com"; }} />
+                    <div style={{ flex: 1 }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
+                        <span style={{ fontWeight: '600', fontSize: '13px', color: '#fff' }}>{comm.profiles?.username || 'User'}</span>
+                        <span style={{ fontSize: '10px', color: '#6b7280' }}>{new Date(comm.created_at).toLocaleDateString()}</span>
+                      </div>
+                      <div style={{ fontSize: '13px', color: '#d1d5db', lineHeight: '1.4' }}>{comm.content}</div>
+                      {(user?.id === comm.user_id || user?.id === activeProfileId) && (
+                        <button onClick={() => handleDeleteComment(comm.id)} style={{ background: 'none', border: 'none', color: '#ef4444', fontSize: '10px', padding: 0, cursor: 'pointer', marginTop: '6px', textDecoration: 'underline' }}>Delete Comment</button>
+                      )}
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+
+          </div>
+
         </div>
-      </div>
+      )}
     </div>
   );
 }
-
