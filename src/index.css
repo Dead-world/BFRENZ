@@ -11,3 +11,48 @@
   animation: fadeIn 0.6s ease-out;
 }
 
+    @media (max-width: 768px) {
+      .nav-links-container { 
+        display: none !important; 
+        flex-direction: column !important; 
+        width: 100% !important; 
+        background-color: #000000 !important; 
+        border-top: 1px solid #FF6600 !important; 
+        padding: 12px 0 !important; 
+        margin-top: 10px !important; 
+        gap: 12px !important; 
+        align-items: center !important; /* Centers layout child wrappers */
+      }
+      .nav-links-container.open { 
+        display: flex !important; 
+      }
+      .burger-menu-btn { 
+        display: block !important; 
+      }
+      
+      /* Standard button full-width rules */
+      .retro-nav-btn { 
+        width: 100% !important; 
+        box-sizing: border-box !important; 
+        justify-content: center !important; 
+      }
+      
+      /* ⭐ FIXED: Forces the Messenger link button back to an exact square block on mobile screens */
+      .retro-messenger-circle { 
+        width: 100% !important; 
+        max-width: 100% !important; /* Clear horizontal expansion limits */
+        height: auto !important;
+        padding: 12px 14px !important; /* Matches vertical dimension spacing of standard buttons */
+        border-radius: 4px !important; /* Converts from 50% circular clip into a rounded square box */
+        box-sizing: border-box !important; 
+        justify-content: center !important; 
+      }
+      
+      .messenger-dropdown-panel { 
+        position: fixed !important; 
+        top: 64px !important; 
+        right: 10px !important; 
+        width: calc(100% - 20px) !important; 
+        max-width: 360px !important; 
+      }
+    }
