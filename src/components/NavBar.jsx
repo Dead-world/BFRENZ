@@ -9,6 +9,37 @@ if (typeof document !== 'undefined') {
     .nav-links-container { display: flex !important; align-items: center !important; gap: 15px !important; }
     .burger-menu-btn { display: none !important; }
     
+    /* 🎨 RETRO NAVIGATION BUTTONS STYLES */
+    .retro-nav-btn {
+      display: inline-flex !important;
+      align-items: center !important;
+      padding: 5px 12px !important;
+      font-family: 'Courier New', monospace !important;
+      font-weight: bold !important;
+      font-size: 11px !important;
+      text-transform: uppercase !important;
+      text-decoration: none !important;
+      color: #000000 !important;
+      border: 1px solid #000000 !important;
+      border-radius: 3px !important;
+      cursor: pointer !important;
+      box-shadow: 2px 2px 0px #ffffff !important;
+      transition: transform 0.05s ease, box-shadow 0.05s ease !important;
+    }
+    .retro-nav-btn:active {
+      transform: translate(1px, 1px) !important;
+      box-shadow: 1px 1px 0px #ffffff !important;
+    }
+    .retro-nav-btn:hover {
+      filter: brightness(1.1) !important;
+    }
+    .btn-dashboard-orange {
+      background-color: #FF6600 !important;
+    }
+    .btn-inbox-cyan {
+      background-color: #00BCD4 !important;
+    }
+
     /* 🔔 NOTIFICATION BELL ALERT KEYFRAMES */
     @keyframes pulse-alert {
       0%, 100% { filter: drop-shadow(0 0 2px #FF6600); }
@@ -30,6 +61,13 @@ if (typeof document !== 'undefined') {
       }
       .nav-links-container.open { display: flex !important; }
       .burger-menu-btn { display: block !important; }
+      
+      /* Mobile expansion adjustment for custom buttons */
+      .retro-nav-btn {
+        width: 100% !important;
+        box-sizing: border-box !important;
+        justify-content: center !important;
+      }
     }
   `;
   document.head.appendChild(styleEl);
@@ -111,7 +149,10 @@ export default function NavBar() {
         
         {user ? (
           <>
-            <Link to="/dashboard" style={styles.navLink} onClick={() => setIsOpen(false)}>Dashboard</Link>
+            {/* ⭐ CONVERTED: Dashboard Text Link to Retro Button Layout */}
+            <Link to="/dashboard" className="retro-nav-btn btn-dashboard-orange" onClick={() => setIsOpen(false)}>
+              Dashboard
+            </Link>
             
             {/* ⭐ FIXED UPDATE: STYLISH VECTOR NOTIFICATION BELL WITH COUNTER SHIELD OBJECT */}
             <Link to="/notifications" style={styles.navLink} onClick={() => setIsOpen(false)} title="View My Notification Alerts Hub">
@@ -148,7 +189,11 @@ export default function NavBar() {
               </div>
             </Link>
 
-            <Link to="/inbox" style={styles.navLink} onClick={() => setIsOpen(false)}>Inbox</Link>
+            {/* ⭐ CONVERTED: Inbox Text Link to Retro Button Layout */}
+            <Link to="/inbox" className="retro-nav-btn btn-inbox-cyan" onClick={() => setIsOpen(false)}>
+              Inbox
+            </Link>
+
             <Link to={`/profile/${user.id}`} style={styles.profileLink} onClick={() => setIsOpen(false)}>My Profile</Link>
             <button onClick={handleLogout} style={styles.logoutBtn}>Log Out</button>
           </>
