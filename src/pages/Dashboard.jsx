@@ -234,24 +234,25 @@ export default function Dashboard() {
       const textUrl = form.get("youtube_url");
       if (textUrl) youtube_url = textUrl;
     }
-        const updates = {
-      username: form.get("username"),
-      status: form.get("status"),
-      status_message: form.get("status_message"),
-      about_me: form.get("about_me"),
-      meet: form.get("meet"), 
-      gender: form.get("gender"), 
-      // ⭐ ENSURE THIS EXISTS: Pulls hometown data string safely from FormData nodes
-      hometown: form.get("hometown"), 
-      general_interests: form.get("general_interests"),
-      music_interests: form.get("music_interests"),
-      custom_html: form.get("custom_html"),
-      custom_css: form.get("custom_css"),
-      youtube_url: youtube_url,
-      birthday: birthday,
-      avatar_url,
-      mp3_url, 
-    };
+     // Check inside your async function saveChanges(e) method in Dashboard.jsx:
+const updates = {
+  username: form.get("username"),
+  status: form.get("status"),
+  // ⭐ DOUBLE-CHECK THIS FIELD: Pulls the scrolling text string from your input fields safely
+  status_message: form.get("status_message"), 
+  about_me: form.get("about_me"),
+  meet: form.get("meet"), 
+  gender: form.get("gender"), 
+  hometown: form.get("hometown"),
+  general_interests: form.get("general_interests"),
+  music_interests: form.get("music_interests"),
+  custom_html: form.get("custom_html"),
+  custom_css: form.get("custom_css"),
+  youtube_url: youtube_url,
+  birthday: birthday,
+  avatar_url,
+  mp3_url, 
+};
 
 
 

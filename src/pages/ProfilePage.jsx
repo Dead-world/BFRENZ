@@ -198,13 +198,15 @@ export default function ProfilePage({ currentUserId }) {
       <NavBar user={user} />
       {profile.custom_css && <style>{profile.custom_css}</style>}
 
-      <div style={styles.container}>
+             {/* TOP STATUS MARQUEE */}
         <div style={{ backgroundColor: '#000', color: '#FF6600', border: '1px solid #FF6600', padding: '6px', marginBottom: '15px', overflow: 'hidden' }}>
           <marquee scrollamount="5" style={{ fontSize: '11px', fontWeight: 'bold' }}>
             <span className="retro-blink" style={{ marginRight: '10px', color: '#fff' }}>⚡ STATUS TRANSMISSION:</span> 
+            {/* ⭐ FIXED FALLBACK OPERATOR LINK */}
             {profile.username} says: "{profile.status_message || 'No active broadcast transmission...'}"
           </marquee>
         </div>
+
 
         <div style={styles.mainLayout}>
           {/* LEFT COLUMN */}
