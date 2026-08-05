@@ -41,12 +41,39 @@ export default function LandingPage() {
     return () => clearInterval(interval);
   }, [featuredUsers]);
 
-  async function handleLogin(e) {
+    async function handleLogin(e) {
     e.preventDefault();
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
-    if (error) alert(error.message);
-    else window.location.href = "/dashboard";
+    setLoading(true);
+    
+    // 1. Authenticate user credentials with Supabase Auth
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+    
+    if (error) {
+      alert(error.message);
+      setLoading(false);
+      return;
+    }
+    
+    if (data?.user) {
+      try {
+        // ⭐ AUTOMATIC STATUS UPDATE: Force status to online inside your database schema row
+        await supabase
+          .from("profiles")
+          .update({ 
+            status: "online", 
+            last_seen: new Date().toISOString() 
+          })
+          .eq("User_id", data.user.id);
+          
+      } catch (err) {
+        console.error("Failed to push online presence marker:", err);
+      }
+      
+      // 2. Safely route the authenticated user directly into their space control panel
+      window.location.href = "/dashboard";
+    }
   }
+
 
   return (
     <div className="flex flex-col min-h-screen bg-gradient-to-b from-black via-[#0a0a0a] to-[#1a1a1a] text-white font-[Verdana]">

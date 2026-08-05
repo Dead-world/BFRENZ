@@ -71,14 +71,23 @@ export default function NavBar() {
     return () => { supabase.removeChannel(sub); };
   }, [user]);
 
+   // ⭐ AUTOMATIC STATUS UPDATE: Switches presence tracking tags upon exit requests
   const handleLogout = async () => {
     try {
       if (user) {
-        await supabase.from("profiles").update({ status: "offline", last_seen: new Date().toISOString() }).eq("User_id", user.id);
+        // 1. Force state parameters to track as offline inside your schema rows database
+        await supabase
+          .from("profiles")
+          .update({ 
+            status: "offline", 
+            last_seen: new Date().toISOString() 
+          })
+          .eq("User_id", user.id);
       }
     } catch (err) {
-      console.error(err);
+      console.error("Failed to change user presence flag during logout loop:", err);
     } finally {
+      // 2. Destroy browser session token parameters and dump user context cleanly back to log in view
       await supabase.auth.signOut();
       window.location.href = "/login";
     }
