@@ -97,28 +97,46 @@ export default function LandingPage() {
           <div className="bg-[#0f0f0f] border border-orange-600 rounded-lg p-6 w-80 text-center shadow-lg mb-10">
             <h2 className="text-orange-500 font-bold mb-3">Member Login</h2>
 
-            <form onSubmit={handleLogin} className="space-y-3 text-sm">
-              <input
-                type="email"
-                placeholder="Email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="w-full p-2 rounded bg-gray-200 text-black"
-              />
-              <input
-                type="password"
-                placeholder="Password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="w-full p-2 rounded bg-gray-200 text-black"
-              />
-              <button
-                type="submit"
-                className="w-full bg-orange-600 text-black font-bold py-2 rounded hover:bg-orange-400 transition"
-              >
-                Login
-              </button>
-            </form>
+           {/* ⭐ FORM ELEMENT SUBMIT ANCHOR VIEW */}
+<form onSubmit={handleLogin}>
+  {/* Ensure your input fields map onChange hook updates correctly to email and password states */}
+  <input 
+    type="email" 
+    value={email} 
+    onChange={(e) => setEmail(e.target.value)} 
+    placeholder="Email Address"
+    required
+    className="myspace-input"
+  />
+  <input 
+    type="password" 
+    value={password} 
+    onChange={(e) => setPassword(e.target.value)} 
+    placeholder="••••••••"
+    required
+    className="myspace-input"
+  />
+
+  {/* Button properties must explicitly carry type="submit" or it will do nothing when clicked */}
+  <button 
+    type="submit" 
+    style={{
+      backgroundColor: '#FF6600', 
+      color: '#ffffff', 
+      border: '1px solid #000000', 
+      padding: '6px 15px', 
+      fontSize: '12px',
+      fontWeight: 'bold', 
+      cursor: 'pointer',
+      textTransform: 'uppercase',
+      marginTop: '10px',
+      width: '100%'
+    }}
+  >
+    Log In »
+  </button>
+</form>
+
 
             <p className="text-xs mt-3 text-gray-400">
               Don’t have an account?{" "}

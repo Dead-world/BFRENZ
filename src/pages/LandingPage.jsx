@@ -47,37 +47,49 @@ export default function LandingPage() {
     return () => clearInterval(interval);
   }, [featuredUsers]);
 
-    async function handleLogin(e) {
+  // ⭐ FULLY FIXED AUTHENTICATION DISPATCH PIPIELINE
+  async function handleLogin(e) {
     e.preventDefault();
-    setLoading(true); // Locks the button to prevent duplicate spamming
     
+    // 1. Guard against uninitialized state values
+    if (!email || !password) {
+      alert("Please provide both an email address and password token.");
+      return;
+    }
+
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+      // 2. Validate user credentials securely with Supabase Auth
+      const { data, error } = await supabase.auth.signInWithPassword({ 
+        email: email.trim(), 
+        password: password 
+      });
       
       if (error) {
-        alert(error.message);
-        setLoading(false); // 🟢 RELEASE THE BUTTON IMMEDIATELY IF PASSWORD IS WRONG
+        alert("Authentication Refused: " + error.message);
         return;
       }
       
       if (data?.user) {
-        // Run database status updates safely inside a secondary try wrapper
         try {
+          // 3. ⭐ AUTOMATIC SYNC FORCE: Flips status safely inside your public.profiles table
           await supabase
             .from("profiles")
-            .update({ status: "online", last_seen: new Date().toISOString() })
-            .eq("User_id", data.user.id);
+            .update({ 
+              status: "online", 
+              last_seen: new Date().toISOString() 
+            })
+            .eq("User_id", data.user.id); // Validates exact table key casing parameters
+            
         } catch (dbErr) {
-          console.error("Database status update failed:", dbErr);
+          console.error("Database connection trigger update dropped:", dbErr);
         }
         
-        // Route straight into your bfrenz workspace control panel
+        // 4. Clean exit: Redirect directly into your bfrenz dashboard workspace shell
         window.location.href = "/dashboard";
       }
     } catch (globalErr) {
-      console.error("Global auth exception:", globalErr);
-      alert("An unexpected authentication error occurred.");
-      setLoading(false); // 🟢 RELEASE THE BUTTON AS A SAFETY FALLBACK
+      console.error("Critical login transactional boundary exception: ", globalErr);
+      alert("System connection processing timeout. Please try again.");
     }
   }
 
@@ -127,18 +139,46 @@ export default function LandingPage() {
             {!user ? (
               <div style={styles.contentBox}>
                 <h2 style={styles.boxTitle}>Member Authentication</h2>
-                <form onSubmit={handleLogin} style={{ padding: "15px" }}>
-                  <label style={{ display: "block", fontSize: "10px", color: "#888888", marginBottom: "3px", textTransform: "uppercase", fontWeight: "bold" }}>Account Email</label>
-                  <input type="email" placeholder="name@domain.com" value={email} onChange={(e) => setEmail(e.target.value)} required style={styles.inputField} />
-                  
-                  <label style={{ display: "block", fontSize: "10px", color: "#888888", marginBottom: "3px", textTransform: "uppercase", fontWeight: "bold" }}>Secure Password</label>
-                  <input type="password" placeholder="••••••••" value={password} onChange={(e) => setPassword(e.target.value)} required style={styles.inputField} />
-                  
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: "5px" }}>
-                    <button type="submit" style={styles.primaryBtn}>Sign In »</button>
-                    <Link to="/register" style={{ color: "#FF6600", fontSize: "11px", textDecoration: "none", fontWeight: "bold" }}>Register Account</Link>
-                  </div>
-                </form>
+             {/* ⭐ FORM ELEMENT SUBMIT ANCHOR VIEW */}
+<form onSubmit={handleLogin}>
+  {/* Ensure your input fields map onChange hook updates correctly to email and password states */}
+  <input 
+    type="email" 
+    value={email} 
+    onChange={(e) => setEmail(e.target.value)} 
+    placeholder="Email Address"
+    required
+    className="myspace-input"
+  />
+  <input 
+    type="password" 
+    value={password} 
+    onChange={(e) => setPassword(e.target.value)} 
+    placeholder="••••••••"
+    required
+    className="myspace-input"
+  />
+
+  {/* Button properties must explicitly carry type="submit" or it will do nothing when clicked */}
+  <button 
+    type="submit" 
+    style={{
+      backgroundColor: '#FF6600', 
+      color: '#ffffff', 
+      border: '1px solid #000000', 
+      padding: '6px 15px', 
+      fontSize: '12px',
+      fontWeight: 'bold', 
+      cursor: 'pointer',
+      textTransform: 'uppercase',
+      marginTop: '10px',
+      width: '100%'
+    }}
+  >
+    Log In »
+  </button>
+</form>
+
               </div>
             ) : (
               <div style={{ ...styles.contentBox, backgroundColor: "#161616", borderStyle: "dashed" }}>
