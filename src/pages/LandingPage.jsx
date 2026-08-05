@@ -159,11 +159,26 @@ export default function LandingPage() {
     className="myspace-input"
   />
 
-  {/* Button properties must explicitly carry type="submit" or it will do nothing when clicked */}
-   {/* ... existing email/password inputs and button code inside <form> ... */}
-  <button type="submit" style={styles.button}>
-    Log In »
-  </button>
+  {/* ⭐ RESTORED STYLED SUBMIT BUTTON BLOCK */}
+<button 
+  type="submit" 
+  style={{
+    backgroundColor: '#FF6600', 
+    color: '#ffffff', 
+    border: '1px solid #000000', 
+    padding: '6px 15px', 
+    fontSize: '12px',
+    fontWeight: 'bold', 
+    cursor: 'pointer',
+    textTransform: 'uppercase',
+    marginTop: '10px',
+    width: '100%',
+    fontFamily: 'Verdana, Arial, sans-serif'
+  }}
+>
+  Log In »
+</button>
+
 </form>
 
 {/* ⭐ RESTORED SIGN UP NAVIGATION LINK BLOCK */}
