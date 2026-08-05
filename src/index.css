@@ -10,3 +10,187 @@
 .animate-fadeIn {
   animation: fadeIn 0.6s ease-out;
 }
+
+/* 🌐 CIRCULAR NAV ICON BADGES */
+.circle-nav-badge {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 40px !important;
+  height: 40px !important;
+  border-radius: 50% !important;
+  background-color: #3A3B3C !important;
+  color: #E4E6EB !important;
+  text-decoration: none !important;
+  cursor: pointer !important;
+  border: none !important;
+  transition: background-color 0.2s ease !important;
+}
+.circle-nav-badge:hover { 
+  background-color: #4E4F50 !important; 
+}
+.circle-nav-badge svg { 
+  width: 20px !important; 
+  height: 20px !important; 
+  fill: currentColor !important; 
+}
+
+/* 👤 AVATAR ICON INTERFACE */
+.avatar-wrapper { 
+  position: relative !important; 
+  display: inline-flex !important; 
+  cursor: pointer !important; 
+}
+.nav-avatar-img { 
+  width: 40px !important; 
+  height: 40px !important; 
+  border-radius: 50% !important; 
+  object-fit: cover !important; 
+  background-color: #3A3B3C !important; 
+}
+.dropdown-arrow-badge {
+  position: absolute !important;
+  bottom: -2px !important;
+  right: -2px !important;
+  width: 16px !important;
+  height: 16px !important;
+  background-color: #3A3B3C !important;
+  border-radius: 50% !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  border: 2px solid #242526 !important;
+}
+.dropdown-arrow-badge svg { 
+  width: 10px !important; 
+  height: 10px !important; 
+  fill: #E4E6EB !important; 
+}
+
+/* 📂 DROPDOWN FLOATING POPUP CANVAS */
+.fb-dropdown-panel {
+  position: absolute !important;
+  top: 50px !important;
+  right: 0 !important;
+  width: 340px !important;
+  background-color: #242526 !important;
+  border-radius: 8px !important;
+  padding: 12px !important;
+  box-shadow: 0 12px 28px 0 rgba(0, 0, 0, 0.3) !important;
+  z-index: 1000 !important;
+  font-family: 'Segoe UI', Helvetica, Arial, sans-serif !important;
+  color: #E4E6EB !important;
+  border: 1px solid #393A3B !important;
+}
+
+.dropdown-profile-box {
+  background: #242526 !important;
+  padding: 4px 4px 12px 4px !important;
+}
+.dropdown-user-display {
+  display: flex !important;
+  flex-direction: column !important;
+  padding: 4px !important;
+}
+.dropdown-user-name { 
+  font-weight: bold !important; 
+  font-size: 16px !important; 
+  color: #ffffff !important; 
+}
+.dropdown-user-email { 
+  font-size: 12px !important; 
+  color: #B0B3B8 !important; 
+  margin-top: 2px !important; 
+}
+
+.see-all-profiles-btn {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 100% !important;
+  background-color: #3A3B3C !important;
+  color: #E4E6EB !important;
+  border: none !important;
+  padding: 8px !important;
+  border-radius: 6px !important;
+  font-size: 14px !important;
+  font-weight: 600 !important;
+  cursor: pointer !important;
+  text-decoration: none !important;
+  margin-top: 12px !important;
+}
+.see-all-profiles-btn:hover { 
+  background-color: #4E4F50 !important; 
+}
+
+/* Action items inside menu list */
+.dropdown-action-item {
+  display: flex !important;
+  align-items: center !important;
+  padding: 10px !important;
+  border-radius: 6px !important;
+  cursor: pointer !important;
+  color: #E4E6EB !important;
+  text-decoration: none !important;
+  margin-top: 4px !important;
+}
+.dropdown-action-item:hover { 
+  background-color: #3A3B3C !important; 
+}
+.action-item-left { 
+  display: flex !important; 
+  align-items: center !important; 
+  gap: 12px !important; 
+}
+.action-item-title { 
+  font-size: 15px !important; 
+  font-weight: 500 !important; 
+  color: #ffffff !important; 
+  display: block !important; 
+}
+.action-item-subtitle { 
+  font-size: 12px !important; 
+  color: #B0B3B8 !important; 
+  display: block !important; 
+  margin-top: 1px !important; 
+}
+
+.dropdown-icon-circle {
+  width: 36px !important;
+  height: 36px !important;
+  border-radius: 50% !important;
+  background-color: #3A3B3C !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  font-size: 16px !important;
+}
+.dropdown-icon-circle svg { 
+  width: 18px !important; 
+  height: 18px !important; 
+  fill: #E4E6EB !important; 
+}
+
+.dropdown-footer-text {
+  padding: 12px 4px 4px 4px !important;
+  font-size: 11px !important;
+  color: #B0B3B8 !important;
+}
+.dropdown-footer-text a { 
+  color: #B0B3B8 !important; 
+  text-decoration: none !important; 
+  margin-right: 4px !important; 
+}
+.dropdown-footer-text a:hover { 
+  text-decoration: underline !important; 
+}
+
+@media (max-width: 768px) {
+  .fb-dropdown-panel { 
+    position: fixed !important; 
+    top: 60px !important; 
+    right: 10px !important; 
+    width: calc(100% - 20px) !important; 
+    max-width: 340px !important; 
+  }
+}
