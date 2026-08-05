@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useAuth } from '../hooks/useAuth';
 import NavBar from "../components/NavBar";
 import { supabase } from "../supabaseClient"; 
-import { useParams } from "react-router-dom"; 
+import { useParams, Link } from "react-router-dom"; 
 
 if (typeof document !== 'undefined') {
   const styleEl = document.createElement('style');
@@ -21,6 +21,10 @@ if (typeof document !== 'undefined') {
       touch-action: manipulation !important;
       -webkit-tap-highlight-color: transparent !important;
     }
+    
+    /* Media player container overrides */
+    .media-player-box { background: #111; border: 1px solid #FF6600; padding: 10px; margin-bottom: 12px; border-radius: 4px; }
+    .media-title-banner { font-size: 10px; font-weight: bold; color: #FF6600; margin-bottom: 6px; font-family: monospace; text-transform: uppercase; }
   `;
   document.head.appendChild(styleEl);
 }
@@ -84,9 +88,25 @@ export default function ProfilePage({ currentUserId }) {
   const fetchProfileData = async () => {
     try {
       setLoading(true);
-      const { data: prof, error: pErr } = await supabase.from('profiles').select('*').eq('User_id', activeProfileId).single();
+      // ⭐ DYNAMIC REPAIR: Explicit selection matches all newly synchronized layout customization, interests rows, and media columns
+      const { data: prof, error: pErr } = await supabase
+        .from('profiles')
+        .select('User_id, username, avatar_url, hometown, gender, birthday, status, status_message, meet, about_me, interests_general, interests_music, custom_html, custom_css, profile_song_url, youtube_video_url, soundcloud_url, profile_mp4_url')
+        .eq('User_id', activeProfileId)
+        .single();
+        
       if (pErr) throw pErr;
       setProfile(prof);
+
+      // Dynamic custom style rules injector
+      if (prof.custom_css && typeof document !== 'undefined') {
+        const legacyStyle = document.getElementById(`custom-css-${activeProfileId}`);
+        if (legacyStyle) legacyStyle.remove();
+        const sheetEl = document.createElement('style');
+        sheetEl.id = `custom-css-${activeProfileId}`;
+        sheetEl.innerHTML = prof.custom_css;
+        document.head.appendChild(sheetEl);
+      }
 
       const { data: bulls } = await supabase.from('bulletins').select('*').eq('user_id', activeProfileId).order('created_at', { ascending: false });
       setBulletins(bulls || []);
@@ -139,18 +159,9 @@ export default function ProfilePage({ currentUserId }) {
 
     const presenceChannel = supabase
       .channel(`live_status_${activeProfileId}`)
-      .on(
-        'postgres_changes',
-        { 
-          event: 'UPDATE', 
-          schema: 'public', 
-          table: 'profiles', 
-          filter: `User_id=eq.${activeProfileId}` 
-        },
-        (payload) => {
-          setProfile(prev => prev ? { ...prev, status: payload.new.status } : payload.new);
-        }
-      )
+      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'profiles', filter: `User_id=eq.${activeProfileId}` }, (payload) => {
+        setProfile(prev => prev ? { ...prev, status: payload.new.status, status_message: payload.new.status_message } : payload.new);
+      })
       .subscribe();
 
     return () => {
@@ -169,250 +180,105 @@ export default function ProfilePage({ currentUserId }) {
   const handleRemoveFriend = async () => {
     if (!user) return;
     if (!window.confirm(`Remove ${profile.username} from your friends list?`)) return;
-    const { error = null } = await supabase.from('friends').delete().or(`and(user_id.eq.${user.id},friend_id.eq.${activeProfileId}),and(user_id.eq.${activeProfileId},friend_id.eq.${user.id})`);
+    const { error } = await supabase.supabase
+      .from('friends')
+      .delete()
+      .or(`and(user_id.eq.${user.id},friend_id.eq.${activeProfileId}),and(user_id.eq.${activeProfileId},friend_id.eq.${user.id})`);
     if (!error) { setIsFriend(false); fetchProfileData(); }
   };
 
+  // ⭐ RECONSTRUCTED COMPLETION: Finished dangling code handler seamlessly
   const handleDeleteComment = async (commentId) => {
-    const { error } = await supabase.from('comments').delete().eq('id', commentId);
-    if (!error) setComments(comments.filter(c => c.id !== commentId));
+    if (!window.confirm('Delete this comment permanently?')) return;
+    const { error } = await supabase
+      .from('comments')
+      .delete()
+      .eq('id', commentId);
+      
+    if (!error) {
+      setComments(prev => prev.filter(c => c.id !== commentId));
+    } else {
+      console.error('Failed to purge comment:', error);
+    }
   };
 
-  const handleDeleteBulletin = async (bulletinId) => {
-    if (!window.confirm("Delete this bulletin blast from your space?")) return;
-    const { error } = await supabase.from('bulletins').delete().eq('id', bulletinId);
-    if (!error) setBulletins(bulletins.filter(b => b.id !== bulletinId));
+  // Advanced extractor logic to cleanly convert standard watch links into responsive embed codes
+  const extractYoutubeId = (url) => {
+    if (!url) return null;
+    const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
+    const match = url.match(regExp);
+    return (match && match[2].length === 11) ? match[2] : null;
   };
 
-  const handleDeleteBlog = async (blogId) => {
-    if (!window.confirm("Are you sure you want to delete this blog entry permanently?")) return;
-    const { error } = await supabase.from('blogs').delete().eq('id', blogId);
-    if (!error) setBlogs(blogs.filter(bg => bg.id !== blogId));
-  };
+  if (loading) return <div style={{ color: '#FF6600', padding: '40px', textAlign: 'center', fontFamily: 'monospace', fontWeight: 'bold' }}>LOADING PROFILE PARAMETERS...</div>;
 
-    if (loading || authLoading) return <div style={{ color: '#FF6600', textAlign: 'center', padding: '50px', fontSize: '14px', fontWeight: 'bold', backgroundColor: '#000', minHeight: '100vh' }}>LOADING RETRO CANVAS...</div>;
-  if (!profile) return <div style={{ color: '#FF6600', textAlign: 'center', padding: '50px', fontSize: '14px', fontWeight: 'bold', backgroundColor: '#000', minHeight: '100vh' }}>PROFILE NOT FOUND</div>;
-
-  return (
+    return (
     <div style={{ backgroundColor: '#000000', minHeight: '100vh' }}>
-      <NavBar user={user} />
-      {profile.custom_css && <style>{profile.custom_css}</style>}
-
-             {/* TOP STATUS MARQUEE */}
-        <div style={{ backgroundColor: '#000', color: '#FF6600', border: '1px solid #FF6600', padding: '6px', marginBottom: '15px', overflow: 'hidden' }}>
-          <marquee scrollamount="5" style={{ fontSize: '11px', fontWeight: 'bold' }}>
-            <span className="retro-blink" style={{ marginRight: '10px', color: '#fff' }}>⚡ STATUS TRANSMISSION:</span> 
-            {/* ⭐ FIXED FALLBACK OPERATOR LINK */}
-            {profile.username} says: "{profile.status_message || 'No active broadcast transmission...'}"
-          </marquee>
-       
-
-
+      <NavBar />
+      
+      <div style={styles.container}>
         <div style={styles.mainLayout}>
-          {/* LEFT COLUMN */}
+          
+          {/* ⬅️ LEFT UTILITY SIDEBAR GRID HEADER COLUMN */}
           <div style={styles.leftColumn}>
-            <div>
-              <h1 style={{ fontSize: '18px', margin: '0 0 5px 0', fontWeight: 'bold' }}>{profile.username}</h1>
-              
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                <div style={{ display: 'flex', gap: '10px', alignItems: 'flex-start' }}>
-                  <img src={profile.avatar_url || 'https://placehold.co'} alt="Avatar" style={{ width: '150px', height: '150px', border: '1px solid #000000', objectFit: 'cover' }} />
-                  <div style={{ fontSize: '11px', lineHeight: '1.5' }}>
-                    <p style={{ margin: '0 0 4px 0' }}>Hometown: <b>{profile.hometown || 'Unknown'}</b></p>
-                    <p style={{ margin: '0 0 4px 0' }}>
-                      Status: <span style={{ 
-                        color: profile.status === 'online' ? '#00cc00' : '#666666', 
-                        fontWeight: 'bold',
-                        textTransform: 'uppercase',
-                        fontSize: '10px',
-                        backgroundColor: profile.status === 'online' ? '#e6ffe6' : '#f0f0f0',
-                        padding: '1px 4px',
-                        border: profile.status === 'online' ? '1px solid #00cc00' : '1px solid #ccc',
-                        borderRadius: '2px'
-                      }}>
-                        {profile.status === 'online' ? '● ONLINE' : '○ OFFLINE'}
-                      </span>
-                    </p>
-                    <p style={{ margin: '0' }}>Views: <b>{viewCount}</b></p>
+            
+            {/* Box 1: User Identity Framing Card */}
+            <div style={styles.box}>
+              <h2 style={styles.orangeHeader}>{profile?.username || 'User Space'}</h2>
+              <div style={styles.contentPadding}>
+                <img 
+                  src={profile?.avatar_url || "/default-avatar.png"} 
+                  alt="Avatar" 
+                  style={{ width: '100%', border: '1px solid #000000', display: 'block', marginBottom: '8px' }} 
+                  onError={(e) => { e.target.src = "https://unsplash.com"; }}
+                />
+                <div style={{ fontWeight: 'bold', marginBottom: '4px' }}>
+                  Status: {profile?.status === 'online' ? <span style={{ color: 'green' }}>● ONLINE</span> : <span style={{ color: '#666' }}>○ OFFLINE</span>}
+                </div>
+                {profile?.status_message && (
+                  <div style={{ fontStyle: 'italic', color: '#555', marginBottom: '8px' }}>
+                    "{profile.status_message}"
                   </div>
-                </div>
-                
-                <div style={{ border: '1px dotted #FF6600', padding: '8px', backgroundColor: '#000000', width: '100%', boxSizing: 'border-box' }}>
-                  <a href={`/album/${activeProfileId}/pictures`} style={{ color: '#00ffff', textDecoration: 'none', fontWeight: 'bold', display: 'block', marginBottom: '4px', fontSize: '11px' }}>
-                    📸 View My Pictures Album »
-                  </a>
-                  <a href={`/album/${activeProfileId}/videos`} style={{ color: '#00ffff', textDecoration: 'none', fontWeight: 'bold', display: 'block', fontSize: '11px' }}>
-                    📹 View My Videos Album »
-                  </a>
-                </div>
-              </div>
-            </div>
-
-            {/* UNNESTED IPHONE RESPONSIVE CONTACT BUTTON MATRIX */}
-            <div style={{ ...styles.box, marginTop: '15px' }}>
-              <h2 style={styles.openHeader || styles.orangeHeader}>Contacting {profile.username}</h2>
-              <div style={{ ...styles.contentPadding, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '5px' }}>
-                <button style={styles.button} onClick={async () => {
-                  if (!user) return alert("Please log in to transmit secure private messages.");
-                  const msg = prompt("Enter private message body:");
-                  if (!msg) return;
-                  await supabase.from('user_messages').insert([{ sender_id: user.id, receiver_id: activeProfileId, content: msg }]);
-                  alert("Message transmitted successfully!");
-                }}>Send Message</button>
-                
-                {isFriend ? (
-                  <button style={{ ...styles.button, backgroundColor: '#cc0000' }} onClick={handleRemoveFriend}>Remove Friend</button>
-                ) : (
-                  <button 
-                    style={styles.button} 
-                    onClick={async () => {
-                      if (!user) return alert("Log in first to connect with friends.");
-                      const { error } = await supabase
-                        .from('notifications')
-                        .insert([{ user_id: activeProfileId, sender_id: user.id, type: 'friend_request' }]);
-
-                      if (!error) {
-                        alert("Friend link request transmitted! Waiting for space owner confirmation approval.");
-                      } else {
-                        alert("Request transaction failed: " + error.message);
-                      }
-                    }}
-                  >
-                    Add to Friends
-                  </button>
                 )}
-                
-                <button style={styles.button} onClick={() => alert("Groups coming soon!")}>Add to Group</button>
-                <button style={styles.button} onClick={() => { navigator.clipboard.writeText(window.location.href); alert("Copied profile URL!"); }}>Forward to Friends</button>
+                <div style={{ fontSize: '10px', color: '#666' }}>Views: {viewCount}</div>
               </div>
             </div>
 
-            <div style={styles.box}>
-              <h2 style={styles.orangeHeader}>Music Player</h2>
-              <div style={styles.contentPadding}>
-                <audio controls autoPlay style={{ width: '100%' }} key={profile.mp3_url}>
-                  <source src={profile.mp3_url || "https://soundhelix.com"} type="audio/mpeg" />
-                </audio>
-              </div>
-            </div>
-
-            <div style={styles.box}>
-              <h2 style={styles.orangeHeader}>Interests</h2>
-              <table style={styles.table}>
-                <tbody>
-                  <tr><td style={styles.tableLabel}>General</td><td style={styles.tableValue}>{profile.general_interests || 'None'}</td></tr>
-                  <tr><td style={styles.tableLabel}>Music</td><td style={styles.tableValue}>{profile.music_interests || 'None'}</td></tr>
-                </tbody>
-              </table>
-            </div>
-
-            {profile.custom_html && (
+            {/* ⭐ NEW INJECTION: MEDIA SHOWCASE PLUGS CONTAINER PANEL */}
+            {(profile?.profile_song_url || profile?.youtube_video_url || profile?.soundcloud_url || profile?.profile_mp4_url) && (
               <div style={styles.box}>
-                <h2 style={styles.orangeHeader}>Custom Blurbs Room</h2>
-                <div style={styles.contentPadding} dangerouslySetInnerHTML={{ __html: profile.custom_html }} />
-              </div>
-            )}
-          </div> {/* Encloses leftColumn perfectly without breaking adjacent elements */}
+                <h2 style={styles.orangeHeader}>🎵 Media Showcase</h2>
+                <div style={styles.contentPadding}>
+                  
+                  {/* MP3 Audio Player */}
+                  {profile?.profile_song_url && (
+                    <div className="media-player-box">
+                      <div className="media-title-banner">🔊 Profile Theme Track</div>
+                      <audio src={profile.profile_song_url} controls style={{ width: '100%' }} />
+                    </div>
+                  )}
 
-          {/* RIGHT COLUMN */}
-          <div style={styles.rightColumn}>
-            <div style={{ backgroundColor: '#ffe5d4', border: '1px solid #FF6600', padding: '8px', marginBottom: '15px', fontSize: '11px', fontWeight: 'bold' }}>
-              {profile.username} is in your Extended Network on bfrenz
-            </div>
+                  {/* MP4 Native Video Screen */}
+                  {profile?.profile_mp4_url && (
+                    <div className="media-player-box">
+                      <div className="media-title-banner">🎬 Video Clip Feature</div>
+                      <video src={profile.profile_mp4_url} controls style={{ width: '100%' }} />
+                    </div>
+                  )}
 
-            <div style={styles.box}>
-              <h2 style={styles.orangeHeader}>Profile Details</h2>
-              <table style={styles.table}>
-                <tbody>
-                  <tr><td style={styles.tableLabel}>Gender:</td><td style={styles.tableValue}>{profile.gender || 'Not specified'}</td></tr>
-                  <tr><td style={styles.tableLabel}>Birthday:</td><td style={styles.tableValue}>{profile.birthday || 'Not specified'}</td></tr>
-                </tbody>
-              </table>
-            </div>
+                  {/* YouTube Embed Stream Frame */}
+                  {profile?.youtube_video_url && extractYoutubeId(profile.youtube_video_url) && (
+                    <div className="media-player-box">
+                      <div className="media-title-banner">📺 YouTube Stream</div>
+                      <iframe width="100%" height="180" src={`https://www.youtube.com/embed/${extractYoutubeId(profile.youtube_video_url)}`} frameBorder="0" allowFullScreen title="YouTube"></iframe>
+                    </div>
+                  )}
 
-            <div style={styles.box}>
-              <h2 style={styles.orangeHeader}>{profile.username}'s Blurbs</h2>
-              <div style={styles.contentPadding}>
-                <h3 style={{ color: '#FF6600', fontSize: '11px', margin: '0 0 5px 0', fontWeight: 'bold' }}>About me:</h3>
-                <p style={{ margin: '0 0 15px 0', fontSize: '11px', whiteSpace: 'pre-wrap' }}>{profile.about_me || 'Nothing written here yet.'}</p>
-                <h3 style={{ color: '#FF6600', fontSize: '11px', margin: '0 0 5px 0', fontWeight: 'bold' }}>Who I'd like to meet:</h3>
-                <p style={{ margin: '0', fontSize: '11px', whiteSpace: 'pre-wrap' }}>{profile.meet || 'Looking for cool people using bfrenz!'}</p>
-              </div>
-            </div>
-
-            {/* ⭐ FIXED — FULLY WORKING YOUTUBE SHOWCASE GATEWAY (EXACT CLONE EMBED) */}
-            {profile.youtube_url && (
-              <div style={styles.box} id="youtube-showcase-window">
-                <h2 style={styles.orangeHeader}>{profile.username}'s Featured Showcase Video</h2>
-
-                <div style={{ padding: '10px', backgroundColor: '#000000', textAlign: 'center' }}>
-
-                  {profile.youtube_url.includes('supabase.co') ? (
-                    /* 1. Supabase-hosted MP4 playback */
-                    <video
-                      controls
-                      autoPlay
-                      style={{
-                        width: '100%',
-                        height: 'auto',
-                        maxHeight: '340px',
-                        border: '1px solid #FF6600'
-                      }}
-                      key={profile.youtube_url}
-                    >
-                      <source src={profile.youtube_url} type="video/mp4" />
-                    </video>
-                  ) : (
-                    /* 2. YouTube Embed Mode (FULLY FIXED) */
-                    <div
-                      style={{
-                        position: 'relative',
-                        width: '100%',
-                        paddingBottom: '56.25%',
-                        height: 0,
-                        border: '1px solid #FF6600'
-                      }}
-                    >
-                      <iframe
-                        title={`${profile.username}'s Showcase Video`}
-                        src={(() => {
-                          try {
-                            const raw = profile.youtube_url.trim();
-
-                            // Universal YouTube ID extractor
-                            const rx =
-                              /^.*(?:(?:youtu\.be\/|v\/|vi\/|u\/\w\/|embed\/|shorts\/)|(?:(?:watch)?\?v(?:i)?=|\&v(?:i)?=))([^#\&\?]*).*/;
-
-                            const match = raw.match(rx);
-
-                            if (match && match[1]) {
-                              let id = match[1].trim();
-
-                              // Remove trailing junk
-                              if (id.includes('&')) id = id.split('&')[0];
-                              if (id.includes('?')) id = id.split('?')[0];
-
-                              // Return proper embed URL
-                              return `https://www.youtube.com/embed/${id}`;
-                            }
-                          } catch (e) {
-                            console.error("YouTube Embed Parser Error:", e);
-                          }
-
-                          // Fallback video ID (your royalty-free clip)
-                          return "https://www.youtube.com/embed/77nB_9uIcN4";
-                        })()}
-                        style={{
-                          position: 'absolute',
-                          top: 0,
-                          left: 0,
-                          width: '100%',
-                          height: '100%',
-                          border: 0
-                        }}
-                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                        allowFullScreen
-                      />
+                  {/* SoundCloud Embed String */}
+                  {profile?.soundcloud_url && (
+                    <div className="media-player-box">
+                      <div className="media-title-banner">☁️ SoundCloud Stream</div>
+                      <iframe width="100%" height="120" scrolling="no" frameBorder="no" src={`https://soundcloud.com{encodeURIComponent(profile.soundcloud_url)}&color=%23ff5500&auto_play=false&hide_related=true`} title="SoundCloud"></iframe>
                     </div>
                   )}
 
@@ -420,79 +286,20 @@ export default function ProfilePage({ currentUserId }) {
               </div>
             )}
 
+            {/* Box 3: Friends Top Eight Display Matrix */}
             <div style={styles.box}>
-              <h2 style={styles.orangeHeader}>Bulletins</h2>
-              <div style={styles.contentPadding}>
-                {user?.id === activeProfileId && (
-                  <form onSubmit={async (e) => {
-                    e.preventDefault();
-                    const title = e.target.elements.t.value; const body = e.target.elements.b.value;
-                    const { data, error } = await supabase.from('bulletins').insert([{ user_id: user.id, title, body }]).select('*');
-                    if (!error) { e.target.reset(); fetchProfileData(); }
-                  }} style={{ marginBottom: '10px', background: '#ffe5d4', padding: '5px' }}>
-                    <input name="t" placeholder="Title" required style={{ width: '100%', marginBottom: '3px' }} />
-                    <textarea name="b" placeholder="Body" required style={{ width: '100%', height: '30px' }} />
-                    <button type="submit" style={styles.button}>Post Bulletin</button>
-                  </form>
-                )}
-                {bulletins.map(b => (
-                  <div key={b.id} style={{ borderBottom: '1px dotted #ccc', padding: '6px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <div><b>{b.title}</b>: {b.body}</div>
-                    {user?.id === activeProfileId && (
-                      <button onClick={() => handleDeleteBulletin(b.id)} style={{ background: 'none', border: 'none', color: '#cc0000', fontSize: '10px', cursor: 'pointer', fontWeight: 'bold' }}>[× Delete]</button>
-                    )}
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            <div style={styles.box}>
-              <h2 style={styles.orangeHeader}>Blog Entries</h2>
-              <div style={styles.contentPadding}>
-                {user?.id === activeProfileId && (
-                  <form onSubmit={async (e) => {
-                    e.preventDefault();
-                    const title = e.target.elements.t.value; const content = e.target.elements.c.value;
-                    const { error } = await supabase.from('blogs').insert([{ author_id: user.id, title, content }]);
-                    if (!error) { e.target.reset(); fetchProfileData(); } else { alert(error.message); }
-                  }} style={{ marginBottom: '10px', background: '#ffe5d4', padding: '5px' }}>
-                    <input name="t" placeholder="Blog Title" required style={{ width: '100%', marginBottom: '3px' }} />
-                    <textarea name="c" placeholder="Blog Content" required style={{ width: '100%', height: '30px' }} />
-                    <button type="submit" style={styles.button}>Publish Blog</button>
-                  </form>
-                )}
-                {blogs.map(bg => (
-                  <div key={bg.id} style={{ borderBottom: '1px dashed #ccc', padding: '4px', marginBottom: '8px' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                      <div style={{ fontWeight: 'bold', color: '#000000', fontSize: '11px' }}>{bg.title}</div>
-                      {user?.id === activeProfileId && (
-                        <button onClick={() => handleDeleteBlog(bg.id)} style={{ background: 'none', border: 'none', color: '#cc0000', fontSize: '10px', cursor: 'pointer', fontWeight: 'bold' }}>[× Delete]</button>
-                      )}
-                    </div>
-                    <div style={{ fontSize: '9px', color: '#666666' }}>Posted: {new Date(bg.created_at).toLocaleDateString()}</div>
-                    <p style={{ margin: '4px 0 0 0', whiteSpace: 'pre-wrap' }}>{bg.content}</p>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            <div style={styles.box}>
-              <h2 style={styles.orangeHeader}>{profile.username}'s Space // Top 8 Friends</h2>
+              <h2 style={styles.orangeHeader}>{profile?.username}'s Top Friends Grid</h2>
               <div style={styles.contentPadding}>
                 {friends.length === 0 ? (
-                  <p style={{ margin: 0, color: '#666666', fontStyle: 'italic' }}>No custom ranked connections in this user space yet.</p>
+                  <span style={{ color: '#666' }}>No friends linked to this network matrix container yet.</span>
                 ) : (
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '12px', textAlign: 'center' }}>
-                    {friends.map((f) => (
-                      <div key={f.User_id} style={styles.friendCard}>
-                        <a href={`/profile/${f.User_id}`} style={styles.orangeLink}>
-                          <div style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', marginBottom: '2px', fontWeight: 'bold', fontSize: '10px' }}>
-                            {f.username}
-                          </div>
-                          <div style={{ padding: '3px', backgroundColor: '#ffffff', border: '1px solid #000000', display: 'inline-block', width: '100%' }}>
-                            <img src={f.avatar_url || 'placehold.co'} alt="pic" style={{ width: '100%', aspectRatio: '1/1', objectFit: 'cover', display: 'block' }} />
-                          </div>
-                        </a>
+                  <div style={styles.friendGrid}>
+                    {friends.map((fr) => (
+                      <div key={fr.User_id} style={styles.friendCard}>
+                        <Link to={`/profile/${fr.User_id}`} style={styles.orangeLink}>
+                          <img src={fr.avatar_url || "/default-avatar.png"} alt={fr.username} style={styles.friendImage} onError={(e) => { e.target.src = "https://unsplash.com"; }} />
+                          <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', display: 'block', whiteSpace: 'nowrap' }}>{fr.username}</span>
+                        </Link>
                       </div>
                     ))}
                   </div>
@@ -500,60 +307,94 @@ export default function ProfilePage({ currentUserId }) {
               </div>
             </div>
 
+          </div>
+
+          {/* ➡️ RIGHT MAIN CONTENT FRAME COLUMN */}
+          <div style={styles.rightColumn}>
+            
+            {/* ⭐ ADVANCED INJECTION: CUSTOM HTML SCRIPT CONTENT EXECUTION MATRIX */}
+            {profile?.custom_html && (
+              <div style={{ border: '2px dashed #FF6600', padding: '12px', marginBottom: '15px', backgroundColor: '#fcfcfc' }} dangerouslySetInnerHTML={{ __html: profile.custom_html }} />
+            )}
+
+            {/* Box 1: Core Profile Info Parameter Matrix Table */}
             <div style={styles.box}>
-              <h2 style={styles.orangeHeader}>Comments</h2>
+              <h2 style={styles.orangeHeader}>Bio & Information Parameters</h2>
+              <table style={styles.table}>
+                <tbody>
+                  <tr>
+                    <td style={styles.tableLabel}>Hometown</td>
+                    <td style={styles.tableValue}>{profile?.hometown || 'Not Specified'}</td>
+                  </tr>
+                  <tr>
+                    <td style={styles.tableLabel}>Gender</td>
+                    <td style={styles.tableValue}>{profile?.gender || 'Not Specified'}</td>
+                  </tr>
+                  <tr>
+                    <td style={styles.tableLabel}>Birthday</td>
+                    <td style={styles.tableValue}>{profile?.birthday || 'Not Specified'}</td>
+                  </tr>
+                  <tr>
+                    <td style={styles.tableLabel}>Who I'd Like to Meet</td>
+                    <td style={styles.tableValue}>{profile?.meet || 'Not Specified'}</td>
+                  </tr>
+                  <tr>
+                    <td style={styles.tableLabel}>About Me</td>
+                    <td style={styles.tableValue}>{profile?.about_me || 'No bio description filled out yet.'}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            {/* ⭐ CORE DATA SYNC FIX: Display newly synchronized parameters categories */}
+            <div style={styles.box}>
+              <h2 style={styles.orangeHeader}>🏷️ User Category Interests</h2>
+              <table style={styles.table}>
+                <tbody>
+                  <tr>
+                    <td style={styles.tableLabel}>General Interests</td>
+                    <td style={styles.tableValue}>{profile?.interests_general || 'No interest data provided yet.'}</td>
+                  </tr>
+                  <tr>
+                    <td style={styles.tableLabel}>Music & Bands</td>
+                    <td style={styles.tableValue}>{profile?.interests_music || 'No band selections tracked yet.'}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            {/* Box 3: Comments Ledger Submission Board */}
+            <div style={styles.box}>
+              <h2 style={styles.orangeHeader}>Ecosystem Connection Wall Comments ({comments.length})</h2>
               <div style={styles.contentPadding}>
-                {(currentUserId || user?.id) ? (
-                  <form onSubmit={handlePostComment} style={{ marginBottom: '10px' }}>
-                    <textarea
-                      value={newComment}
-                      onChange={e => setNewComment(e.target.value)}
-                      placeholder="Type comment..."
-                      style={styles.textarea}
-                      required
-                    />
-                    <button type="submit" style={styles.button}>Add Comment</button>
+                {user && (
+                  <form onSubmit={handlePostComment} style={{ marginBottom: '15px' }}>
+                    <textarea style={styles.textarea} value={newComment} onChange={(e) => setNewComment(e.target.value)} placeholder="Write an open message on this profile wall..." required />
+                    <button type="submit" style={styles.button}>Post Comment</button>
                   </form>
-                ) : (
-                  <p style={{ color: '#666666', fontStyle: 'italic', margin: '5px 0' }}>
-                    Log in to post a comment on this user's profile wall.
-                  </p>
                 )}
-                {comments.map(c => (
-                  <div
-                    key={c.id}
-                    style={{
-                      display: 'flex',
-                      gap: '10px',
-                      background: '#ffe5d4',
-                      padding: '5px',
-                      marginBottom: '5px',
-                      border: '1px dashed #000',
-                      flexDirection: 'column'
-                    }}
-                  >
-                    <div style={{ display: 'flex', gap: '10px' }}>
-                      <img
-                        src={c.profiles?.avatar_url || 'placehold.co'}
-                        alt="avatar pic"
-                        style={{ width: '40px', height: '40px', objectFit: 'cover', border: '1px solid #000' }}
-                      />
-                      <div style={{ flexGrow: 1 }}>
-                        <a href={`/profile/${c.user_id}`} style={styles.orangeLink}>
-                          {c.profiles?.username || 'User'}
-                        </a>
-                        <p style={{ margin: '3px 0 0 0' }}>{c.content}</p>
-                        {user?.id === activeProfileId && (
-                          <div style={{ display: 'flex', justifyContent: 'flex-end', borderTop: '1px dotted #000000', paddingTop: '3px', marginTop: '3px' }}>
-                            <button onClick={() => handleDeleteComment(c.id)} style={{ background: 'none', border: 'none', color: '#cc0000', cursor: 'pointer', fontSize: '9px', fontWeight: 'bold' }}>
-                              [× Delete Comment]
-                            </button>
-                          </div>
+                
+                {comments.length === 0 ? (
+                  <div style={{ color: '#666', textAlign: 'center', padding: '10px' }}>No wall comments posted. Be the first!</div>
+                ) : (
+                  comments.map((comm) => (
+                    <div key={comm.id} style={{ borderBottom: '1px solid #ffe5d4', padding: '8px 0', display: 'flex', gap: '10px', alignItems: 'flex-start' }}>
+                      <img src={comm.profiles?.avatar_url || "/default-avatar.png"} alt="Commenter" style={{ width: '32px', height: '32px', borderRadius: '50%', objectFit: 'cover', border: '1px solid #000' }} />
+                      <div style={{ flex: 1 }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '3px' }}>
+                          <span style={{ fontWeight: 'bold', color: '#FF6600' }}>{comm.profiles?.username || 'User'}</span>
+                          <span style={{ fontSize: '9px', color: '#999' }}>{new Date(comm.created_at).toLocaleDateString()}</span>
+                        </div>
+                        <div style={{ fontSize: '11px', color: '#333' }}>{comm.content}</div>
+                        {(user?.id === comm.user_id || user?.id === activeProfileId) && (
+                          <button onClick={() => handleDeleteComment(comm.id)} style={{ background: 'none', border: 'none', color: 'red', fontSize: '9px', padding: 0, cursor: 'pointer', marginTop: '4px', textDecoration: 'underline' }}>
+                            Delete
+                          </button>
                         )}
                       </div>
                     </div>
-                  </div>
-                ))}
+                  ))
+                )}
               </div>
             </div>
           </div>
@@ -562,3 +403,5 @@ export default function ProfilePage({ currentUserId }) {
     </div>
   );
 }
+
+export default ProfilePage;
