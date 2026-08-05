@@ -9,7 +9,7 @@ if (typeof document !== 'undefined') {
     .nav-links-container { display: flex !important; align-items: center !important; gap: 15px !important; }
     .burger-menu-btn { display: none !important; }
     
-    /* 🎨 RETRO CYBERPUNK BUTTON LAYOUTS */
+    /* 🎨 UNIFIED RETRO ORANGE BUTTONS LAYOUT */
     .retro-nav-btn {
       display: inline-flex !important;
       align-items: center !important;
@@ -25,6 +25,7 @@ if (typeof document !== 'undefined') {
       cursor: pointer !important;
       box-shadow: 3px 3px 0px #ffffff !important;
       transition: transform 0.05s ease, box-shadow 0.05s ease !important;
+      background-color: #FF6600 !important; /* ⭐ Unified brand orange backing matrix across all buttons */
     }
     .retro-nav-btn:active {
       transform: translate(2px, 2px) !important;
@@ -33,11 +34,16 @@ if (typeof document !== 'undefined') {
     .retro-nav-btn:hover {
       filter: brightness(1.1) !important;
     }
-    .btn-dashboard-orange {
-      background-color: #FF6600 !important;
+
+    /* 🔔 BELL NOTIFICATION ALERTS OVERRIDE */
+    .retro-bell-wrapper {
+      display: inline-flex !important;
+      align-items: center !important;
+      padding: 4px !important;
+      color: #FF6600 !important; /* ⭐ Set to orange matching the dashboard color specification */
     }
 
-    /* 💬 RETRO CIRCULAR MESSENGER TRIGGER BADGE */
+    /* 💬 MATCHING ORANGE MESSENGER TRIGGER BADGE */
     .retro-messenger-circle {
       display: inline-flex !important;
       align-items: center !important;
@@ -46,7 +52,7 @@ if (typeof document !== 'undefined') {
       height: 36px !important;
       border-radius: 50% !important;
       background-color: #2F3031 !important;
-      color: #E4E6EB !important;
+      color: #FF6600 !important; /* ⭐ Swapped inside icon graphic to matching brand orange style colors */
       cursor: pointer !important;
       border: 2px solid #000000 !important;
       box-shadow: 2px 2px 0px #ffffff !important;
@@ -63,7 +69,7 @@ if (typeof document !== 'undefined') {
     .retro-messenger-circle svg {
       width: 20px !important;
       height: 20px !important;
-      fill: #ffffff !important;
+      fill: currentColor !important; /* Forces vector paths to parse active text coloration values */
     }
 
     /* 📂 FLAT MODERN MESSENGER DROPDOWN POPUP PANEL */
@@ -80,66 +86,24 @@ if (typeof document !== 'undefined') {
       box-shadow: 0 12px 28px rgba(0, 0, 0, 0.4) !important;
       z-index: 1000 !important;
     }
-    .messenger-header-line {
-      display: flex !important;
-      justify-content: space-between !important;
-      align-items: center !important;
-      padding: 0 8px 12px 8px !important;
-    }
-    .messenger-header-title {
-      font-size: 22px !important;
-      font-weight: 800 !important;
-      color: #ffffff !important;
-      font-family: 'Segoe UI', sans-serif !important;
-    }
-    
-    /* Horizontal Chat Stream Item Rows */
-    .messenger-chat-row {
-      display: flex !important;
-      align-items: center !important;
-      gap: 12px !important;
-      padding: 8px !important;
-      border-radius: 8px !important;
-      text-decoration: none !important;
-      color: #E4E6EB !important;
-      transition: background-color 0.2s !important;
-      margin-bottom: 4px !important;
-      cursor: pointer !important;
-    }
-    .messenger-chat-row:hover {
-      background-color: #3A3B3C !important;
-    }
-    .messenger-chat-row.unread-item {
-      background-color: rgba(24, 119, 242, 0.05) !important;
-    }
-    
-    /* Avatar Thumbnail Presence Overlay */
+    .messenger-header-line { display: flex !important; justify-content: space-between !important; align-items: center !important; padding: 0 8px 12px 8px !important; }
+    .messenger-header-title { font-size: 22px !important; font-weight: 800 !important; color: #ffffff !important; font-family: 'Segoe UI', sans-serif !important; }
+    .messenger-chat-row { display: flex !important; align-items: center !important; gap: 12px !important; padding: 8px !important; border-radius: 8px !important; text-decoration: none !important; color: #E4E6EB !important; transition: background-color 0.2s !important; margin-bottom: 4px !important; cursor: pointer !important; }
+    .messenger-chat-row:hover { background-color: #3A3B3C !important; }
+    .messenger-chat-row.unread-item { background-color: rgba(24, 119, 242, 0.05) !important; }
     .chat-thumb-frame { position: relative !important; display: flex !important; }
     .chat-thumb-img { width: 48px !important; height: 48px !important; border-radius: 50% !important; object-fit: cover !important; background-color: #3A3B3C !important; }
-    .chat-active-dot {
-      position: absolute !important;
-      bottom: 2px !important;
-      right: 2px !important;
-      width: 12px !important;
-      height: 12px !important;
-      background-color: #31A24C !important;
-      border-radius: 50% !important;
-      border: 2px solid #242526 !important;
-    }
-    
-    /* Text Truncation Properties Block */
+    .chat-active-dot { position: absolute !important; bottom: 2px !important; right: 2px !important; width: 12px !important; height: 12px !important; background-color: #31A24C !important; border-radius: 50% !important; border: 2px solid #242526 !important; }
     .chat-body-block { flex: 1 !important; display: flex !important; flex-direction: column !important; overflow: hidden !important; font-family: 'Segoe UI', sans-serif !important; }
     .chat-username-title { font-size: 14.5px !important; font-weight: 600 !important; color: #E4E6EB !important; }
     .unread-item .chat-username-title { color: #ffffff !important; }
     .chat-preview-row { display: flex !important; align-items: center !important; font-size: 12.5px !important; color: #B0B3B8 !important; margin-top: 3px !important; gap: 4px !important; }
     .unread-item .chat-preview-row { color: #1877F2 !important; font-weight: 600 !important; }
     .chat-text-truncate { white-space: nowrap !important; overflow: hidden !important; text-overflow: ellipsis !important; max-width: 190px !important; }
-    
     .chat-read-marker-dot { width: 8px !important; height: 8px !important; background-color: #1877F2 !important; border-radius: 50% !important; margin-left: auto !important; flex-shrink: 0 !important; }
     .messenger-see-all-btn { display: block !important; text-align: center !important; color: #1877F2 !important; font-size: 14px !important; font-weight: 600 !important; padding: 10px 0 2px 0 !important; text-decoration: none !important; border-top: 1px solid #393A3B !important; margin-top: 8px !important; font-family: 'Segoe UI', sans-serif !important; }
     .messenger-see-all-btn:hover { text-decoration: underline !important; }
 
-    /* 🔔 VECTOR NOTIFICATION HUB GLOW ANIMATIONS */
     @keyframes pulse-alert {
       0%, 100% { filter: drop-shadow(0 0 2px #FF6600); }
       50% { filter: drop-shadow(0 0 8px #FF0000); }
@@ -150,7 +114,7 @@ if (typeof document !== 'undefined') {
       .nav-links-container { display: none !important; flex-direction: column !important; width: 100% !important; background-color: #000000 !important; border-top: 1px solid #FF6600 !important; padding: 12px 0 !important; margin-top: 10px !important; gap: 12px !important; align-items: flex-start !important; }
       .nav-links-container.open { display: flex !important; }
       .burger-menu-btn { display: block !important; }
-      .retro-nav-btn, .retro-messenger-circle { width: 100% !important; box-sizing: border-box !important; justify-content: center !important; border-radius: 4px !important; }
+      .retro-nav-btn, .retro-messenger-circle { width: 100% !important; box-sizing: border-box !important; justify-content: center !important; }
       .messenger-dropdown-panel { position: fixed !important; top: 64px !important; right: 10px !important; width: calc(100% - 20px) !important; max-width: 360px !important; }
     }
   `;
@@ -161,9 +125,7 @@ const styles = {
   nav: { backgroundColor: '#000000', padding: '10px 20px', display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', borderBottom: '2px solid #FF6600', fontFamily: 'Verdana, Arial, sans-serif', position: 'relative' },
   logoImage: { height: '46px', width: 'auto', display: 'block' },
   burgerBtn: { backgroundColor: 'transparent', color: '#FF6600', border: '1px solid #FF6600', fontSize: '18px', padding: '4px 10px', cursor: 'pointer', fontWeight: 'bold' },
-  navLink: { color: '#ffffff', textDecoration: 'none', fontSize: '13px', padding: '4px 0', display: 'flex', alignItems: 'center', fontFamily: 'Courier New, monospace', font0weight: 'bold' },
-  profileLink: { color: '#FF6600', textDecoration: 'none', fontWeight: 'bold', fontSize: '13px', padding: '4px 0', fontFamily: 'Courier New, monospace' },
-  logoutBtn: { backgroundColor: '#FF6600', color: '#ffffff', border: '1px solid #ffffff', padding: '5px 12px', cursor: 'pointer', fontSize: '11px', fontWeight: 'bold', textAlign: 'center', textTransform: 'uppercase', fontFamily: 'Courier New, monospace', borderRadius: '3px' }
+  logoutBtn: { backgroundColor: '#FF6600', color: '#ffffff', border: '1px solid #ffffff', padding: '5px 12px', cursor: 'pointer', fontSize: '11px', font0weight: 'bold', textAlign: 'center', textTransform: 'uppercase', fontFamily: 'Courier New, monospace', borderRadius: '3px', boxShadow: '2px 2px 0px #ffffff' }
 };
 
 export default function NavBar() {
@@ -175,7 +137,6 @@ export default function NavBar() {
   const [unreadCount, setUnreadCount] = useState(0);
   const [recentChats, setRecentChats] = useState([]);
 
-  // 📥 INBOX EXTRACTOR: Groups messages by sender and fetches profiles
   const fetchRecentInboxMessages = async () => {
     if (!user) return;
     try {
@@ -191,7 +152,6 @@ export default function NavBar() {
         return;
       }
 
-      // Keep only the absolute latest single message row item per thread sender
       const uniqueSenderMap = {};
       messagesData.forEach(msg => {
         if (!uniqueSenderMap[msg.sender_id]) {
@@ -256,7 +216,6 @@ export default function NavBar() {
     fetchUnreadNotificationCount();
     fetchRecentInboxMessages();
 
-    // 🛰️ SUPABASE DATABASE REALTIME LISTENER CHANNELS
     const notificationsSub = supabase
       .channel('nav_alerts')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'notifications', filter: `user_id=eq.${user.id}` }, () => {
@@ -317,21 +276,23 @@ export default function NavBar() {
       </button>
 
       <div className={`nav-links-container ${isOpen ? 'open' : ''}`} ref={dropdownRef}>
-        <Link to="/" style={styles.navLink} onClick={() => setIsOpen(false)}>Home</Link>
-        <Link to="/browse" style={styles.navLink} onClick={() => setIsOpen(false)}>Browse</Link>
-        
         {user ? (
           <>
+            {/* ⭐ UPDATED: Converted Home Text Link into blocky Orange Button layout */}
+            <Link to="/" className="retro-nav-btn" onClick={() => setIsOpen(false)}>Home</Link>
+            
+            {/* ⭐ UPDATED: Converted Browse Text Link into blocky Orange Button layout */}
+            <Link to="/browse" className="retro-nav-btn" onClick={() => setIsOpen(false)}>Browse</Link>
+            
             {/* Dashboard Retro Action Button */}
-            <Link to="/dashboard" className="retro-nav-btn btn-dashboard-orange" onClick={() => setIsOpen(false)}>
+            <Link to="/dashboard" className="retro-nav-btn" onClick={() => setIsOpen(false)}>
               Dashboard
             </Link>
             
-            {/* Activity Bell Notifications Hub Button */}
-
-            <Link to="/notifications" style={styles.navLink} onClick={() => setIsOpen(false)} title="View My Notification Alerts Hub">
+            {/* ⭐ UPDATED: Orange Colorized Activity Bell Notifications Action Icon */}
+            <Link to="/notifications" className="retro-bell-wrapper" onClick={() => setIsOpen(false)} title="View My Notification Alerts Hub">
               <div style={{ position: 'relative', display: 'inline-flex', alignItems: 'center', padding: '4px' }} className={unreadCount > 0 ? "bell-alert-active" : ""}>
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={unreadCount > 0 ? "#FF6600" : "#ffffff"} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ transition: 'stroke 0.3s ease' }}>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
                   <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
                 </svg>
@@ -343,18 +304,20 @@ export default function NavBar() {
               </div>
             </Link>
 
-            {/* MESSENGER DROPDOWN LINK TRIGGER */}
+            {/* ⭐ UPDATED: Orange Colorized Facebook Messenger Dropdown Panel Circle Icon */}
             <div className="retro-messenger-circle" onClick={toggleDropdownDrawer} title="Toggle Messenger Panel">
               <svg viewBox="0 0 24 24">
                 <path d="M12 2C6.477 2 2 6.145 2 11.26c0 2.915 1.455 5.518 3.733 7.21.194.143.315.367.323.607l.076 2.3c.013.38.384.664.75.545l2.585-.843c.2-.065.418-.046.604.053A10.22 10.22 0 0012 20.52c5.523 0 10-4.146 10-9.26C22 6.145 17.523 2 12 2zm1.03 12.33l-2.12-2.27-4.14 2.27 4.55-4.83 2.12 2.27 4.14-2.27-4.55 4.83z"/>
               </svg>
-              {recentChats.some(c => c.is_unread) && <span style={{ position: 'absolute', top: '-2px', right: '-2px', width: '8px', height: '8px', backgroundColor: '#00B2FF', borderRadius: '50%' }}></span>}
+              {recentChats.some(c => c.is_unread) && <span style={{ position: 'absolute', top: '-2px', right: '-2px', width: '8px', height: '8px', backgroundColor: '#FF6600', borderRadius: '50%' }}></span>}
             </div>
 
-            <Link to={`/profile/${user.id}`} style={styles.profileLink} onClick={() => setIsOpen(false)}>My Profile</Link>
+            {/* ⭐ UPDATED: Converted My Profile Text Link into blocky Orange Button layout */}
+            <Link to={`/profile/${user.id}`} className="retro-nav-btn" onClick={() => setIsOpen(false)}>My Profile</Link>
+            
             <button onClick={handleLogout} style={styles.logoutBtn}>Log Out</button>
 
-            {/* DYNAMIC CHAT LIST OVERLAY ACCORDION BOX */}
+            {/* Flat Chat Drawer Popover overlay mapping */}
             {isDropdownOpen && (
               <div className="messenger-dropdown-panel">
                 <div className="messenger-header-line">
@@ -369,12 +332,7 @@ export default function NavBar() {
                   recentChats.map((chat) => (
                     <Link key={chat.id} to="/inbox" className={`messenger-chat-row ${chat.is_unread ? 'unread-item' : ''}`} onClick={() => setIsDropdownOpen(false)}>
                       <div className="chat-thumb-frame">
-                        <img 
-                          src={chat.avatar_url || "/default-avatar.png"} 
-                          alt={chat.username} 
-                          className="chat-thumb-img" 
-                          onError={(e) => { e.target.src = "https://unsplash.com"; }} 
-                        />
+                        <img src="/default-avatar.png" alt={chat.username} className="chat-thumb-img" onError={(e) => { e.target.src = "https://unsplash.com"; }} />
                         {chat.is_online && <span className="chat-active-dot"></span>}
                       </div>
                       <div className="chat-body-block">
@@ -398,8 +356,9 @@ export default function NavBar() {
           </>
         ) : (
           <>
-            <Link to="/login" style={styles.profileLink} onClick={() => setIsOpen(false)}>Log In</Link>
-            <Link to="/register" style={styles.navLink} onClick={() => setIsOpen(false)}>Sign Up</Link>
+            {/* Unauthenticated Viewports Options Fallbacks */}
+            <Link to="/login" className="retro-nav-btn" onClick={() => setIsOpen(false)}>Log In</Link>
+            <Link to="/register" className="retro-nav-btn" onClick={() => setIsOpen(false)}>Sign Up</Link>
           </>
         )}
       </div>
