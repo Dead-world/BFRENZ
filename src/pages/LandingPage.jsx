@@ -138,7 +138,7 @@ export default function LandingPage() {
             {/* CLEAN AUTH PANEL */}
             {!user ? (
               <div style={styles.contentBox}>
-                <h2 style={styles.boxTitle}>Member Authentication</h2>
+                <h2 style={styles.boxTitle}>Member Login</h2>
              {/* ⭐ FORM ELEMENT SUBMIT ANCHOR VIEW */}
 <form onSubmit={handleLogin}>
   {/* Ensure your input fields map onChange hook updates correctly to email and password states */}
