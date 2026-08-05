@@ -57,7 +57,7 @@ if (typeof document !== 'undefined') {
   document.head.appendChild(styleEl);
 }
 
-/* 🛠️ Utility: Safe YouTube ID Extractor */
+/* Utility: Safe YouTube ID Extractor */
 const getYouTubeEmbed = (url) => {
   if (!url) return null;
 
@@ -70,7 +70,7 @@ const getYouTubeEmbed = (url) => {
       let id = match[1].trim();
       if (id.includes("&")) id = id.split("&")[0];
       if (id.includes("?")) id = id.split("?")[0];
-      return `https://youtube.com{id}`;
+      return `https://www.youtube.com/embed/${id}`;
     }
   } catch (e) {
     console.error("YouTube ID parse error:", e);
@@ -79,10 +79,10 @@ const getYouTubeEmbed = (url) => {
   return null;
 };
 
-/* 🛠️ Utility: Safe SoundCloud Embed */
+/* Utility: Safe SoundCloud Embed */
 const getSoundCloudEmbed = (url) => {
   if (!url) return null;
-  return `https://soundcloud.com{encodeURIComponent(url)}&color=%23ff5500&auto_play=false&hide_related=true`;
+  return `https://w.soundcloud.com/player/?url=${encodeURIComponent(url)}&color=%23ff5500&auto_play=false&hide_related=true`;
 };
 
 export default function ProfilePage({ currentUserId }) {
@@ -98,7 +98,7 @@ export default function ProfilePage({ currentUserId }) {
   const [viewCount, setViewCount] = useState(0);
   const [newComment, setNewComment] = useState('');
   
-  /* Thread Tracking States */
+  /* Conversation Thread Reply States */
   const [replyText, setReplyText] = useState({});
   const [activeReplyBoxId, setActiveReplyBoxId] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -121,7 +121,7 @@ export default function ProfilePage({ currentUserId }) {
     }
   }, [routeProfileId, currentUserId, user, authLoading]);
 
-  const fetchProfileData = async () => {
+    const fetchProfileData = async () => {
     try {
       setLoading(true);
       const { data: profileRecord, error: profileError } = await supabase
@@ -133,7 +133,7 @@ export default function ProfilePage({ currentUserId }) {
       if (profileError) throw profileError;
       setProfile(profileRecord);
 
-      // Inject Scoped Styles Override
+      // Inject custom runtime CSS values safely into document header
       if (profileRecord.custom_css && typeof document !== 'undefined') {
         const oldStyleElement = document.getElementById(`user-styles-${activeProfileId}`);
         if (oldStyleElement) oldStyleElement.remove();
@@ -143,12 +143,15 @@ export default function ProfilePage({ currentUserId }) {
         document.head.appendChild(newStyleElement);
       }
 
+      // Query Space Notice Bulletins
       const { data: bulletinsData } = await supabase.from('bulletins').select('*').eq('user_id', activeProfileId).order('created_at', { ascending: false });
       setBulletins(bulletinsData || []);
 
+      // Query Author Blogs
       const { data: blogsData } = await supabase.from('blogs').select('*').eq('author_id', activeProfileId).order('created_at', { ascending: false });
       setBlogs(blogsData || []);
 
+      // Gather Comment Records and reconstruct threads hierarchical trees
       const { data: commentsRecords } = await supabase.from('comments').select('*, profiles!comments_user_id_fkey(username, avatar_url)').eq('profile_id', activeProfileId).order('created_at', { ascending: true });
       
       if (commentsRecords) {
@@ -166,6 +169,7 @@ export default function ProfilePage({ currentUserId }) {
       const { count: viewRecordsCount } = await supabase.from('profile_views').select('*', { count: 'exact', head: true }).eq('profile_id', activeProfileId);
       setViewCount(viewRecordsCount || 0);
 
+      // Resolve Top Friends configuration properties
       const { data: topEightRecords, error: topEightError } = await supabase
         .from('top_eight')
         .select('friend_id, profiles!top_eight_friend_id_fkey(User_id, username, avatar_url)')
@@ -261,19 +265,19 @@ export default function ProfilePage({ currentUserId }) {
 
   const handleDeleteBulletin = async (id) => {
     if (!window.confirm('Delete this bulletin notice?')) return;
-    const { error } = await supabase.from('bulletins').delete().eq('id', id);
+    const { error = null } = await supabase.from('bulletins').delete().eq('id', id);
     if (!error) setBulletins(prev => prev.filter(b => b.id !== id));
   };
 
   const handleDeleteBlog = async (id) => {
     if (!window.confirm('Delete this blog entry?')) return;
-    const { error } = await supabase.from('blogs').delete().eq('id', id);
+    const { error = null } = await supabase.from('blogs').delete().eq('id', id);
     if (!error) setBlogs(prev => prev.filter(b => b.id !== id));
   };
 
   const handleDeleteComment = async (commentId) => {
     if (!window.confirm('Delete this comment?')) return;
-    const { error } = await supabase.from('comments').delete().eq('id', commentId);
+    const { error = null } = await supabase.from('comments').delete().eq('id', commentId);
     if (!error) fetchProfileData();
   };
 
@@ -288,10 +292,10 @@ export default function ProfilePage({ currentUserId }) {
       ) : (
         <div className="profile-main-layout">
           
-            {/* ⬅️ SIDEBAR PANEL */}
+          {/* ⬅️ SIDEBAR PANEL TRUNK */}
           <div className="profile-left-sidebar">
             
-            {/* Identity Card Profile */}
+            {/* Identity Card Profile Header */}
             <div className="profile-content-card profile-image-container">
               <h2 style={{ fontSize: '20px', fontWeight: '800', margin: '0 0 12px 0', color: '#fff' }}>{profile?.username}</h2>
               <img src={profile?.avatar_url || "/default-avatar.png"} alt="User Profile Avatar" className="profile-main-avatar" onError={(e) => { e.target.src = "https://unsplash.com"; }} />
@@ -303,7 +307,7 @@ export default function ProfilePage({ currentUserId }) {
               <div style={{ fontSize: '12px', color: '#9ca3af', marginTop: '10px' }}>Total Profile Views: {viewCount}</div>
             </div>
 
-            {/* Media Showcase Hub */}
+            {/* Media Showcase Hub - Exact matching implementation structure */}
             {(profile?.profile_song_url ||
               profile?.youtube_video_url ||
               profile?.soundcloud_url ||
@@ -311,7 +315,7 @@ export default function ProfilePage({ currentUserId }) {
               <div className="profile-content-card">
                 <div className="profile-card-title">🔊 User Media Stream</div>
 
-                {/* MP3 */}
+                {/* MP3 Audio - Equipped with automatic playback execution parameter loop */}
                 {profile?.profile_song_url && (
                   <div className="profile-media-item">
                     <span style={{ fontSize: "11px", fontWeight: "600", color: "#9ca3af" }}>
@@ -320,13 +324,13 @@ export default function ProfilePage({ currentUserId }) {
                     <audio
                       src={profile.profile_song_url}
                       controls
-                      autoPlay /* Plays background audio smoothly on layout mount */
+                      autoPlay /* ⭐ Natively signals browser to play stream upon component initialization */
                       style={{ width: "100%", marginTop: "6px" }}
                     />
                   </div>
                 )}
 
-                {/* MP4 */}
+                {/* MP4 Video Showcase - Equipped with automatic playback loop */}
                 {profile?.profile_mp4_url && (
                   <div className="profile-media-item">
                     <span style={{ fontSize: "11px", fontWeight: "600", color: "#9ca3af" }}>
@@ -335,6 +339,7 @@ export default function ProfilePage({ currentUserId }) {
                     <video
                       src={profile.profile_mp4_url}
                       controls
+                      autoPlay /* ⭐ Signals browser execution engine to auto-start playback loops */
                       style={{
                         width: "100%",
                         marginTop: "6px",
@@ -345,7 +350,7 @@ export default function ProfilePage({ currentUserId }) {
                   </div>
                 )}
 
-                {/* YouTube */}
+                {/* YouTube Video Embed Box */}
                 {profile?.youtube_video_url && getYouTubeEmbed(profile.youtube_video_url) && (
                   <div className="profile-media-item">
                     <span style={{ fontSize: "11px", fontWeight: "600", color: "#9ca3af" }}>
@@ -366,7 +371,7 @@ export default function ProfilePage({ currentUserId }) {
                   </div>
                 )}
 
-                {/* SoundCloud */}
+                {/* SoundCloud Streaming Widget Frame */}
                 {profile?.soundcloud_url && (
                   <div className="profile-media-item">
                     <span style={{ fontSize: "11px", fontWeight: "600", color: "#9ca3af" }}>
@@ -385,16 +390,29 @@ export default function ProfilePage({ currentUserId }) {
               </div>
             )}
 
-            {/* Top Friends List Grid */}
+            {/* Friends Grid List Selection */}
             <div className="profile-content-card">
               <div className="profile-card-title">👥 Top Friends List</div>
+
               {friends.length === 0 ? (
-                <div style={{ fontSize: "12px", color: "#6b7280" }}>No friends added to this user page list yet.</div>
+                <div style={{ fontSize: "12px", color: "#6b7280" }}>
+                  No friends added to this user page list yet.
+                </div>
               ) : (
                 <div className="profile-friends-grid">
                   {friends.map((friendItem) => (
-                    <Link key={friendItem.User_id} to={`/profile/${friendItem.User_id}`} className="profile-friend-link">
-                      <img src={friendItem.avatar_url || "/default-avatar.png"} alt={friendItem.username} onError={(e) => { e.target.src = "/default-avatar.png"; }} />
+                    <Link
+                      key={friendItem.User_id}
+                      to={`/profile/${friendItem.User_id}`}
+                      className="profile-friend-link"
+                    >
+                      <img
+                        src={friendItem.avatar_url || "/default-avatar.png"}
+                        alt={friendItem.username}
+                        onError={(e) => {
+                          e.target.src = "/default-avatar.png";
+                        }}
+                      />
                       <span>{friendItem.username}</span>
                     </Link>
                   ))}
@@ -403,7 +421,6 @@ export default function ProfilePage({ currentUserId }) {
             </div>
 
           </div>
-
 
           {/* ➡️ MAIN RIGHT COLUMN CANVAS */}
           <div className="profile-right-canvas">
@@ -422,7 +439,7 @@ export default function ProfilePage({ currentUserId }) {
               </table>
             </div>
 
-            {/* Interests Data Table */}
+            {/* Sync Categories Interests Data Table */}
             <div className="profile-content-card">
               <div className="profile-card-title">🎨 Interests Categories</div>
               <table className="profile-data-table">
@@ -481,7 +498,7 @@ export default function ProfilePage({ currentUserId }) {
               
               {user && (
                 <form onSubmit={handlePostComment} style={{ marginBottom: '24px' }}>
-                  <textarea className="profile-comment-textarea" value={newComment} onChange={(e) => setNewComment(e.target.value)} placeholder="Post an open public message on this user's profile wall..." required />
+                  <textarea className="profile-comment-textarea" value={newComment} onChange={(e) => setNewComment(e.target.value)} placeholder="Post an open public message on this profile wall..." required />
                   <button type="submit" className="profile-comment-submit">Post Comment</button>
                 </form>
               )}
@@ -492,7 +509,7 @@ export default function ProfilePage({ currentUserId }) {
                 comments.map((commentRow) => (
                   <div key={commentRow.id} className="profile-comment-item" style={{ flexDirection: 'column', borderBottom: '1px solid #26282c', paddingBottom: '16px', marginBottom: '16px' }}>
                     
-                    {/* Top Level Message */}
+                    {/* Top Level Message Card */}
                     <div style={{ display: 'flex', gap: '12px', width: '100%' }}>
                       <img src={commentRow.profiles?.avatar_url || "/default-avatar.png"} alt="Commenter Avatar" className="profile-commenter-avatar" onError={(e) => { e.target.src = "https://unsplash.com"; }} />
                       <div style={{ flex: 1 }}>
@@ -513,7 +530,7 @@ export default function ProfilePage({ currentUserId }) {
                       </div>
                     </div>
 
-                    {/* Threaded Sub-Replies */}
+                    {/* Threaded Sub-Replies Matrix Layout */}
                     {commentRow.replies && commentRow.replies.length > 0 && (
                       <div style={{ paddingLeft: '44px', width: '100%', marginTop: '12px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
                         {commentRow.replies.map((childRow) => (
@@ -534,7 +551,7 @@ export default function ProfilePage({ currentUserId }) {
                       </div>
                     )}
 
-                    {/* Inline Reply Input Box */}
+                    {/* Inline Sub Reply Submission Bar */}
                     {activeReplyBoxId === commentRow.id && (
                       <div style={{ width: '100%', paddingLeft: '44px', marginTop: '12px', display: 'flex', gap: '8px', alignItems: 'center' }}>
                         <input type="text" className="profile-comment-textarea" style={{ marginBottom: 0, padding: '8px 12px', borderRadius: '20px' }} placeholder={`Reply to ${commentRow.profiles?.username || 'comment'}...`} value={replyText[commentRow.id] || ''} onChange={(e) => setReplyText(prev => ({ ...prev, [commentRow.id]: e.target.value }))} onKeyDown={(e) => { if (e.key === 'Enter') handlePostReply(commentRow.id, commentRow.user_id); }} />
@@ -547,8 +564,8 @@ export default function ProfilePage({ currentUserId }) {
               )}
             </div>
 
-          </div> {/* Right column closes */}
-        </div> /* Main Grid layout layout closes */
+          </div> {/* Canvas Column layout template closes */}
+        </div> /* Main Layout Grid closing tag split */
       )}
     </div>
   );
