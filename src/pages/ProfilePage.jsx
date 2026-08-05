@@ -14,6 +14,13 @@ if (typeof document !== 'undefined') {
     ::-webkit-scrollbar-thumb { background: #FF6600; border: 1px solid #ffffff; }
     @keyframes blink { 0%, 49% { opacity: 1; } 50%, 100% { opacity: 0; } }
     .retro-blink { animation: blink 1s infinite; }
+
+    /* 📱 GLOBAL IOS SAFARI CLICK REPAIR OVERRIDES */
+    button, [role="button"], input[type="submit"] {
+      cursor: pointer !important;
+      touch-action: manipulation !important;
+      -webkit-tap-highlight-color: transparent !important;
+    }
   `;
   document.head.appendChild(styleEl);
 }
@@ -183,31 +190,10 @@ export default function ProfilePage({ currentUserId }) {
     if (!error) setBlogs(blogs.filter(bg => bg.id !== blogId));
   };
 
-  const getYouTubeEmbedUrl = (urlStr) => {
-    if (!urlStr) return null;
-    try {
-      const cleanUrl = urlStr.trim();
-      const regExp = /^.*(?:(?:youtu\.be\/|v\/|vi\/|u\/\w\/|embed\/|shorts\/)|(?:(?:watch)?\?v(?:i)?=|\&v(?:i)?=))([^#\&\?]*).*/;
-      const match = cleanUrl.match(regExp);
-      
-      if (match && match[1]) {
-        let videoId = match[1].trim();
-        if (videoId.includes('&')) videoId = videoId.split('&')[0];
-        if (videoId.includes('?')) videoId = videoId.split('?')[0];
-        return "https://youtube.com" + videoId;
-      }
-    } catch (e) {
-      console.error("YouTube Parser Error:", e);
-    }
-    return null;
-  };
-
-  if (loading || authLoading) return <div style={{ color: '#FF6600', textAlign: 'center', padding: '50px', fontSize: '14px', fontWeight: 'bold', backgroundColor: '#000', minHeight: '100vh' }}>LOADING RETRO CANVAS...</div>;
+    if (loading || authLoading) return <div style={{ color: '#FF6600', textAlign: 'center', padding: '50px', fontSize: '14px', fontWeight: 'bold', backgroundColor: '#000', minHeight: '100vh' }}>LOADING RETRO CANVAS...</div>;
   if (!profile) return <div style={{ color: '#FF6600', textAlign: 'center', padding: '50px', fontSize: '14px', fontWeight: 'bold', backgroundColor: '#000', minHeight: '100vh' }}>PROFILE NOT FOUND</div>;
 
-  const youtubeEmbed = getYouTubeEmbedUrl(profile.youtube_url);
-
-    return (
+  return (
     <div style={{ backgroundColor: '#000000', minHeight: '100vh' }}>
       <NavBar user={user} />
       {profile.custom_css && <style>{profile.custom_css}</style>}
@@ -260,8 +246,9 @@ export default function ProfilePage({ currentUserId }) {
               </div>
             </div>
 
+            {/* UNNESTED IPHONE RESPONSIVE CONTACT BUTTON MATRIX */}
             <div style={{ ...styles.box, marginTop: '15px' }}>
-              <h2 style={styles.orangeHeader}>Contacting {profile.username}</h2>
+              <h2 style={styles.openHeader || styles.orangeHeader}>Contacting {profile.username}</h2>
               <div style={{ ...styles.contentPadding, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '5px' }}>
                 <button style={styles.button} onClick={async () => {
                   if (!user) return alert("Please log in to transmit secure private messages.");
@@ -323,7 +310,7 @@ export default function ProfilePage({ currentUserId }) {
                 <div style={styles.contentPadding} dangerouslySetInnerHTML={{ __html: profile.custom_html }} />
               </div>
             )}
-          </div> {/* Balanced closure for leftColumn sidebar */}
+          </div> {/* Encloses leftColumn perfectly without breaking adjacent elements */}
 
           {/* RIGHT COLUMN */}
           <div style={styles.rightColumn}>
@@ -351,86 +338,85 @@ export default function ProfilePage({ currentUserId }) {
               </div>
             </div>
 
-  {/* ⭐ FIXED — FULLY WORKING YOUTUBE SHOWCASE GATEWAY */}
-{profile.youtube_url && (
-  <div style={styles.box} id="youtube-showcase-window">
-    <h2 style={styles.orangeHeader}>{profile.username}'s Featured Showcase Video</h2>
+            {/* ⭐ FIXED — FULLY WORKING YOUTUBE SHOWCASE GATEWAY (EXACT CLONE EMBED) */}
+            {profile.youtube_url && (
+              <div style={styles.box} id="youtube-showcase-window">
+                <h2 style={styles.orangeHeader}>{profile.username}'s Featured Showcase Video</h2>
 
-    <div style={{ padding: '10px', backgroundColor: '#000000', textAlign: 'center' }}>
+                <div style={{ padding: '10px', backgroundColor: '#000000', textAlign: 'center' }}>
 
-      {profile.youtube_url.includes('supabase.co') ? (
-        /* 1. Supabase-hosted MP4 playback */
-        <video
-          controls
-          autoPlay
-          style={{
-            width: '100%',
-            height: 'auto',
-            maxHeight: '340px',
-            border: '1px solid #FF6600'
-          }}
-          key={profile.youtube_url}
-        >
-          <source src={profile.youtube_url} type="video/mp4" />
-        </video>
-      ) : (
-        /* 2. YouTube Embed Mode (FULLY FIXED) */
-        <div
-          style={{
-            position: 'relative',
-            width: '100%',
-            paddingBottom: '56.25%',
-            height: 0,
-            border: '1px solid #FF6600'
-          }}
-        >
-          <iframe
-            title={`${profile.username}'s Showcase Video`}
-            src={(() => {
-              try {
-                const raw = profile.youtube_url.trim();
+                  {profile.youtube_url.includes('supabase.co') ? (
+                    /* 1. Supabase-hosted MP4 playback */
+                    <video
+                      controls
+                      autoPlay
+                      style={{
+                        width: '100%',
+                        height: 'auto',
+                        maxHeight: '340px',
+                        border: '1px solid #FF6600'
+                      }}
+                      key={profile.youtube_url}
+                    >
+                      <source src={profile.youtube_url} type="video/mp4" />
+                    </video>
+                  ) : (
+                    /* 2. YouTube Embed Mode (FULLY FIXED) */
+                    <div
+                      style={{
+                        position: 'relative',
+                        width: '100%',
+                        paddingBottom: '56.25%',
+                        height: 0,
+                        border: '1px solid #FF6600'
+                      }}
+                    >
+                      <iframe
+                        title={`${profile.username}'s Showcase Video`}
+                        src={(() => {
+                          try {
+                            const raw = profile.youtube_url.trim();
 
-                // Universal YouTube ID extractor
-                const rx =
-                  /^.*(?:(?:youtu\.be\/|v\/|vi\/|u\/\w\/|embed\/|shorts\/)|(?:(?:watch)?\?v(?:i)?=|\&v(?:i)?=))([^#\&\?]*).*/;
+                            // Universal YouTube ID extractor
+                            const rx =
+                              /^.*(?:(?:youtu\.be\/|v\/|vi\/|u\/\w\/|embed\/|shorts\/)|(?:(?:watch)?\?v(?:i)?=|\&v(?:i)?=))([^#\&\?]*).*/;
 
-                const match = raw.match(rx);
+                            const match = raw.match(rx);
 
-                if (match && match[1]) {
-                  let id = match[1].trim();
+                            if (match && match[1]) {
+                              let id = match[1].trim();
 
-                  // Remove trailing junk
-                  if (id.includes('&')) id = id.split('&')[0];
-                  if (id.includes('?')) id = id.split('?')[0];
+                              // Remove trailing junk
+                              if (id.includes('&')) id = id.split('&')[0];
+                              if (id.includes('?')) id = id.split('?')[0];
 
-                  // Return proper embed URL
-                  return `https://www.youtube.com/embed/${id}`;
-                }
-              } catch (e) {
-                console.error("YouTube Embed Parser Error:", e);
-              }
+                              // Return proper embed URL
+                              return `https://www.youtube.com/embed/${id}`;
+                            }
+                          } catch (e) {
+                            console.error("YouTube Embed Parser Error:", e);
+                          }
 
-              // Fallback video ID (your royalty-free clip)
-              return "https://www.youtube.com/embed/77nB_9uIcN4";
-            })()}
-            style={{
-              position: 'absolute',
-              top: 0,
-              left: 0,
-              width: '100%',
-              height: '100%',
-              border: 0
-            }}
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-            allowFullScreen
-          />
-        </div>
-      )}
+                          // Fallback video ID (your royalty-free clip)
+                          return "https://www.youtube.com/embed/77nB_9uIcN4";
+                        })()}
+                        style={{
+                          position: 'absolute',
+                          top: 0,
+                          left: 0,
+                          width: '100%',
+                          height: '100%',
+                          border: 0
+                        }}
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                        allowFullScreen
+                      />
+                    </div>
+                  )}
 
-    </div>
-  </div>
-)}
-
+                </div>
+              </div>
+            )}
 
             <div style={styles.box}>
               <h2 style={styles.orangeHeader}>Bulletins</h2>
@@ -502,7 +488,7 @@ export default function ProfilePage({ currentUserId }) {
                             {f.username}
                           </div>
                           <div style={{ padding: '3px', backgroundColor: '#ffffff', border: '1px solid #000000', display: 'inline-block', width: '100%' }}>
-                            <img src={f.avatar_url || 'https://placehold.co'} alt="pic" style={{ width: '100%', aspectRatio: '1/1', objectFit: 'cover', display: 'block' }} />
+                            <img src={f.avatar_url || 'placehold.co'} alt="pic" style={{ width: '100%', aspectRatio: '1/1', objectFit: 'cover', display: 'block' }} />
                           </div>
                         </a>
                       </div>
@@ -517,26 +503,53 @@ export default function ProfilePage({ currentUserId }) {
               <div style={styles.contentPadding}>
                 {(currentUserId || user?.id) ? (
                   <form onSubmit={handlePostComment} style={{ marginBottom: '10px' }}>
-                    <textarea value={newComment} onChange={e => setNewComment(e.target.value)} placeholder="Type comment..." style={styles.textarea} required />
+                    <textarea
+                      value={newComment}
+                      onChange={e => setNewComment(e.target.value)}
+                      placeholder="Type comment..."
+                      style={styles.textarea}
+                      required
+                    />
                     <button type="submit" style={styles.button}>Add Comment</button>
                   </form>
                 ) : (
-                  <p style={{ color: '#666666', fontStyle: 'italic', margin: '5px 0' }}>Log in to post a comment on this user's profile wall.</p>
+                  <p style={{ color: '#666666', fontStyle: 'italic', margin: '5px 0' }}>
+                    Log in to post a comment on this user's profile wall.
+                  </p>
                 )}
                 {comments.map(c => (
-                  <div key={c.id} style={{ display: 'flex', gap: '10px', background: '#ffe5d4', padding: '5px', marginBottom: '5px', border: '1px dashed #000', flexDirection: 'column' }}>
+                  <div
+                    key={c.id}
+                    style={{
+                      display: 'flex',
+                      gap: '10px',
+                      background: '#ffe5d4',
+                      padding: '5px',
+                      marginBottom: '5px',
+                      border: '1px dashed #000',
+                      flexDirection: 'column'
+                    }}
+                  >
                     <div style={{ display: 'flex', gap: '10px' }}>
-                      <img src={c.profiles?.avatar_url || 'https://placehold.co'} alt="avatar pic" style={{ width: '40px', height: '40px', objectFit: 'cover', border: '1px solid #000' }} />
+                      <img
+                        src={c.profiles?.avatar_url || 'placehold.co'}
+                        alt="avatar pic"
+                        style={{ width: '40px', height: '40px', objectFit: 'cover', border: '1px solid #000' }}
+                      />
                       <div style={{ flexGrow: 1 }}>
-                        <a href={`/profile/${c.user_id}`} style={styles.orangeLink}><b>{c.profiles?.username || 'User'}:</b></a>
+                        <a href={`/profile/${c.user_id}`} style={styles.orangeLink}>
+                          {c.profiles?.username || 'User'}
+                        </a>
                         <p style={{ margin: '3px 0 0 0' }}>{c.content}</p>
+                        {user?.id === activeProfileId && (
+                          <div style={{ display: 'flex', justifyContent: 'flex-end', borderTop: '1px dotted #000000', paddingTop: '3px', marginTop: '3px' }}>
+                            <button onClick={() => handleDeleteComment(c.id)} style={{ background: 'none', border: 'none', color: '#cc0000', cursor: 'pointer', fontSize: '9px', fontWeight: 'bold' }}>
+                              [× Delete Comment]
+                            </button>
+                          </div>
+                        )}
                       </div>
                     </div>
-                    {user?.id === activeProfileId && (
-                      <div style={{ display: 'flex', justifyContent: 'flex-end', borderTop: '1px dotted #000000', paddingTop: '3px', marginTop: '3px' }}>
-                        <button onClick={() => handleDeleteComment(c.id)} style={{ background: 'none', border: 'none', color: '#cc0000', cursor: 'pointer', fontSize: '9px', fontWeight: 'bold' }}>[× Delete Comment]</button>
-                      </div>
-                    )}
                   </div>
                 ))}
               </div>
