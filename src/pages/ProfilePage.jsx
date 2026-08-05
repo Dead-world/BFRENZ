@@ -52,7 +52,6 @@ export default function ProfilePage({ currentUserId }) {
   const [newComment, setNewComment] = useState('');
   const [loading, setLoading] = useState(true);
 
-    // Sync state targets whenever route hooks drop changes
   useEffect(() => {
     if (authLoading) return;
 
@@ -75,7 +74,6 @@ export default function ProfilePage({ currentUserId }) {
     }
   }, [routeProfileId, currentUserId, user, authLoading]);
 
-  // Core baseline profile snapshot retrieval data block
   const fetchProfileData = async () => {
     try {
       setLoading(true);
@@ -126,7 +124,6 @@ export default function ProfilePage({ currentUserId }) {
     await supabase.from('profile_views').insert([{ viewer_id: vId, profile_id: activeProfileId }]);
   };
 
-  // Live real-time Supabase status presence row synchronization tunnel
   useEffect(() => {
     if (!activeProfileId) return;
 
@@ -229,10 +226,11 @@ export default function ProfilePage({ currentUserId }) {
             <div>
               <h1 style={{ fontSize: '18px', margin: '0 0 5px 0', fontWeight: 'bold' }}>{profile.username}</h1>
               
-                             <div style={{ fontSize: '11px', lineHeight: '1.5' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                <div style={{ display: 'flex', gap: '10px', alignItems: 'flex-start' }}>
+                  <img src={profile.avatar_url || 'https://placehold.co'} alt="Avatar" style={{ width: '150px', height: '150px', border: '1px solid #000000', objectFit: 'cover' }} />
+                  <div style={{ fontSize: '11px', lineHeight: '1.5' }}>
                     <p style={{ margin: '0 0 4px 0' }}>Hometown: <b>{profile.hometown || 'Unknown'}</b></p>
-                    
-                    {/* ⭐ FIXED DYNAMIC ENGINE: References the profile state object explicitly to update on live broadcasts */}
                     <p style={{ margin: '0 0 4px 0' }}>
                       Status: <span style={{ 
                         color: profile.status === 'online' ? '#00cc00' : '#666666', 
@@ -247,10 +245,9 @@ export default function ProfilePage({ currentUserId }) {
                         {profile.status === 'online' ? '● ONLINE' : '○ OFFLINE'}
                       </span>
                     </p>
-                    
                     <p style={{ margin: '0' }}>Views: <b>{viewCount}</b></p>
                   </div>
-
+                </div>
                 
                 <div style={{ border: '1px dotted #FF6600', padding: '8px', backgroundColor: '#000000', width: '100%', boxSizing: 'border-box' }}>
                   <a href={`/album/${activeProfileId}/pictures`} style={{ color: '#00ffff', textDecoration: 'none', fontWeight: 'bold', display: 'block', marginBottom: '4px', fontSize: '11px' }}>
@@ -301,7 +298,6 @@ export default function ProfilePage({ currentUserId }) {
               </div>
             </div>
 
-                        {/* BACKGROUND AUDIO PLAYER BOX */}
             <div style={styles.box}>
               <h2 style={styles.orangeHeader}>Music Player</h2>
               <div style={styles.contentPadding}>
@@ -311,7 +307,6 @@ export default function ProfilePage({ currentUserId }) {
               </div>
             </div>
 
-            {/* INTEREST TABLES PANEL */}
             <div style={styles.box}>
               <h2 style={styles.orangeHeader}>Interests</h2>
               <table style={styles.table}>
@@ -322,16 +317,15 @@ export default function ProfilePage({ currentUserId }) {
               </table>
             </div>
 
-            {/* CUSTOM BLURBS HTML CONTAINER */}
             {profile.custom_html && (
               <div style={styles.box}>
                 <h2 style={styles.orangeHeader}>Custom Blurbs Room</h2>
                 <div style={styles.contentPadding} dangerouslySetInnerHTML={{ __html: profile.custom_html }} />
               </div>
             )}
-          </div> {/* 🟢 Encloses leftColumn perfectly */}
+          </div> {/* Balanced closure for leftColumn sidebar */}
 
-          {/* RIGHT COLUMN MAIN LAYOUT PANELS */}
+          {/* RIGHT COLUMN */}
           <div style={styles.rightColumn}>
             <div style={{ backgroundColor: '#ffe5d4', border: '1px solid #FF6600', padding: '8px', marginBottom: '15px', fontSize: '11px', fontWeight: 'bold' }}>
               {profile.username} is in your Extended Network on bfrenz
@@ -355,91 +349,29 @@ export default function ProfilePage({ currentUserId }) {
                 <h3 style={{ color: '#FF6600', fontSize: '11px', margin: '0 0 5px 0', fontWeight: 'bold' }}>Who I'd like to meet:</h3>
                 <p style={{ margin: '0', fontSize: '11px', whiteSpace: 'pre-wrap' }}>{profile.meet || 'Looking for cool people using bfrenz!'}</p>
               </div>
-            
+            </div>
 
+            {profile.youtube_url && (
+              <div style={styles.box} id="youtube-showcase-window">
+                <h2 style={styles.orangeHeader}>{profile.username}'s Featured Showcase Video</h2>
+                <div style={{ padding: '10px', backgroundColor: '#000000', textAlign: 'center' }}>
+                  {profile.youtube_url.includes('supabase.co') ? (
+                    <video controls autoPlay style={{ width: '100%', height: 'auto', maxHeight: '340px', border: '1px solid #FF6600' }} key={profile.youtube_url}>
+                      <source src={profile.youtube_url} type="video/mp4" />
+                    </video>
+                  ) : youtubeEmbed ? (
+                    <div style={{ position: 'relative', width: '100%', paddingBottom: '56.25%', height: 0, border: '1px solid #FF6600' }}>
+                      <iframe title="Showcase Video Frame" src={youtubeEmbed} style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', border: 0 }} allowFullScreen />
+                    </div>
+                  ) : (
+                    <div style={{ padding: '10px', color: 'red', fontSize: '11px', backgroundColor: '#ffe5d4', textAlign: 'left' }}>
+                      ⚠ LINK SYSTEM FAULT: Check the link settings inside your dashboard.
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
 
-           {/* ⭐ FIXED — FULLY WORKING YOUTUBE SHOWCASE GATEWAY */}
-{profile.youtube_url && (
-  <div style={styles.box} id="youtube-showcase-window">
-    <h2 style={styles.orangeHeader}>{profile.username}'s Featured Showcase Video</h2>
-
-    <div style={{ padding: '10px', backgroundColor: '#000000', textAlign: 'center' }}>
-
-      {profile.youtube_url.includes('supabase.co') ? (
-        /* 1. Supabase-hosted MP4 playback */
-        <video
-          controls
-          autoPlay
-          style={{
-            width: '100%',
-            height: 'auto',
-            maxHeight: '340px',
-            border: '1px solid #FF6600'
-          }}
-          key={profile.youtube_url}
-        >
-          <source src={profile.youtube_url} type="video/mp4" />
-        </video>
-      ) : (
-        /* 2. YouTube Embed Mode (FULLY FIXED) */
-        <div
-          style={{
-            position: 'relative',
-            width: '100%',
-            paddingBottom: '56.25%',
-            height: 0,
-            border: '1px solid #FF6600'
-          }}
-        >
-          <iframe
-            title={`${profile.username}'s Showcase Video`}
-            src={(() => {
-              try {
-                const raw = profile.youtube_url.trim();
-
-                // Universal YouTube ID extractor
-                const rx =
-                  /^.*(?:(?:youtu\.be\/|v\/|vi\/|u\/\w\/|embed\/|shorts\/)|(?:(?:watch)?\?v(?:i)?=|\&v(?:i)?=))([^#\&\?]*).*/;
-
-                const match = raw.match(rx);
-
-                if (match && match[1]) {
-                  let id = match[1].trim();
-
-                  // Remove trailing junk
-                  if (id.includes('&')) id = id.split('&')[0];
-                  if (id.includes('?')) id = id.split('?')[0];
-
-                  // Return proper embed URL
-                  return `https://www.youtube.com/embed/${id}`;
-                }
-              } catch (e) {
-                console.error("YouTube Embed Parser Error:", e);
-              }
-
-              // Fallback video ID (your royalty-free clip)
-              return "https://www.youtube.com/embed/77nB_9uIcN4";
-            })()}
-            style={{
-              position: 'absolute',
-              top: 0,
-              left: 0,
-              width: '100%',
-              height: '100%',
-              border: 0
-            }}
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-            allowFullScreen
-          />
-        </div>
-      )}
-
-    </div>
-  </div>
-)}
-
-
-            {/* BULLETINS HUB BLAST PANEL */}
             <div style={styles.box}>
               <h2 style={styles.orangeHeader}>Bulletins</h2>
               <div style={styles.contentPadding}>
@@ -466,7 +398,6 @@ export default function ProfilePage({ currentUserId }) {
               </div>
             </div>
 
-            {/* RETRO BLOG LOG ENTRIES SUB-TREE */}
             <div style={styles.box}>
               <h2 style={styles.orangeHeader}>Blog Entries</h2>
               <div style={styles.contentPadding}>
@@ -497,7 +428,6 @@ export default function ProfilePage({ currentUserId }) {
               </div>
             </div>
 
-            {/* CLASSIC 4x2 GRID FRAME FOR TOP 8 FRIENDS */}
             <div style={styles.box}>
               <h2 style={styles.orangeHeader}>{profile.username}'s Space // Top 8 Friends</h2>
               <div style={styles.contentPadding}>
@@ -522,7 +452,6 @@ export default function ProfilePage({ currentUserId }) {
               </div>
             </div>
 
-            {/* PUBLIC WALL COMMENTS TIMELINE */}
             <div style={styles.box}>
               <h2 style={styles.orangeHeader}>Comments</h2>
               <div style={styles.contentPadding}>
@@ -552,10 +481,8 @@ export default function ProfilePage({ currentUserId }) {
                 ))}
               </div>
             </div>
-
           </div>
         </div>
       </div>
     </div>
   );
-}
