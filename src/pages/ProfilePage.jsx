@@ -98,7 +98,7 @@ export default function ProfilePage({ currentUserId }) {
   const [viewCount, setViewCount] = useState(0);
   const [newComment, setNewComment] = useState('');
   
-  /* Reply Thread Tracking Parameters States */
+  /* Thread Tracking States */
   const [replyText, setReplyText] = useState({});
   const [activeReplyBoxId, setActiveReplyBoxId] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -121,7 +121,6 @@ export default function ProfilePage({ currentUserId }) {
     }
   }, [routeProfileId, currentUserId, user, authLoading]);
 
-  
   const fetchProfileData = async () => {
     try {
       setLoading(true);
@@ -134,7 +133,7 @@ export default function ProfilePage({ currentUserId }) {
       if (profileError) throw profileError;
       setProfile(profileRecord);
 
-      // Inject Scoped Custom Style Layer Override Rule
+      // Inject Scoped Styles Override
       if (profileRecord.custom_css && typeof document !== 'undefined') {
         const oldStyleElement = document.getElementById(`user-styles-${activeProfileId}`);
         if (oldStyleElement) oldStyleElement.remove();
@@ -144,14 +143,12 @@ export default function ProfilePage({ currentUserId }) {
         document.head.appendChild(newStyleElement);
       }
 
-      // Fetch dynamic bulletins and blog posts logs rows records
       const { data: bulletinsData } = await supabase.from('bulletins').select('*').eq('user_id', activeProfileId).order('created_at', { ascending: false });
       setBulletins(bulletinsData || []);
 
       const { data: blogsData } = await supabase.from('blogs').select('*').eq('author_id', activeProfileId).order('created_at', { ascending: false });
       setBlogs(blogsData || []);
 
-      // Pull active comments stream log lines sorted conversationally (Ascending)
       const { data: commentsRecords } = await supabase.from('comments').select('*, profiles!comments_user_id_fkey(username, avatar_url)').eq('profile_id', activeProfileId).order('created_at', { ascending: true });
       
       if (commentsRecords) {
@@ -161,7 +158,7 @@ export default function ProfilePage({ currentUserId }) {
         const organizedThreads = parentComments.map(parent => ({
           ...parent,
           replies: replyComments.filter(child => child.parent_id === parent.id)
-        })).reverse(); // Place latest conversation chains at the top of the stack
+        })).reverse();
 
         setComments(organizedThreads);
       }
@@ -188,12 +185,35 @@ export default function ProfilePage({ currentUserId }) {
       setLoading(false);
     }
   };
-  /* 💾 TRANSACTION HANDLER: WRITE NEW MAIN PARENT WALL POST */
+
+    const recordProfileView = async () => {
+    const viewerId = currentUserId || user?.id;
+    if (!viewerId || viewerId === activeProfileId) return;
+    await supabase.from('profile_views').insert([{ viewer_id: viewerId, profile_id: activeProfileId }]);
+  };
+
+  useEffect(() => {
+    if (!activeProfileId) return;
+
+    fetchProfileData();
+    recordProfileView();
+
+    const liveStatusSubscription = supabase
+      .channel(`live_status_${activeProfileId}`)
+      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'profiles', filter: `User_id=eq.${activeProfileId}` }, (payload) => {
+        setProfile(prev => prev ? { ...prev, status: payload.new.status, status_message: payload.new.status_message } : payload.new);
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(liveStatusSubscription);
+    };
+  }, [activeProfileId, user?.id]);
+
   const handlePostComment = async (e) => {
     e.preventDefault();
     const posterId = currentUserId || user?.id;
     if (!newComment.trim() || !posterId) return;
-
     try {
       const { error } = await supabase.from('comments').insert([{ user_id: posterId, profile_id: activeProfileId, content: newComment.trim() }]);
       if (error) throw error;
@@ -207,12 +227,9 @@ export default function ProfilePage({ currentUserId }) {
       }
       setNewComment('');
       fetchProfileData();
-    } catch (err) {
-      console.error(err);
-    }
+    } catch (err) { console.error(err); }
   };
 
-  /* 💾 TRANSACTION HANDLER: SUBMIT AN INLINE THREAD REPLY */
   const handlePostReply = async (parentCommentId, parentAuthorId) => {
     const text = replyText[parentCommentId];
     const posterId = currentUserId || user?.id;
@@ -239,46 +256,42 @@ export default function ProfilePage({ currentUserId }) {
       setReplyText(prev => ({ ...prev, [parentCommentId]: '' }));
       setActiveReplyBoxId(null);
       fetchProfileData();
-    } catch (err) {
-      console.error(err);
-    }
+    } catch (err) { console.error(err); }
   };
 
-  /* 📌 HANDLER: PURGE BULLETIN FROM SUPABASE */
   const handleDeleteBulletin = async (id) => {
     if (!window.confirm('Delete this bulletin notice?')) return;
     const { error } = await supabase.from('bulletins').delete().eq('id', id);
     if (!error) setBulletins(prev => prev.filter(b => b.id !== id));
   };
 
-  /* ✍️ HANDLER: PURGE JOURNAL BLOG FROM SUPABASE */
   const handleDeleteBlog = async (id) => {
     if (!window.confirm('Delete this blog entry?')) return;
     const { error } = await supabase.from('blogs').delete().eq('id', id);
     if (!error) setBlogs(prev => prev.filter(b => b.id !== id));
   };
 
-  /* 🗑️ HANDLER: PURGE COMMENT OR REPLY FROM SUPABASE */
   const handleDeleteComment = async (commentId) => {
     if (!window.confirm('Delete this comment?')) return;
     const { error } = await supabase.from('comments').delete().eq('id', commentId);
     if (!error) fetchProfileData();
   };
 
+  if (loading) return <div style={{ color: '#FF6600', padding: '60px', textAlign: 'center', fontFamily: 'monospace', fontWeight: 'bold' }}>LOADING USER PROFILE...</div>;
+
     return (
     <div className="profile-page-background">
       <NavBar />
       
       {profile?.custom_html ? (
-        /* HTML Override Hook Sandbox slot */
         <div className="custom-html-override-container" dangerouslySetInnerHTML={{ __html: profile.custom_html }} />
       ) : (
         <div className="profile-main-layout">
           
-          {/* ⬅️ SIDEBAR PANEL TRUNK */}
+          {/* ⬅️ SIDEBAR PANEL */}
           <div className="profile-left-sidebar">
             
-            {/* Identity Card Profile Header */}
+            {/* Identity Card Profile */}
             <div className="profile-content-card profile-image-container">
               <h2 style={{ fontSize: '20px', fontWeight: '800', margin: '0 0 12px 0', color: '#fff' }}>{profile?.username}</h2>
               <img src={profile?.avatar_url || "/default-avatar.png"} alt="User Profile Avatar" className="profile-main-avatar" onError={(e) => { e.target.src = "https://unsplash.com"; }} />
@@ -290,12 +303,12 @@ export default function ProfilePage({ currentUserId }) {
               <div style={{ fontSize: '12px', color: '#9ca3af', marginTop: '10px' }}>Total Profile Views: {viewCount}</div>
             </div>
 
-            {/* 🔊 Media Showcase Hub Container */}
+            {/* 🔊 Media Showcase Hub */}
             {(profile?.profile_song_url || profile?.youtube_video_url || profile?.soundcloud_url || profile?.profile_mp4_url) && (
               <div className="profile-content-card">
                 <div className="profile-card-title">🔊 User Media Stream</div>
 
-                {/* MP3 Audio Player Track - Auto Plays Native Audio Mounts */}
+                {/* MP3 */}
                 {profile?.profile_song_url && (
                   <div className="profile-media-item">
                     <span style={{ fontSize: "11px", fontWeight: "600", color: "#9ca3af" }}>AUDIO THEME SONG (.MP3)</span>
@@ -303,7 +316,7 @@ export default function ProfilePage({ currentUserId }) {
                   </div>
                 )}
 
-                {/* MP4 Native Video Screen Track Container */}
+                {/* MP4 */}
                 {profile?.profile_mp4_url && (
                   <div className="profile-media-item">
                     <span style={{ fontSize: "11px", fontWeight: "600", color: "#9ca3af" }}>FEATURED VIDEO TRACK (.MP4)</span>
@@ -311,7 +324,7 @@ export default function ProfilePage({ currentUserId }) {
                   </div>
                 )}
 
-                {/* YouTube Video Embed Component View */}
+                {/* YouTube */}
                 {profile?.youtube_video_url && getYouTubeEmbed(profile.youtube_video_url) && (
                   <div className="profile-media-item">
                     <span style={{ fontSize: "11px", fontWeight: "600", color: "#9ca3af" }}>YOUTUBE UPLOAD VIDEOS</span>
@@ -319,7 +332,7 @@ export default function ProfilePage({ currentUserId }) {
                   </div>
                 )}
 
-                {/* SoundCloud Stream Target Component Frame */}
+                {/* SoundCloud */}
                 {profile?.soundcloud_url && (
                   <div className="profile-media-item">
                     <span style={{ fontSize: "11px", fontWeight: "600", color: "#9ca3af" }}>SOUNDCLOUD INTEGRATION LINK</span>
@@ -329,7 +342,7 @@ export default function ProfilePage({ currentUserId }) {
               </div>
             )}
 
-            {/* Friends Grid List Selection */}
+            {/* Top Friends List Grid */}
             <div className="profile-content-card">
               <div className="profile-card-title">👥 Top Friends List</div>
               {friends.length === 0 ? (
@@ -348,7 +361,7 @@ export default function ProfilePage({ currentUserId }) {
 
           </div>
 
-          {/* ➡️ MAIN CANCES DISPLAY WRAPPERS PANEL */}
+          {/* ➡️ MAIN RIGHT COLUMN CANVAS */}
           <div className="profile-right-canvas">
             
             {/* General Information Data Table */}
@@ -365,7 +378,7 @@ export default function ProfilePage({ currentUserId }) {
               </table>
             </div>
 
-            {/* Sync Categories Interests Data Table */}
+            {/* Interests Data Table */}
             <div className="profile-content-card">
               <div className="profile-card-title">🎨 Interests Categories</div>
               <table className="profile-data-table">
@@ -376,7 +389,7 @@ export default function ProfilePage({ currentUserId }) {
               </table>
             </div>
 
-            {/* 📌 SPACE BULLETIN ANNOUNCEMENTS FEED CARD */}
+            {/* 📌 Space Bulletins Board Feed */}
             <div className="profile-content-card">
               <div className="profile-card-title">📌 Space Bulletins Board ({bulletins.length})</div>
               {bulletins.length === 0 ? (
@@ -397,7 +410,7 @@ export default function ProfilePage({ currentUserId }) {
               )}
             </div>
 
-            {/* ✍️ CHRONOLOGICAL USER JOURNAL BLOGS FEED CARD */}
+            {/* ✍️ Recent Journal Blogs Feed */}
             <div className="profile-content-card">
               <div className="profile-card-title">✍️ Recent Journal Blogs ({blogs.length})</div>
               {blogs.length === 0 ? (
@@ -418,7 +431,7 @@ export default function ProfilePage({ currentUserId }) {
               )}
             </div>
 
-            {/* 💬 INTERACTIVE PROFILE WALL CHAT LEDGER COMMENT SECTION WITH SUB-THREAD REPLIES */}
+            {/* 💬 Profile Wall Comments */}
             <div className="profile-content-card">
               <div className="profile-card-title">💬 Profile Wall Comments ({comments.length})</div>
               
@@ -435,7 +448,7 @@ export default function ProfilePage({ currentUserId }) {
                 comments.map((commentRow) => (
                   <div key={commentRow.id} className="profile-comment-item" style={{ flexDirection: 'column', borderBottom: '1px solid #26282c', paddingBottom: '16px', marginBottom: '16px' }}>
                     
-                    {/* Top Level Parent Post Message */}
+                    {/* Top Level Message */}
                     <div style={{ display: 'flex', gap: '12px', width: '100%' }}>
                       <img src={commentRow.profiles?.avatar_url || "/default-avatar.png"} alt="Commenter Avatar" className="profile-commenter-avatar" onError={(e) => { e.target.src = "https://unsplash.com"; }} />
                       <div style={{ flex: 1 }}>
@@ -456,7 +469,7 @@ export default function ProfilePage({ currentUserId }) {
                       </div>
                     </div>
 
-                    {/* ➡️ SUB-LEVEL LAYER: INLINE THREADED SUB-REPLIES LIST */}
+                    {/* Threaded Sub-Replies */}
                     {commentRow.replies && commentRow.replies.length > 0 && (
                       <div style={{ paddingLeft: '44px', width: '100%', marginTop: '12px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
                         {commentRow.replies.map((childRow) => (
@@ -477,7 +490,7 @@ export default function ProfilePage({ currentUserId }) {
                       </div>
                     )}
 
-                    {/* INTERACTIVE INPUT SUB REPLY FORM FIELD DRAWER BOX */}
+                    {/* Inline Reply Input Box */}
                     {activeReplyBoxId === commentRow.id && (
                       <div style={{ width: '100%', paddingLeft: '44px', marginTop: '12px', display: 'flex', gap: '8px', alignItems: 'center' }}>
                         <input type="text" className="profile-comment-textarea" style={{ marginBottom: 0, padding: '8px 12px', borderRadius: '20px' }} placeholder={`Reply to ${commentRow.profiles?.username || 'comment'}...`} value={replyText[commentRow.id] || ''} onChange={(e) => setReplyText(prev => ({ ...prev, [commentRow.id]: e.target.value }))} onKeyDown={(e) => { if (e.key === 'Enter') handlePostReply(commentRow.id, commentRow.user_id); }} />
@@ -490,8 +503,8 @@ export default function ProfilePage({ currentUserId }) {
               )}
             </div>
 
-          </div> {/* Right canvas closes */}
-        </div> /* Grid layout split closes */
+          </div> {/* Right column closes */}
+        </div> /* Main Grid layout layout closes */
       )}
     </div>
   );
