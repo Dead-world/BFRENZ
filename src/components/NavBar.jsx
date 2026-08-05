@@ -3,12 +3,112 @@ import { useAuth } from '../hooks/useAuth';
 import { supabase } from '../supabaseClient';
 import { Link } from 'react-router-dom';
 
+if (typeof document !== 'undefined') {
+  const styleEl = document.createElement('style');
+  styleEl.innerHTML = `
+    .nav-links-container { display: flex !important; align-items: center !important; gap: 12px !important; position: relative !important; }
+    
+    /* 🌐 CIRCULAR NAV ICON BADGES */
+    .circle-nav-badge {
+      display: inline-flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      width: 40px !important;
+      height: 40px !important;
+      border-radius: 50% !important;
+      background-color: #3A3B3C !important;
+      color: #E4E6EB !important;
+      text-decoration: none !important;
+      cursor: pointer !important;
+      border: none !important;
+      transition: background-color 0.2s ease !important;
+    }
+    .circle-nav-badge:hover { background-color: #4E4F50 !important; }
+    .circle-nav-badge svg { width: 20px !important; height: 20px !important; fill: currentColor !important; }
+
+    /* 👤 AVATAR ICON INTERFACE */
+    .avatar-wrapper { position: relative !important; display: inline-flex !important; cursor: pointer !important; }
+    .nav-avatar-img { width: 40px !important; height: 40px !important; border-radius: 50% !important; object-fit: cover !important; background-color: #3A3B3C !important; }
+    .dropdown-arrow-badge {
+      position: absolute !important;
+      bottom: -2px !important;
+      right: -2px !important;
+      width: 16px !important;
+      height: 16px !important;
+      background-color: #3A3B3C !important;
+      border-radius: 50% !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      border: 2px solid #242526 !important;
+    }
+    .dropdown-arrow-badge svg { width: 10px !important; height: 10px !important; fill: #E4E6EB !important; }
+
+    /* 📂 DROPDOWN FLOATING POPUP PANEL */
+    .fb-dropdown-panel {
+      position: absolute !important;
+      top: 50px !important;
+      right: 0 !important;
+      width: 340px !important;
+      background-color: #242526 !important;
+      border-radius: 8px !important;
+      padding: 12px !important;
+      box-shadow: 0 12px 28px 0 rgba(0, 0, 0, 0.3) !important;
+      z-index: 1000 !important;
+      font-family: 'Segoe UI', Helvetica, Arial, sans-serif !important;
+      color: #E4E6EB !important;
+      border: 1px solid #393A3B !important;
+    }
+    
+    .dropdown-profile-box { background: #242526 !important; padding: 4px 4px 12px 4px !important; }
+    .dropdown-user-display { display: flex !important; flex-direction: column !important; padding: 4px !important; }
+    .dropdown-user-name { font-weight: bold !important; font-size: 16px !important; color: #ffffff !important; }
+    .dropdown-user-email { font-size: 12px !important; color: #B0B3B8 !important; margin-top: 2px !important; }
+    
+    .see-all-profiles-btn {
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      width: 100% !important;
+      background-color: #3A3B3C !important;
+      color: #E4E6EB !important;
+      border: none !important;
+      padding: 8px !important;
+      border-radius: 6px !important;
+      font-size: 14px !important;
+      font-weight: 600 !important;
+      cursor: pointer !important;
+      text-decoration: none !important;
+      margin-top: 12px !important;
+    }
+    .see-all-profiles-btn:hover { background-color: #4E4F50 !important; }
+
+    .dropdown-action-item { display: flex !important; align-items: center !important; padding: 10px !important; border-radius: 6px !important; cursor: pointer !important; color: #E4E6EB !important; text-decoration: none !important; margin-top: 4px !important; }
+    .dropdown-action-item:hover { background-color: #3A3B3C !important; }
+    .action-item-left { display: flex !important; align-items: center !important; gap: 12px !important; }
+    .action-item-title { font-size: 15px !important; font-weight: 500 !important; color: #ffffff !important; display: block !important; }
+    .action-item-subtitle { font-size: 12px !important; color: #B0B3B8 !important; display: block !important; margin-top: 1px !important; }
+    
+    .dropdown-icon-circle { width: 36px !important; height: 36px !important; border-radius: 50% !important; background-color: #3A3B3C !important; display: flex !important; align-items: center !important; justify-content: center !important; font-size: 16px !important; }
+    .dropdown-icon-circle svg { width: 18px !important; height: 18px !important; fill: #E4E6EB !important; }
+
+    .dropdown-footer-text { padding: 12px 4px 4px 4px !important; font-size: 11px !important; color: #B0B3B8 !important; }
+    .dropdown-footer-text a { color: #B0B3B8 !important; text-decoration: none !important; margin-right: 4px !important; }
+    .dropdown-footer-text a:hover { text-decoration: underline !important; }
+
+    @media (max-width: 768px) {
+      .fb-dropdown-panel { position: fixed !important; top: 60px !important; right: 10px !important; width: calc(100% - 20px) !important; max-width: 340px !important; }
+    }
+  `;
+  document.head.appendChild(styleEl);
+}
+
 const styles = {
   nav: { 
     backgroundColor: '#242526', 
     padding: '8px 20px', 
     display: 'flex', 
-    justifyContent: 'space-between', 
+    justifycontent: 'space-between', 
     alignItems: 'center', 
     borderBottom: '1px solid #393A3B', 
     fontFamily: 'Segoe UI, Helvetica, Arial, sans-serif', 
@@ -89,11 +189,11 @@ export default function NavBar() {
     } finally {
       setIsDropdownOpen(false);
       await supabase.auth.signOut();
-      window.location.href = "/login"; // Clear browser history and send to login panel
+      window.location.href = "/login";
     }
   };
 
-   return (
+    return (
     <nav style={styles.nav}>
       <div>
         <Link to={user ? "/" : "/login"}>
@@ -103,7 +203,7 @@ export default function NavBar() {
 
       {/* ⭐ SECURE MATRIX SEAM: Renders empty right panel layout when user session object drops */}
       {user && (
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', position: 'relative' }} ref={dropdownRef}>
+        <div className="nav-links-container" ref={dropdownRef}>
           
           {/* 📥 Inbox Icon */}
           <Link to="/inbox" className="circle-nav-badge" title="Inbox">
@@ -120,6 +220,13 @@ export default function NavBar() {
             )}
           </Link>
 
+          {/* ⭐ FIXED NEW INJECTION: View Profile Direct Action Button Icon */}
+          <Link to={`/profile/${user.id}`} className="circle-nav-badge" title="View My Public Profile">
+            <svg viewBox="0 0 24 24">
+              <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+            </svg>
+          </Link>
+
           {/* 👤 Interactive Profile Avatar Badge */}
           <div className="avatar-wrapper" onClick={() => setIsDropdownOpen(!isDropdownOpen)} title="Account Settings Menu">
             <img 
@@ -133,26 +240,26 @@ export default function NavBar() {
             </span>
           </div>
 
-          {/* 📂 INTERACTIVE ACCORDION MODAL SLOT */}
+          {/* 📂 ACCORDION MENU OVERLAY PANEL */}
           {isDropdownOpen && (
             <div className="fb-dropdown-panel">
               
-              {/* Profile Card display */}
+              {/* Profile Top Selector Card */}
               <div className="dropdown-profile-box">
                 <div className="dropdown-user-display">
                   <span className="dropdown-user-name">{profileData.username}</span>
                   <span className="dropdown-user-email">{user.email}</span>
                 </div>
                 <Link to="/browse" className="see-all-profiles-btn" onClick={() => setIsDropdownOpen(false)}>
-                  Browse for friends 
+                  Browse for friends
                 </Link>
               </div>
 
-              {/* Settings & Privacy Section */}
+              {/* Settings & Privacy Action Card */}
               <Link to="/dashboard" className="dropdown-action-item" onClick={() => setIsDropdownOpen(false)}>
                 <div className="action-item-left">
                   <div className="dropdown-icon-circle">
-                    <svg viewBox="0 0 24 24"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58a.49.49 0 00.12-.61l-1.92-3.32a.48.48 0 00-.55-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54a.484.484 0 00-.48-.41h-3.84a.48.48 0 00-.48.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96a.48.48 0 00-.55.22L2.26 6.97a.48.48 0 00.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58a.49.49 0 00-.12.61l1.92 3.32c.12.22.37.29.55.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.48-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .55-.22l1.92-3.32a.48.48 0 00-.12-.61l-2.03-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg>
+                    <svg viewBox="0 0 24 24"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58a.49.49 0 00.12-.61l-1.92-3.32a.48.48 0 00-.55-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54a.484.484 0 00-.48-.41h-3.84a.48.48 0 00-.48.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96a.48.48 0 00-.55-.22L2.26 6.97a.48.48 0 00.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58a.49.49 0 00-.12.61l1.92 3.32c.12.22.37.29.55.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.48-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .55-.22l1.92-3.32a.48.48 0 00-.12-.61l-2.03-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg>
                   </div>
                   <div>
                     <span className="action-item-title">Settings & Privacy</span>
@@ -161,7 +268,7 @@ export default function NavBar() {
                 </div>
               </Link>
 
-              {/* Help & Support Section */}
+              {/* Help & Support Action Item */}
               <div className="dropdown-action-item">
                 <div className="action-item-left">
                   <div className="dropdown-icon-circle" style={{ color: '#FF3366', fontWeight: 'bold' }}>?</div>
@@ -172,7 +279,7 @@ export default function NavBar() {
                 </div>
               </div>
 
-              {/* Display & Accessibility Section */}
+              {/* Display & Accessibility Action Item */}
               <div className="dropdown-action-item">
                 <div className="action-item-left">
                   <div className="dropdown-icon-circle">💡</div>
@@ -183,7 +290,7 @@ export default function NavBar() {
                 </div>
               </div>
 
-              {/* Log Out Section */}
+              {/* Logout Trigger Option Button */}
               <div className="dropdown-action-item" onClick={handleLogout}>
                 <div className="action-item-left">
                   <div className="dropdown-icon-circle">
@@ -195,7 +302,7 @@ export default function NavBar() {
                 </div>
               </div>
 
-              {/* Fineprint Links Panel */}
+              {/* Small Footnote Fineprint Links */}
               <div className="dropdown-footer-text">
                 <a href="#privacy">Privacy</a> · <a href="#terms">Terms</a> · <a href="#advertising">Advertising</a> · <a href="#cookies">Cookies</a> · <a href="#more">More</a>
               </div>
