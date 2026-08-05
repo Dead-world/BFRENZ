@@ -301,6 +301,7 @@ export default function ProfilePage({ currentUserId }) {
               </div>
             </div>
 
+                        {/* BACKGROUND AUDIO PLAYER BOX */}
             <div style={styles.box}>
               <h2 style={styles.orangeHeader}>Music Player</h2>
               <div style={styles.contentPadding}>
@@ -310,6 +311,7 @@ export default function ProfilePage({ currentUserId }) {
               </div>
             </div>
 
+            {/* INTEREST TABLES PANEL */}
             <div style={styles.box}>
               <h2 style={styles.orangeHeader}>Interests</h2>
               <table style={styles.table}>
@@ -320,15 +322,16 @@ export default function ProfilePage({ currentUserId }) {
               </table>
             </div>
 
+            {/* CUSTOM BLURBS HTML CONTAINER */}
             {profile.custom_html && (
               <div style={styles.box}>
                 <h2 style={styles.orangeHeader}>Custom Blurbs Room</h2>
                 <div style={styles.contentPadding} dangerouslySetInnerHTML={{ __html: profile.custom_html }} />
               </div>
             )}
-          </div>
+          </div> {/* 🟢 Encloses leftColumn perfectly */}
 
-          {/* RIGHT COLUMN */}
+          {/* RIGHT COLUMN MAIN LAYOUT PANELS */}
           <div style={styles.rightColumn}>
             <div style={{ backgroundColor: '#ffe5d4', border: '1px solid #FF6600', padding: '8px', marginBottom: '15px', fontSize: '11px', fontWeight: 'bold' }}>
               {profile.username} is in your Extended Network on bfrenz
@@ -353,6 +356,7 @@ export default function ProfilePage({ currentUserId }) {
                 <p style={{ margin: '0', fontSize: '11px', whiteSpace: 'pre-wrap' }}>{profile.meet || 'Looking for cool people using bfrenz!'}</p>
               </div>
             </div>
+
 
            {/* ⭐ FIXED — FULLY WORKING YOUTUBE SHOWCASE GATEWAY */}
 {profile.youtube_url && (
