@@ -88,7 +88,7 @@ export default function NavBar() {
     <nav style={styles.nav}>
       <div>
         <Link to="/" onClick={() => setIsOpen(false)}>
-          <img src="/ProfileDigLogo.png" alt="bfrenz" style={styles.logoImage} onError={(e) => { e.target.style.display = 'none'; e.target.parentNode.innerHTML = '<span style="color:#FF6600; font-weight:bold; font-size:14px;">bfrenz</span>'; }} />
+          <img src="/bfrenzlogo.png" alt="bfrenz" style={styles.logoImage} onError={(e) => { e.target.style.display = 'none'; e.target.parentNode.innerHTML = '<span style="color:#FF6600; font-weight:bold; font-size:14px;">bfrenz</span>'; }} />
         </Link>
       </div>
 
