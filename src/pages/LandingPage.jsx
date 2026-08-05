@@ -1,3 +1,9 @@
+import React, { useState } from 'react';
+import { supabase } from '../supabaseClient';
+import { useAuth } from '../hooks/useAuth'; // Double-check this hook import is present too
+import { Link, useNavigate } from 'react-router-dom'; // ⭐ FIXED: Make sure useNavigate is included here!
+
+
 export default function LandingPage() {
   const navigate = useNavigate();
   const { user } = useAuth(); // ⭐ NEW INJECTION: Reads active session state from your pipeline context
