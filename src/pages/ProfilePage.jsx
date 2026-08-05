@@ -205,7 +205,7 @@ export default function ProfilePage({ currentUserId }) {
             {/* ⭐ FIXED FALLBACK OPERATOR LINK */}
             {profile.username} says: "{profile.status_message || 'No active broadcast transmission...'}"
           </marquee>
-        </div>
+       
 
 
         <div style={styles.mainLayout}>
