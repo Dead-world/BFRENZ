@@ -74,56 +74,39 @@ export default function ProfilePage({ currentUserId }) {
     }
   }, [routeProfileId, currentUserId, user, authLoading]);
 
+  // ⭐ FIXED: Listens directly to PostgreSQL system updates to change status tags live
   useEffect(() => {
-    if (activeProfileId) {
-      fetchProfileData();
-      recordProfileView();
-    }
+    if (!activeProfileId) return;
+
+    // 1. Initial baseline snapshot pull
+    fetchProfileData();
+    recordProfileView();
+
+    // 2. ⭐ REAL-TIME PRESENCE BROADCAST: Subscribes to changes on this user's profile row
+    const presenceChannel = supabase
+      .channel(`live_status_${activeProfileId}`)
+      .on(
+        'postgres_changes',
+        { 
+          event: 'UPDATE', 
+          schema: 'public', 
+          table: 'profiles', 
+          filter: `User_id=eq.${activeProfileId}` 
+        },
+        (payload) => {
+          console.log("🛰️ Live Status Update Captured:", payload.new.status);
+          // Directly swap the active profile state data container on the fly
+          setProfile(prev => prev ? { ...prev, status: payload.new.status } : payload.new);
+        }
+      )
+      .subscribe();
+
+    // Cleanup connection channels on window collapse or navigation shift
+    return () => {
+      supabase.removeChannel(presenceChannel);
+    };
   }, [activeProfileId, user?.id]);
 
-  const fetchProfileData = async () => {
-    try {
-      setLoading(true);
-      const { data: prof, error: pErr } = await supabase.from('profiles').select('*').eq('User_id', activeProfileId).single();
-      if (pErr) throw pErr;
-      setProfile(prof);
-
-      const { data: bulls } = await supabase.from('bulletins').select('*').eq('user_id', activeProfileId).order('created_at', { ascending: false });
-      setBulletins(bulls || []);
-
-      const { data: blogPosts } = await supabase.from('blogs').select('*').eq('author_id', activeProfileId).order('created_at', { ascending: false });
-      setBlogs(blogPosts || []);
-
-      const { data: comms } = await supabase.from('comments').select('*, profiles!comments_user_id_fkey(username, avatar_url)').eq('profile_id', activeProfileId).order('created_at', { ascending: false });
-      setComments(comms || []);
-
-      const { count } = await supabase.from('profile_views').select('*', { count: 'exact', head: true }).eq('profile_id', activeProfileId);
-      setViewCount(count || 0);
-
-      const { data: top8Rows, error: t8Err } = await supabase
-        .from('top_eight')
-        .select('friend_id, profiles!top_eight_friend_id_fkey(User_id, username, avatar_url)')
-        .eq('user_id', activeProfileId)
-        .order('position_rank', { ascending: true })
-        .limit(8);
-
-      if (!t8Err && top8Rows && top8Rows.length > 0) {
-        setFriends(top8Rows.map(row => row.profiles).filter(Boolean));
-      } else {
-        const { data: frRows } = await supabase.from('friends').select('friend_id, profiles!friends_friend_id_fkey(User_id, username, avatar_url)').eq('user_id', activeProfileId).limit(8);
-        if (frRows) setFriends(frRows.map(f => f.profiles).filter(Boolean));
-      }
-
-      if (user?.id && user.id !== activeProfileId) {
-        const { data: connection } = await supabase.from('friends').select('*').eq('user_id', user.id).eq('friend_id', activeProfileId);
-        setIsFriend(connection && connection.length > 0);
-      }
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const recordProfileView = async () => {
     const vId = currentUserId || user?.id;
