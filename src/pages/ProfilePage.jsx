@@ -355,7 +355,7 @@ export default function ProfilePage({ currentUserId }) {
                 <h3 style={{ color: '#FF6600', fontSize: '11px', margin: '0 0 5px 0', fontWeight: 'bold' }}>Who I'd like to meet:</h3>
                 <p style={{ margin: '0', fontSize: '11px', whiteSpace: 'pre-wrap' }}>{profile.meet || 'Looking for cool people using bfrenz!'}</p>
               </div>
-            </div>
+            
 
 
            {/* ⭐ FIXED — FULLY WORKING YOUTUBE SHOWCASE GATEWAY */}
