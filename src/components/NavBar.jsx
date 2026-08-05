@@ -108,7 +108,7 @@ const styles = {
     backgroundColor: '#242526', 
     padding: '8px 20px', 
     display: 'flex', 
-    justifycontent: 'space-between', 
+    justifyContent: 'space-between', 
     alignItems: 'center', 
     borderBottom: '1px solid #393A3B', 
     fontFamily: 'Segoe UI, Helvetica, Arial, sans-serif', 
@@ -201,16 +201,16 @@ export default function NavBar() {
         </Link>
       </div>
 
-      {/* ⭐ SECURE MATRIX SEAM: Renders empty right panel layout when user session object drops */}
+      {/* ⭐ SECURE SEAM: Only displays the controls if the user session token is present */}
       {user && (
         <div className="nav-links-container" ref={dropdownRef}>
           
-          {/* 📥 Inbox Icon */}
+          {/* 📥 Inbox Icon Badge */}
           <Link to="/inbox" className="circle-nav-badge" title="Inbox">
             <svg viewBox="0 0 24 24"><path d="M12 2C6.477 2 2 6.145 2 11.26c0 2.915 1.455 5.518 3.733 7.21.194.143.315.367.323.607l.076 2.3c.013.38.384.664.75.545l2.585-.843c.2-.065.418-.046.604.053A10.22 10.22 0 0012 20.52c5.523 0 10-4.146 10-9.26C22 6.145 17.523 2 12 2zm1.03 12.33l-2.12-2.27-4.14 2.27 4.55-4.83 2.12 2.27 4.14-2.27-4.55 4.83z"/></svg>
           </Link>
           
-          {/* 🔔 Notification Bell Icon */}
+          {/* 🔔 Notification Bell Icon Badge */}
           <Link to="/notifications" className="circle-nav-badge" title="Notifications">
             <svg viewBox="0 0 24 24"><path d="M12 22a2.98 2.98 0 002.822-2H9.178A2.98 2.98 0 0012 22zm7.184-5.176l-1.01-2.022V10.5c0-3.076-2.05-5.71-4.924-6.326V3.5a1.25 1.25 0 10-2.5 0v.674C7.874 4.79 5.824 7.424 5.824 10.5v4.302l-1.01 2.022A1 1 0 005.702 18h12.596a1 1 0 00.886-1.176z"/></svg>
             {unreadCount > 0 && (
@@ -220,14 +220,14 @@ export default function NavBar() {
             )}
           </Link>
 
-          {/* ⭐ FIXED NEW INJECTION: View Profile Direct Action Button Icon */}
+          {/* 👤 View Profile Button Icon Link */}
           <Link to={`/profile/${user.id}`} className="circle-nav-badge" title="View My Public Profile">
             <svg viewBox="0 0 24 24">
               <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
             </svg>
           </Link>
 
-          {/* 👤 Interactive Profile Avatar Badge */}
+          {/* Menu Activation Trigger Image Badge */}
           <div className="avatar-wrapper" onClick={() => setIsDropdownOpen(!isDropdownOpen)} title="Account Settings Menu">
             <img 
               src={profileData.avatar_url || "/default-avatar.png"} 
@@ -240,11 +240,10 @@ export default function NavBar() {
             </span>
           </div>
 
-          {/* 📂 ACCORDION MENU OVERLAY PANEL */}
+          {/* 📂 INTERACTIVE ACCORDION DROP POPUP PANEL */}
           {isDropdownOpen && (
             <div className="fb-dropdown-panel">
               
-              {/* Profile Top Selector Card */}
               <div className="dropdown-profile-box">
                 <div className="dropdown-user-display">
                   <span className="dropdown-user-name">{profileData.username}</span>
@@ -255,11 +254,11 @@ export default function NavBar() {
                 </Link>
               </div>
 
-              {/* Settings & Privacy Action Card */}
+              {/* Settings Action Link Option */}
               <Link to="/dashboard" className="dropdown-action-item" onClick={() => setIsDropdownOpen(false)}>
                 <div className="action-item-left">
                   <div className="dropdown-icon-circle">
-                    <svg viewBox="0 0 24 24"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58a.49.49 0 00.12-.61l-1.92-3.32a.48.48 0 00-.55-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54a.484.484 0 00-.48-.41h-3.84a.48.48 0 00-.48.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96a.48.48 0 00-.55-.22L2.26 6.97a.48.48 0 00.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58a.49.49 0 00-.12.61l1.92 3.32c.12.22.37.29.55.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.48-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .55-.22l1.92-3.32a.48.48 0 00-.12-.61l-2.03-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg>
+                    <svg viewBox="0 0 24 24"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58a.49.49 0 00.12-.61l-1.92-3.32a.48.48 0 00-.55-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54a.484.484 0 00-.48-.41h-3.84a.48.48 0 00-.48.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96a.48.48 0 00-.55-.22L2.26 6.97a.48.48 0 00.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58a.49.49 0 00-.12.61l1.92 3.32c.12.22.37.29.55.22l2.39-.96c.5.38(1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.48-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .55-.22l1.92-3.32a.48.48 0 00-.12-.61l-2.03-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg>
                   </div>
                   <div>
                     <span className="action-item-title">Settings & Privacy</span>
@@ -268,7 +267,6 @@ export default function NavBar() {
                 </div>
               </Link>
 
-              {/* Help & Support Action Item */}
               <div className="dropdown-action-item">
                 <div className="action-item-left">
                   <div className="dropdown-icon-circle" style={{ color: '#FF3366', fontWeight: 'bold' }}>?</div>
@@ -279,7 +277,6 @@ export default function NavBar() {
                 </div>
               </div>
 
-              {/* Display & Accessibility Action Item */}
               <div className="dropdown-action-item">
                 <div className="action-item-left">
                   <div className="dropdown-icon-circle">💡</div>
@@ -290,7 +287,7 @@ export default function NavBar() {
                 </div>
               </div>
 
-              {/* Logout Trigger Option Button */}
+              {/* Log Out Click Button Trigger */}
               <div className="dropdown-action-item" onClick={handleLogout}>
                 <div className="action-item-left">
                   <div className="dropdown-icon-circle">
@@ -302,7 +299,6 @@ export default function NavBar() {
                 </div>
               </div>
 
-              {/* Small Footnote Fineprint Links */}
               <div className="dropdown-footer-text">
                 <a href="#privacy">Privacy</a> · <a href="#terms">Terms</a> · <a href="#advertising">Advertising</a> · <a href="#cookies">Cookies</a> · <a href="#more">More</a>
               </div>
