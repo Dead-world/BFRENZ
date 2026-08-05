@@ -47,38 +47,40 @@ export default function LandingPage() {
     return () => clearInterval(interval);
   }, [featuredUsers]);
 
-   async function handleLogin(e) {
+    async function handleLogin(e) {
     e.preventDefault();
-    setLoading(true);
+    setLoading(true); // Locks the button to prevent duplicate spamming
     
-    // 1. Authenticate user credentials with Supabase Auth
-    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-    
-    if (error) {
-      alert(error.message);
-      setLoading(false);
-      return;
-    }
-    
-    if (data?.user) {
-      try {
-        // ⭐ AUTOMATIC STATUS UPDATE: Force status to online inside your database schema row
-        await supabase
-          .from("profiles")
-          .update({ 
-            status: "online", 
-            last_seen: new Date().toISOString() 
-          })
-          .eq("User_id", data.user.id);
-          
-      } catch (err) {
-        console.error("Failed to push online presence marker:", err);
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+      
+      if (error) {
+        alert(error.message);
+        setLoading(false); // 🟢 RELEASE THE BUTTON IMMEDIATELY IF PASSWORD IS WRONG
+        return;
       }
       
-      // 2. Safely route the authenticated user directly into their space control panel
-      window.location.href = "/dashboard";
+      if (data?.user) {
+        // Run database status updates safely inside a secondary try wrapper
+        try {
+          await supabase
+            .from("profiles")
+            .update({ status: "online", last_seen: new Date().toISOString() })
+            .eq("User_id", data.user.id);
+        } catch (dbErr) {
+          console.error("Database status update failed:", dbErr);
+        }
+        
+        // Route straight into your bfrenz workspace control panel
+        window.location.href = "/dashboard";
+      }
+    } catch (globalErr) {
+      console.error("Global auth exception:", globalErr);
+      alert("An unexpected authentication error occurred.");
+      setLoading(false); // 🟢 RELEASE THE BUTTON AS A SAFETY FALLBACK
     }
   }
+
 
     const styles = {
     pageWrapper: { backgroundColor: "#000000", minHeight: "100vh", color: "#FFFFFF", display: "flex", flexDirection: "column", fontFamily: "Verdana, Arial, sans-serif" },
