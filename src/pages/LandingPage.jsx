@@ -5,40 +5,46 @@ import { Link, useNavigate } from 'react-router-dom';
 if (typeof document !== 'undefined') {
   const styleEl = document.createElement('style');
   styleEl.innerHTML = `
-    .landing-wrapper { background-color: #111212; color: #E4E6EB; min-height: 100vh; display: flex; flex-direction: column; font-family: 'Segoe UI', sans-serif; }
+    .landing-wrapper { background-color: #000000; color: #ffffff; min-height: 100vh; display: flex; flex-direction: column; font-family: 'Courier New', monospace; }
     
-    /* 🧭 UN-AUTH CLEAN SLATE NAVBAR OVERRIDE */
-    .landing-navbar { background-color: #242526; padding: 10px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #393A3B; height: 44px; }
-    .landing-logo { height: 40px; width: auto; display: block; }
+    /* 🧭 ECOSYSTEM NAVBAR UPPER BARS */
+    .landing-navbar { background-color: #000000; padding: 12px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #FF6600; height: 46px; }
+    .landing-logo-text { color: #FF6600; font-size: 26px; font-weight: bold; letter-spacing: 1px; text-decoration: none; }
     
-    /* Splash Forms Grid Setup */
+    /* Grid Canvas Constraints */
     .landing-content-split { display: flex; max-width: 1000px; width: 100%; margin: auto; padding: 40px 20px; justify-content: space-between; align-items: center; gap: 40px; box-sizing: border-box; }
     .landing-hero-text { flex: 1; max-width: 500px; }
-    .landing-hero-title { font-size: 38px; font-weight: 800; color: #ffffff; margin-bottom: 16px; line-height: 1.2; }
-    .landing-hero-subtitle { font-size: 16px; color: #B0B3B8; line-height: 1.6; }
+    .landing-hero-title { font-size: 36px; font-weight: 800; color: #ffffff; margin-bottom: 18px; line-height: 1.3; }
+    .landing-hero-title span { color: #FF6600; } /* Neon color accents strings */
+    .landing-hero-subtitle { font-size: 15px; color: #ffffff; line-height: 1.6; }
     
-    /* 📦 FLOATING LOGIN BOX STRUCTURE */
-    .landing-login-card { background-color: #242526; border: 1px solid #393A3B; border-radius: 8px; padding: 24px; width: 100%; max-width: 396px; box-shadow: 0 12px 28px rgba(0,0,0,0.3); box-sizing: border-box; }
-    .landing-form-group { margin-bottom: 16px; }
-    .landing-input { width: 100%; box-sizing: border-box; background-color: #3A3B3C; color: #E4E6EB; border: 1px solid #393A3B; padding: 14px; border-radius: 6px; font-size: 15px; outline: none; transition: border-color 0.2s; }
-    .landing-input:focus { border-color: #1877F2; }
+    /* 📦 RETRO 3D ORANGE LOGIN PANEL CARD */
+    .landing-login-card { background-color: #111112; border: 2px solid #FF6600; border-radius: 4px; padding: 26px; width: 100%; max-width: 396px; box-shadow: 5px 5px 0px #ffffff; box-sizing: border-box; }
+    .landing-form-group { margin-bottom: 18px; }
     
-    /* 🚀 ACTION HANDLER TRIGGER CONTROLS */
-    .landing-submit-btn { background-color: #1877F2; color: #ffffff; border: none; padding: 14px; width: 100%; font-size: 17px; font-weight: bold; border-radius: 6px; cursor: pointer; transition: background-color 0.2s; display: block; text-align: center; }
-    .landing-submit-btn:hover { background-color: #1565C0; }
-    .landing-submit-btn:disabled { background-color: #4F5051; color: #8A8D91; cursor: not-allowed; }
+    /* White Input Boxes fields */
+    .landing-input { width: 100%; box-sizing: border-box; background-color: #ffffff; color: #000000; border: 2px solid #000000; padding: 12px; border-radius: 4px; font-size: 14px; font-weight: bold; outline: none; font-family: inherit; }
+    .landing-input:focus { border-color: #FF6600; box-shadow: 0 0 4px #FF6600; }
+    .landing-input::placeholder { color: #666666; }
     
-    .landing-divider { height: 1px; background-color: #393A3B; margin: 20px 0; border: none; }
+    /* 🚀 SUBMIT BLOCK TRIGGERS OVERRIDES */
+    .landing-submit-btn { background-color: #FF6600; color: #000000; border: 2px solid #000000; padding: 12px; width: 100%; font-size: 16px; font-weight: bold; border-radius: 4px; cursor: pointer; transition: transform 0.05s ease, box-shadow 0.05s ease; display: block; text-align: center; box-shadow: 3px 3px 0px #ffffff; font-family: inherit; text-transform: uppercase; }
+    .landing-submit-btn:active { transform: translate(1px, 1px); box-shadow: 1px 1px 0px #ffffff; }
+    .landing-submit-btn:hover { filter: brightness(1.1); }
+    .landing-submit-btn:disabled { background-color: #555555; color: #888888; box-shadow: none; cursor: not-allowed; transform: none; border-color: #333333; }
     
-    /* Retro Sign Up Action Switch Button */
-    .landing-signup-route-btn { background-color: #42B72A; color: #ffffff; border: none; padding: 12px 16px; font-size: 15px; font-weight: bold; border-radius: 6px; cursor: pointer; text-decoration: none; display: block; width: max-content; margin: 0 auto; transition: background-color 0.2s; }
-    .landing-signup-route-btn:hover { background-color: #36A420; }
+    .landing-divider { height: 2px; background-color: #FF6600; margin: 22px 0; border: none; }
     
-    .landing-error-box { text-align: center; margin-top: 12px; font-size: 13px; font-weight: 500; color: #E41E3F; background-color: rgba(228,30,63,0.1); padding: 8px; border-radius: 4px; border: 1px solid rgba(228,30,63,0.2); }
+    /* Clean White Route Switch Button */
+    .landing-signup-route-btn { background-color: #ffffff; color: #000000; border: 2px solid #000000; padding: 10px 20px; font-size: 14px; font-weight: bold; border-radius: 4px; cursor: pointer; text-decoration: none; display: block; width: max-content; margin: 0 auto; box-shadow: 2px 2px 0px #FF6600; text-transform: uppercase; }
+    .landing-signup-route-btn:active { transform: translate(1px, 1px); box-shadow: 1px 1px 0px #FF6600; }
+    .landing-signup-route-btn:hover { background-color: #eeeeee; }
+    
+    .landing-error-box { text-align: center; margin-top: 14px; font-size: 12px; font-weight: bold; color: #ffffff; background-color: #E41E3F; padding: 10px; border-radius: 4px; border: 2px solid #000000; box-shadow: 2px 2px 0px #ffffff; }
     
     @media (max-width: 768px) {
-      .landing-content-split { flex-direction: column; text-align: center; padding-top: 20px; }
-      .landing-hero-title { font-size: 28px; }
+      .landing-content-split { flex-direction: column; text-align: center; padding-top: 20px; gap: 30px; }
+      .landing-hero-title { font-size: 26px; }
       .landing-login-card { max-width: 100%; }
     }
   `;
@@ -53,19 +59,17 @@ export default function LandingPage() {
   const [errorMessage, setErrorMessage] = useState('');
 
   const executeLoginPipeline = async (e) => {
-    // 🛑 Block default browser anchor refresh loops
     if (e && e.preventDefault) e.preventDefault();
-    
-    if (isSubmitting) return; // Disallow simultaneous multi-click request collisions
+    if (isSubmitting) return; // Prevent double-submit collisions
     
     setErrorMessage('');
     setIsSubmitting(true);
 
-    // 🛡️ SUBMIT LOCK RELEASE FALLBACK
+    // Fallback release timer
     const safetyTimeout = setTimeout(() => {
       if (isSubmitting) {
         setIsSubmitting(false);
-        setErrorMessage('Server failed to respond in time. Please tap sign in to try again.');
+        setErrorMessage('Request timeout. Please hit login again.');
       }
     }, 6000);
 
@@ -78,45 +82,46 @@ export default function LandingPage() {
       if (error) throw error;
 
       if (data?.user) {
-        // Enforce network parameters to log profile view indices as online inside the matrix
         await supabase
           .from('profiles')
           .update({ status: 'online', last_seen: new Date().toISOString() })
           .eq('User_id', data.user.id);
           
         clearTimeout(safetyTimeout);
-        navigate('/dashboard'); // Route directly to dashboard spaces
+        navigate('/dashboard'); // Routes logged-in traffic directly to Dashboard rows
       }
     } catch (err) {
-      console.error("Landing form transactional collapse caught:", err);
-      setErrorMessage(err.message || 'The credentials entered do not match any records.');
+      console.error("Landing submit sequence failure caught:", err);
+      setErrorMessage(err.message || 'The credentials entered do not match our database profiles.');
       clearTimeout(safetyTimeout);
-      setIsSubmitting(false); // Explicit parameter unlock fallback
+      setIsSubmitting(false); // Explicit parameter release fallback
     }
   };
 
-    return (
+   return (
     <div className="landing-wrapper">
       
-      {/* 🧭 SECURE BLANK NAVBAR HEADER: No buttons or credentials rendered when un-authenticated */}
+      {/* 🧭 NAVIGATION HEADER STRIP */}
       <nav className="landing-navbar">
         <div>
-          <img src="/bfrenzlogo.png" alt="bfrenz" className="landing-logo" onError={(e) => { e.target.style.display = 'none'; e.target.parentNode.innerHTML = '<span style="color:#E4E6EB; font-weight:bold; font-size:16px;">bfrenz</span>'; }} />
+          <Link to="/login" className="landing-logo-text">bfrenz</Link>
         </div>
       </nav>
 
-      {/* Main split dashboard content container frame */}
+      {/* Main split feature screen grid */}
       <div className="landing-content-split">
         
-        {/* Left Side: Brand presentation text grid */}
+        {/* Left Hand: Typography details blocks */}
         <div className="landing-hero-text">
-          <h1 className="landing-hero-title">Connect with your network space</h1>
+          <h1 className="landing-hero-title">
+            Welcome to the <span>bfrenz</span> ecosystem network.
+          </h1>
           <p className="landing-hero-subtitle">
-            Customize your matrix footprint with custom HTML layout customization, showcase your music portfolio tracks, and connect bidirectional friends maps smoothly on bfrenz.
+            Customize your matrix footprint with structural custom HTML layout codes, upload your music portfolio tracks, and manage your network privacy control toggles cleanly.
           </p>
         </div>
 
-        {/* Right Side: Re-engineered Login Box Card Form Layout */}
+        {/* Right Hand: Updated High-Contrast Boxy Form Card */}
         <div className="landing-login-card">
           <form onSubmit={executeLoginPipeline}>
             
@@ -125,7 +130,7 @@ export default function LandingPage() {
                 type="email" 
                 className="landing-input" 
                 required 
-                placeholder="Email address"
+                placeholder="EMAIL ADDRESS"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 disabled={isSubmitting}
@@ -137,21 +142,21 @@ export default function LandingPage() {
                 type="password" 
                 className="landing-input" 
                 required 
-                placeholder="Password"
+                placeholder="PASSWORD"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 disabled={isSubmitting}
               />
             </div>
 
-            {/* Execution Trigger Submission Action Button */}
+            {/* Orange Execution Submit Button */}
             <button 
               type="submit" 
               className="landing-submit-btn"
               disabled={isSubmitting}
-              onClick={executeLoginPipeline} // ⭐ DUAL ACCESSIBILITY ACTION HOOK: Traps button context directly on contact fields
+              onClick={executeLoginPipeline}
             >
-              {isSubmitting ? 'Signing in...' : 'Log In'}
+              {isSubmitting ? 'Authenticating...' : 'Log In'}
             </button>
 
             {errorMessage && (
@@ -163,7 +168,7 @@ export default function LandingPage() {
 
           <hr className="landing-divider" />
 
-          {/* Registration Redirect Button Slot */}
+          {/* White Redirection Action Link */}
           <Link to="/register" className="landing-signup-route-btn">
             Create New Account
           </Link>
@@ -173,3 +178,4 @@ export default function LandingPage() {
     </div>
   );
 }
+ 
