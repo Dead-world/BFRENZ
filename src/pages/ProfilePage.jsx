@@ -52,7 +52,6 @@ export default function ProfilePage({ currentUserId }) {
   const [newComment, setNewComment] = useState('');
   const [loading, setLoading] = useState(true);
 
-  // Sync state targets whenever route hooks drop changes
   useEffect(() => {
     if (authLoading) return;
 
@@ -101,7 +100,6 @@ export default function ProfilePage({ currentUserId }) {
       const { count } = await supabase.from('profile_views').select('*', { count: 'exact', head: true }).eq('profile_id', activeProfileId);
       setViewCount(count || 0);
 
-      // Fetch friends sorted by your chosen Top 8 positions ranks
       const { data: top8Rows, error: t8Err } = await supabase
         .from('top_eight')
         .select('friend_id, profiles!top_eight_friend_id_fkey(User_id, username, avatar_url)')
@@ -165,7 +163,6 @@ export default function ProfilePage({ currentUserId }) {
     if (!error) setBlogs(blogs.filter(bg => bg.id !== blogId));
   };
 
-  // ⭐ FULL REPLMT: Fixed and closed YouTube URL filter engine targeting array index 1
   const getYouTubeEmbedUrl = (urlStr) => {
     if (!urlStr) return null;
     try {
@@ -196,7 +193,6 @@ export default function ProfilePage({ currentUserId }) {
       {profile.custom_css && <style>{profile.custom_css}</style>}
 
       <div style={styles.container}>
-        {/* TOP STATUS MARQUEE */}
         <div style={{ backgroundColor: '#000', color: '#FF6600', border: '1px solid #FF6600', padding: '6px', marginBottom: '15px', overflow: 'hidden' }}>
           <marquee scrollamount="5" style={{ fontSize: '11px', fontWeight: 'bold' }}>
             <span className="retro-blink" style={{ marginRight: '10px', color: '#fff' }}>⚡ STATUS TRANSMISSION:</span> 
@@ -205,18 +201,33 @@ export default function ProfilePage({ currentUserId }) {
         </div>
 
         <div style={styles.mainLayout}>
-          {/* LEFT SIDEBAR GRID COLUMNS */}
+          {/* LEFT COLUMN */}
           <div style={styles.leftColumn}>
             <div>
               <h1 style={{ fontSize: '18px', margin: '0 0 5px 0', fontWeight: 'bold' }}>{profile.username}</h1>
               
-              {/* CLEAN PROFILE IDENTITY PANEL BLOCK */}
               <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                 <div style={{ display: 'flex', gap: '10px', alignItems: 'flex-start' }}>
                   <img src={profile.avatar_url || 'https://placehold.co'} alt="Avatar" style={{ width: '150px', height: '150px', border: '1px solid #000000', objectFit: 'cover' }} />
                   <div style={{ fontSize: '11px', lineHeight: '1.5' }}>
                     <p style={{ margin: '0 0 4px 0' }}>Hometown: <b>{profile.hometown || 'Unknown'}</b></p>
-                    <p style={{ margin: '0 0 4px 0' }}>Status: <span style={{ color: profile.status === 'online' ? '#00cc00' : '#666666', fontWeight: 'bold' }}>{profile.status || 'offline'}</span></p>
+                    
+                    {/* ⭐ REBRANDED AND WIRED REAL-TIME PRESENCE DISPLAY BADGE */}
+                    <p style={{ margin: '0 0 4px 0' }}>
+                      Status: <span style={{ 
+                        color: profile.status === 'online' ? '#00cc00' : '#666666', 
+                        fontWeight: 'bold',
+                        textTransform: 'uppercase',
+                        fontSize: '10px',
+                        backgroundColor: profile.status === 'online' ? '#e6ffe6' : '#f0f0f0',
+                        padding: '1px 4px',
+                        border: profile.status === 'online' ? '1px solid #00cc00' : '1px solid #ccc',
+                        borderRadius: '2px'
+                      }}>
+                        {profile.status === 'online' ? '● ONLINE' : '○ OFFLINE'}
+                      </span>
+                    </p>
+                    
                     <p style={{ margin: '0' }}>Views: <b>{viewCount}</b></p>
                   </div>
                 </div>
@@ -233,7 +244,6 @@ export default function ProfilePage({ currentUserId }) {
               </div>
             </div>
 
-            {/* CONTACT ACTIONS BUTTON BAR */}
             <div style={{ ...styles.box, marginTop: '15px' }}>
               <h2 style={styles.orangeHeader}>Contacting {profile.username}</h2>
               <div style={{ ...styles.contentPadding, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '5px' }}>
@@ -272,7 +282,6 @@ export default function ProfilePage({ currentUserId }) {
               </div>
             </div>
 
-            {/* AUDIO NODE MIXER */}
             <div style={styles.box}>
               <h2 style={styles.orangeHeader}>Music Player</h2>
               <div style={styles.contentPadding}>
@@ -300,10 +309,11 @@ export default function ProfilePage({ currentUserId }) {
             )}
           </div>
 
-          {/* RIGHT COLUMN MAIN LAYOUT PANELS */}
+          {/* RIGHT COLUMN */}
           <div style={styles.rightColumn}>
+            {/* ⭐ REBRANDED EXTENDED NETWORK BANNER */}
             <div style={{ backgroundColor: '#ffe5d4', border: '1px solid #FF6600', padding: '8px', marginBottom: '15px', fontSize: '11px', fontWeight: 'bold' }}>
-              {profile.username} is in your Extended Network
+              {profile.username} is in your Extended Network on bfrenz
             </div>
 
             <div style={styles.box}>
@@ -322,11 +332,11 @@ export default function ProfilePage({ currentUserId }) {
                 <h3 style={{ color: '#FF6600', fontSize: '11px', margin: '0 0 5px 0', fontWeight: 'bold' }}>About me:</h3>
                 <p style={{ margin: '0 0 15px 0', fontSize: '11px', whiteSpace: 'pre-wrap' }}>{profile.about_me || 'Nothing written here yet.'}</p>
                 <h3 style={{ color: '#FF6600', fontSize: '11px', margin: '0 0 5px 0', fontWeight: 'bold' }}>Who I'd like to meet:</h3>
-                <p style={{ margin: '0', fontSize: '11px', whiteSpace: 'pre-wrap' }}>{profile.meet || 'Looking for cool people using ProfileDig!'}</p>
+                <p style={{ margin: '0', fontSize: '11px', whiteSpace: 'pre-wrap' }}>{profile.meet || 'Looking for cool people using bfrenz!'}</p>
               </div>
             </div>
 
-           {/* ⭐ FIXED — FULLY WORKING YOUTUBE SHOWCASE GATEWAY */}
+      {/* ⭐ FIXED — FULLY WORKING YOUTUBE SHOWCASE GATEWAY */}
 {profile.youtube_url && (
   <div style={styles.box} id="youtube-showcase-window">
     <h2 style={styles.orangeHeader}>{profile.username}'s Featured Showcase Video</h2>
@@ -462,7 +472,7 @@ export default function ProfilePage({ currentUserId }) {
               </div>
             </div>
 
-            {/* RETRO MYSPACE TOP 8 FRIENDS GRID MAP */}
+            {/* RETRO TOP 8 FRIENDS GRID MAP */}
             <div style={styles.box}>
               <h2 style={styles.orangeHeader}>{profile.username}'s Space // Top 8 Friends</h2>
               <div style={styles.contentPadding}>
