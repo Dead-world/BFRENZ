@@ -149,7 +149,7 @@ export default function NavBar() {
                   <span className="dropdown-user-email">{user.email}</span>
                 </div>
                 <Link to="/browse" className="see-all-profiles-btn" onClick={() => setIsDropdownOpen(false)}>
-                  See all profiles
+                  Browse For Friends
                 </Link>
               </div>
 
