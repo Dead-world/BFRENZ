@@ -160,24 +160,24 @@ export default function LandingPage() {
   />
 
   {/* Button properties must explicitly carry type="submit" or it will do nothing when clicked */}
-  <button 
-    type="submit" 
-    style={{
-      backgroundColor: '#FF6600', 
-      color: '#ffffff', 
-      border: '1px solid #000000', 
-      padding: '6px 15px', 
-      fontSize: '12px',
-      fontWeight: 'bold', 
-      cursor: 'pointer',
-      textTransform: 'uppercase',
-      marginTop: '10px',
-      width: '100%'
-    }}
-  >
+   {/* ... existing email/password inputs and button code inside <form> ... */}
+  <button type="submit" style={styles.button}>
     Log In »
   </button>
 </form>
+
+{/* ⭐ RESTORED SIGN UP NAVIGATION LINK BLOCK */}
+<div style={{ textAlign: 'center', marginTop: '15px', paddingTop: '10px', borderTop: '1px dotted #FF6600', fontFamily: 'Verdana' }}>
+  <span style={{ fontSize: '11px', color: '#666666' }}>New to bfrenz? </span>
+  <Link 
+    to="/register" 
+    style={{ color: '#FF6600', fontSize: '11px', fontWeight: 'bold', textDecoration: 'none' }}
+    title="Create a fresh bfrenz profile layout room space"
+  >
+    Sign Up for an Account Now »
+  </Link>
+</div>
+
 
               </div>
             ) : (
