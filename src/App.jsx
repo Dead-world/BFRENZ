@@ -11,6 +11,7 @@ import ProfilePage from './pages/ProfilePage';
 import ForgotPasswordPage from './pages/ForgotPasswordPage';
 import ResetPasswordPage from './pages/ResetPasswordPage';
 import BrowsePage from './pages/BrowsePage';
+import AdminPanel from './pages/AdminPanel'; 
 
 /* ⭐ NEW INJECTION: Wrapped the presence tracking loop inside a safe, child sub-component */
 function InactivityPresenceTracker() {
@@ -55,6 +56,10 @@ export default function App() {
           <Route path="/forgot-password" element={<ForgotPasswordPage />} />
           <Route path="/reset-password" element={<ResetPasswordPage />} />
           <Route path="/Browse" element={<BrowsePage />} />
+
+             {/* ⭐ 2. ADD THIS PATH ROUTE TO MOUNT YOUR PANEL LIVE */}
+        <Route path="/admin" element={<AdminPanel />} />
+        
         </Routes>
       </AuthProvider>
   
