@@ -55,19 +55,20 @@ export default function ForgotPasswordPage() {
     setIsSubmitting(true);
 
     try {
-      const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), {
-        // ⭐ Redirects back to your localized route path where password updating box resides
+      const { data, error } = await supabase.auth.resetPasswordForEmail(email.trim(), {
         redirectTo: `${window.location.origin}/reset-password`,
       });
 
       if (error) throw error;
+
+      // ⭐ FIXED: Update state parameters to release button locks immediately on success
       setStatus({ type: 'success', text: 'Recovery link sent! Check your inbox lines.' });
       setEmail('');
+      setIsSubmitting(false); /* 🟢 Clear the lock right here! */
     } catch (err) {
       console.error(err);
       setStatus({ type: 'error', text: err.message || 'Failed to dispatch email link.' });
-    } finally {
-      setIsSubmitting(false); // Clear Stuck Processing Controls Guard
+      setIsSubmitting(false); /* 🟢 Clear the lock on error as well! */
     }
   };
 
