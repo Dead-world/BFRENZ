@@ -348,7 +348,7 @@ export default function NavBar() {
               <svg viewBox="0 0 24 24">
                 <path d="M12 2C6.477 2 2 6.145 2 11.26c0 2.915 1.455 5.518 3.733 7.21.194.143.315.367.323.607l.076 2.3c.013.38.384.664.75.545l2.585-.843c.2-.065.418-.046.604.053A10.22 10.22 0 0012 20.52c5.523 0 10-4.146 10-9.26C22 6.145 17.523 2 12 2zm1.03 12.33l-2.12-2.27-4.14 2.27 4.55-4.83 2.12 2.27 4.14-2.27-4.55 4.83z"/>
               </svg>
-              /* ⭐ INSIDE THE NAVBAR REAL-TIME USEEFFECT BLOCK: */
+              {/* ⭐ INSIDE THE NAVBAR REAL-TIME USEEFFECT BLOCK: */}
             { recentChats.some(c => c.is_unread) && <span style={{ position: 'absolute', top: '-2px', right: '-2px', width: '8px', height: '8px', backgroundColor: '#FF6600', borderRadius: '50%' }}></span> }
 
             </div>
