@@ -86,22 +86,30 @@ export default function Dashboard() {
   const [showHometown, setShowHometown] = useState(true);
   const [allowPMs, setAllowPMs] = useState(true);
   
-  /* 📌 Bulletin Board Submission Form States */
+  /* Bulletin Board Submission Form States */
   const [bulletinTitle, setBulletinTitle] = useState('');
   const [bulletinContent, setBulletinContent] = useState('');
   const [bulletinStatus, setBulletinStatus] = useState({ type: '', text: '' });
 
-  /* ✍️ Journal Blog Submission Form States */
+  /* Journal Blog Submission Form States */
   const [blogTitle, setBlogTitle] = useState('');
   const [blogContent, setBlogContent] = useState('');
   const [blogStatus, setBlogStatus] = useState({ type: '', text: '' });
 
+  /* Top 8 Friends State Form Options */
+  const [availableFriends, setAvailableFriends] = useState([]);
+  const [topEightSlots, setTopEightSlots] = useState(Array(8).fill(''));
+  const [friendsStatus, setFriendsStatus] = useState({ type: '', text: '' });
+  
+  /* Account Closure Gate States */
+  const [deleteConfirmationText, setDeleteConfirmationText] = useState('');
+  const [isDeletingAccount, setIsDeletingAccount] = useState(false);
 
-  /* 📥 LOAD PROFILE ROW RECORD UPON COMPONENT INITIALIZATION */
+    /* 📥 LOAD PROFILE ROW RECORD & FRIENDS MATRIX UPON MOUNT */
   useEffect(() => {
     if (!user) return;
     
-    const loadProfileData = async () => {
+    const loadProfileAndFriendsData = async () => {
       try {
         const { data, error } = await supabase
           .from('profiles')
@@ -131,17 +139,44 @@ export default function Dashboard() {
           if (data.profile_song_url) setMp3UploadState('Linked successfully');
           if (data.profile_mp4_url) setMp4UploadState('Linked successfully');
         }
+
+        // Fetch standard friend links to populate options dropdown elements
+        const { data: friendsList } = await supabase
+          .from('friends')
+          .select('friend_id, profiles!friends_friend_id_fkey(User_id, username)')
+          .eq('user_id', user.id);
+
+        if (friendsList) {
+          setAvailableFriends(friendsList.map(f => f.profiles).filter(Boolean));
+        }
+
+        // Fetch current ranked slot layout selections from top_eight table logs
+        const { data: existingTopEight } = await supabase
+          .from('top_eight')
+          .select('friend_id, position_rank')
+          .eq('user_id', user.id)
+          .order('position_rank', { ascending: true });
+
+        if (existingTopEight) {
+          const loadedSlots = Array(8).fill('');
+          existingTopEight.forEach(slot => {
+            if (slot.position_rank >= 1 && slot.position_rank <= 8) {
+              loadedSlots[slot.position_rank - 1] = slot.friend_id;
+            }
+          });
+          setTopEightSlots(loadedSlots);
+        }
       } catch (err) {
-        console.error('Failed to parse active database profiles record:', err);
+        console.error('Failed to parse dashboard database states profile rows:', err);
       } finally {
         setLoading(false);
       }
     };
 
-    loadProfileData();
+    loadProfileAndFriendsData();
   }, [user]);
 
-    /* 🛰️ SUPABASE STORAGE MULTIPART ROUTING ENGINE (SONGS & VIDEOS BUCKETS) */
+  /* 🛰️ SUPABASE STORAGE MULTIPART ROUTING ENGINE (SONGS & VIDEOS BUCKETS) */
   const handleFileUpload = async (event, type) => {
     const file = event.target.files[0];
     if (!file) return;
@@ -181,7 +216,7 @@ export default function Dashboard() {
     }
   };
 
-  /* 💾 DB TRANSACTION HANDLER & AGE GATE SCRIPT PIPELINE */
+    /* 💾 DB TRANSACTION HANDLER & AGE GATE SCRIPT PIPELINE */
   const handleSaveChanges = async (e) => {
     e.preventDefault();
     setStatus({ type: 'info', text: 'Saving account parameters...' });
@@ -236,6 +271,7 @@ export default function Dashboard() {
       console.error(err);
     }
   };
+
   /* 📌 HANDLER: COMMIT NEW BULLETIN RECORD TO SUPABASE */
   const handlePostBulletin = async (e) => {
     e.preventDefault();
@@ -287,6 +323,70 @@ export default function Dashboard() {
     } catch (err) {
       console.error(err);
       setBlogStatus({ type: 'error', text: 'Failed to write blog entry.' });
+    }
+  };
+
+    /* 👥 HANDLER: RE-INDEX CHRONOLOGICAL TOP EIGHT FRIENDS RANKS OVERLAYS */
+  const handleSaveTopEight = async (e) => {
+    e.preventDefault();
+    setFriendsStatus({ type: 'info', text: 'Updating your Top 8 grid schema layout...' });
+
+    try {
+      // 1. Wipe previous ranked choices parameters map to avoid unique position duplicates error blocks
+      await supabase.from('top_eight').delete().eq('user_id', user.id);
+
+      // 2. Build insertion package arrays excluding vacant selection loops slots
+      const itemsToCommit = topEightSlots
+        .map((friendId, positionIndex) => {
+          if (!friendId) return null;
+          return {
+            user_id: user.id,
+            friend_id: friendId,
+            position_rank: positionIndex + 1
+          };
+        })
+        .filter(Boolean);
+
+      if (itemsToCommit.length > 0) {
+        const { error } = await supabase.from('top_eight').insert(itemsToCommit);
+        if (error) throw error;
+      }
+
+      setFriendsStatus({ type: 'success', text: 'Top 8 friends layout successfully updated!' });
+    } catch (err) {
+      console.error(err);
+      setFriendsStatus({ type: 'error', text: 'Failed to save ranked friends grid elements.' });
+    }
+  };
+
+  /* 💀 HANDLER: PERMANENT DELETION SYSTEM SEQUENCE CLOSURE CASCADE */
+  const handlePermanentAccountDeletion = async (e) => {
+    e.preventDefault();
+    if (deleteConfirmationText !== 'DELETE') {
+      alert('Security Action Denied: Confirmatory word mismatch pattern caught.');
+      return;
+    }
+
+    if (!window.confirm('CRITICAL ACTION AREA: Wiping your profile removes all tracks files, message layers, custom layout HTML templates, and friends relations completely. Proceed?')) return;
+
+    setIsDeletingAccount(true);
+    try {
+      // 1. Drop the base user record out of public schema rows (cascades down tables via DB constraint nodes rules)
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .delete()
+        .eq('User_id', user.id);
+
+      if (profileError) throw profileError;
+
+      // 2. Call auth user drop sequences invalidating local session tokens
+      await supabase.auth.signOut();
+      alert('Your profile parameters have been cleanly closed out of the bfrenz network ecosystem.');
+      window.location.href = '/register';
+    } catch (err) {
+      console.error('Account destruction procedure failure:', err);
+      alert(`Aborted transaction processing: ${err.message}`);
+      setIsDeletingAccount(false);
     }
   };
 
@@ -352,76 +452,42 @@ export default function Dashboard() {
               <textarea className="form-textarea code-input" style={{ color: '#A2E35C' }} value={customCss} onChange={(e) => setCustomCss(e.target.value)} placeholder=".profile-sidebar { background: linear-gradient(cyan, magenta); }" />
             </div>
           </div>
-        {/* 📌 CARD F: SPACE BULLETIN BOARD BROADCASTER FORM */}
-        <div className="settings-card">
-          <h2 className="card-title">📌 Post a Space Bulletin Notice</h2>
-          <div className="form-group">
-            <label className="form-label">Bulletin Heading Title</label>
-            <input 
-              type="text" 
-              className="form-input" 
-              value={bulletinTitle} 
-              onChange={(e) => setBulletinTitle(e.target.value)} 
-              placeholder="e.g. Out of town this weekend / Checking out new tracks"
-            />
-          </div>
-          <div className="form-group">
-            <label className="form-label">Bulletin Board Content Announcement</label>
-            <textarea 
-              className="form-textarea" 
-              value={bulletinContent} 
-              onChange={(e) => setBulletinContent(e.target.value)} 
-              placeholder="Drop a quick update message that appears across your public bulletins grid board..."
-            />
-          </div>
-          <button type="button" onClick={handlePostBulletin} className="save-settings-btn" style={{ backgroundColor: '#FF6600', marginTop: '4px' }}>
-            Publish Bulletin Update
-          </button>
-          {bulletinStatus.text && (
-            <div className="status-msg" style={{ color: bulletinStatus.type === 'success' ? '#4BAC4E' : bulletinStatus.type === 'error' ? '#E41E3F' : '#B0B3B8' }}>
-              {bulletinStatus.text}
-            </div>
-          )}
-        </div>
 
-        {/* ✍️ CARD G: JOURNAL JOURNAL BLOG WRITER FORM */}
-        <div className="settings-card">
-          <h2 className="card-title">✍️ Write a Recent Journal Blog Entry</h2>
-          <div className="form-group">
-            <label className="form-label">Journal Article Entry Title</label>
-            <input 
-              type="text" 
-              className="form-input" 
-              value={blogTitle} 
-              onChange={(e) => setBlogTitle(e.target.value)} 
-              placeholder="e.g. Thoughts on HTML customization setups"
-            />
-          </div>
-          <div className="form-group">
-            <label className="form-label">Blog Content Body</label>
-            <textarea 
-              className="form-textarea" 
-              style={{ minHeight: '120px' }}
-              value={blogContent} 
-              onChange={(e) => setBlogContent(e.target.value)} 
-              placeholder="Write out your full journal entry narrative blocks here..."
-            />
-          </div>
-          <button type="button" onClick={handlePostBlog} className="save-settings-btn" style={{ backgroundColor: '#2F80ED', marginTop: '4px' }}>
-            Post Journal Entry
-          </button>
-          {blogStatus.text && (
-            <div className="status-msg" style={{ color: blogStatus.type === 'success' ? '#4BAC4E' : blogStatus.type === 'error' ? '#E41E3F' : '#B0B3B8' }}>
-              {blogStatus.text}
+          {/* 📌 CARD F: SPACE BULLETIN BOARD BROADCASTER FORM */}
+          <div className="settings-card">
+            <h2 className="card-title">📌 Post a Space Bulletin Notice</h2>
+            <div className="form-group">
+              <label className="form-label">Bulletin Heading Title</label>
+              <input type="text" className="form-input" value={bulletinTitle} onChange={(e) => setBulletinTitle(e.target.value)} placeholder="e.g. Out of town this weekend / Checking out new tracks" />
             </div>
-          )}
-        </div>
+            <div className="form-group">
+              <label className="form-label">Bulletin Board Content Announcement</label>
+              <textarea className="form-textarea" value={bulletinContent} onChange={(e) => setBulletinContent(e.target.value)} placeholder="Drop a quick update message that appears across your public bulletins grid board..." />
+            </div>
+            <button type="button" onClick={handlePostBulletin} className="save-settings-btn" style={{ backgroundColor: '#FF6600', marginTop: '4px' }}>Publish Bulletin Update</button>
+            {bulletinStatus.text && ( <div className="status-msg" style={{ color: bulletinStatus.type === 'success' ? '#4BAC4E' : '#E41E3F' }}>{bulletinStatus.text}</div> )}
+          </div>
+
+          {/* ✍️ CARD G: JOURNAL JOURNAL BLOG WRITER FORM */}
+          <div className="settings-card">
+            <h2 className="card-title">✍️ Write a Recent Journal Blog Entry</h2>
+            <div className="form-group">
+              <label className="form-label">Journal Article Entry Title</label>
+              <input type="text" className="form-input" value={blogTitle} onChange={(e) => setBlogTitle(e.target.value)} placeholder="e.g. Thoughts on HTML customization setups" />
+            </div>
+            <div className="form-group">
+              <label className="form-label">Blog Content Body</label>
+              <textarea className="form-textarea" style={{ minHeight: '120px' }} value={blogContent} onChange={(e) => setBlogContent(e.target.value)} placeholder="Write out your full journal entry narrative blocks here..." />
+            </div>
+            <button type="button" onClick={handlePostBlog} className="save-settings-btn" style={{ backgroundColor: '#2F80ED', marginTop: '4px' }}>Post Journal Entry</button>
+            {blogStatus.text && ( <div className="status-msg" style={{ color: blogStatus.type === 'success' ? '#4BAC4E' : '#E41E3F' }}>{blogStatus.text}</div> )}
+          </div>
 
           {/* CARD D: FILE REPLICATION AUDIO & VIDEO MEDIA HUBS */}
           <div className="settings-card">
             <h2 className="card-title">🎵 Media Showcase Hub</h2>
             
-            {/* MP3 Native Audio Bucket Stream Upload Box */}
+            {/* MP3 Audio Upload Area */}
             <div className="form-group">
               <label className="form-label">Profile Theme Song Audio Upload (.mp3)</label>
               <div className="file-upload-row">
@@ -433,7 +499,7 @@ export default function Dashboard() {
               </div>
             </div>
 
-            {/* MP4 Native Video Bucket Stream Upload Box */}
+            {/* MP4 Video Upload Area */}
             <div className="form-group">
               <label className="form-label">Featured Video Showcase Upload (.mp4)</label>
               <div className="file-upload-row">
@@ -445,7 +511,7 @@ export default function Dashboard() {
               </div>
             </div>
 
-            {/* Social Integration Linking Cards Slots */}
+            {/* Social URL text entries inputs boxes */}
             <div className="form-group">
               <label className="form-label">Featured YouTube Video Embed Link</label>
               <input type="text" className="form-input code-input" style={{ color: '#FF0000' }} value={youtubeVideoUrl} onChange={(e) => setYoutubeVideoUrl(e.target.value)} placeholder="https://youtube.com" />
@@ -454,6 +520,40 @@ export default function Dashboard() {
               <label className="form-label">SoundCloud Track Resource Link</label>
               <input type="url" className="form-input code-input" style={{ color: '#FF5500' }} value={soundcloudUrl} onChange={(e) => setSoundcloudUrl(e.target.value)} placeholder="https://soundcloud.com" />
             </div>
+          </div>
+
+          {/* 👥 CARD H: TOP EIGHT FRIENDS GRIDS SELECTION DROPDOWNS MATRICES */}
+          <div className="settings-card">
+            <h2 className="card-title">👥 Manage Your Top 8 Friends</h2>
+            <span style={{ fontSize: '12px', color: '#B0B3B8', display: 'block', marginBottom: '14px' }}>
+              Assign your active connection rows profiles to display slots onto your public user sidebar template pane.
+            </span>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+              {topEightSlots.map((currentValue, index) => (
+                <div key={index} className="form-group" style={{ marginBottom: '10px' }}>
+                  <label className="form-label" style={{ fontSize: '12px', color: '#FF6600', fontWeight: 'bold' }}>
+                    Friend Slot #{index + 1}
+                  </label>
+                  <select
+                    className="privacy-select"
+                    style={{ width: '100%', boxSizing: 'border-box' }}
+                    value={currentValue}
+                    onChange={(e) => {
+                      const updatedArray = [...topEightSlots];
+                      updatedArray[index] = e.target.value;
+                      setTopEightSlots(updatedArray);
+                    }}
+                  >
+                    <option value="">-- Vacant Slot / Choose Friend --</option>
+                    {availableFriends.map(friend => (
+                      <option key={friend.User_id} value={friend.User_id}>{friend.username}</option>
+                    ))}
+                  </select>
+                </div>
+              ))}
+            </div>
+            <button type="button" onClick={handleSaveTopEight} className="save-settings-btn" style={{ backgroundColor: '#FF6600', marginTop: '12px' }}>Save Top 8 Friends Layout</button>
+            {friendsStatus.text && ( <div className="status-msg" style={{ color: friendsStatus.type === 'success' ? '#4BAC4E' : '#E41E3F' }}>{friendsStatus.text}</div> )}
           </div>
 
           {/* CARD E: ADVANCED PRIVACY AND VISIBILITY CONTROL CHANNELS */}
@@ -491,12 +591,20 @@ export default function Dashboard() {
               </label>
             </div>
             <button type="submit" className="save-settings-btn">Save All Configurations</button>
+            {status.text && ( <div className="status-msg" style={{ color: status.type === 'success' ? '#4BAC4E' : '#E41E3F' }}>{status.text}</div> )}
+          </div>
 
-            {status.text && (
-              <div className="status-msg" style={{ color: status.type === 'success' ? '#4BAC4E' : status.type === 'error' ? '#E41E3F' : '#B0B3B8' }}>
-                {status.text}
-              </div>
-            )}
+          {/* 💀 CARD I: ACCOUNT ERASURE SECURITY ZONE */}
+          <div className="settings-card" style={{ border: '2px solid #E41E3F', backgroundColor: '#1C1D1E' }}>
+            <h2 className="card-title" style={{ color: '#E41E3F', borderBottom: '1px solid #E41E3F' }}>⚠️ Danger Zone: Close Account</h2>
+            <p style={{ fontSize: '12px', color: '#B0B3B8', lineHeight: '1.5', marginBottom: '16px' }}>Wiping your profile is permanent. This removes all biographical parameters, custom design templates, media tracks, and message strings completely from our systems.</p>
+            <div className="form-group">
+              <label className="form-label" style={{ color: '#E41E3F' }}>Type <strong>DELETE</strong> below to authorize profile erasure:</label>
+              <input type="text" className="form-input" style={{ borderColor: '#E41E3F', textTransform: 'uppercase' }} value={deleteConfirmationText} onChange={(e) => setDeleteConfirmationText(e.target.value)} disabled={isDeletingAccount} placeholder="CONFIRM CLOSURE" />
+            </div>
+            <button type="button" onClick={handlePermanentAccountDeletion} className="save-settings-btn" disabled={deleteConfirmationText !== 'DELETE' || isDeletingAccount} style={{ backgroundColor: deleteConfirmationText === 'DELETE' ? '#E41E3F' : '#4E4F50' }}>
+              {isDeletingAccount ? 'Wiping Profile Records Cache...' : 'Permanently Delete My Account'}
+            </button>
           </div>
 
         </form>
