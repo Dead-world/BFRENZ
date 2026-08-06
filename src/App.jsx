@@ -40,7 +40,7 @@ function InactivityPresenceTracker() {
 
 export default function App() {
   return (
-    <Router>
+    
       <AuthProvider>
         {/* ⭐ FIXED MOUNTING POINT: Placed right here inside the provider block so it reads user state data safely */}
         <InactivityPresenceTracker />
@@ -55,6 +55,6 @@ export default function App() {
           <Route path="/reset-password" element={<ResetPasswordPage />} />
         </Routes>
       </AuthProvider>
-    </Router>
+  
   );
 }
