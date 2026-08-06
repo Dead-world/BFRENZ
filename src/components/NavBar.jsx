@@ -178,58 +178,59 @@ export default function NavBar() {
   const [recentChats, setRecentChats] = useState([]);
 
   const fetchRecentInboxMessages = async () => {
-    if (!user) return;
-    try {
-      const { data: messagesData, error: msgError } = await supabase
-        .from('user_messages')
-        .select('id, sender_id, message_text, created_at, is_read')
-        .eq('receiver_id', user.id)
-        .order('created_at', { ascending: false });
+  if (!user) return;
+  try {
+    const { data: messagesData, error: msgError } = await supabase
+      .from('user_messages')
+      .select('id, sender_id, content, created_at, is_read') /* ⭐ FIXED: Swapped out message_text for content */
+      .eq('receiver_id', user.id)
+      .order('created_at', { ascending: false });
 
-      if (msgError) throw msgError;
-      if (!messagesData || messagesData.length === 0) {
-        setRecentChats([]);
-        return;
-      }
-
-      const uniqueSenderMap = {};
-      messagesData.forEach(msg => {
-        if (!uniqueSenderMap[msg.sender_id]) {
-          uniqueSenderMap[msg.sender_id] = msg;
-        }
-      });
-      const deduplicatedMessages = Object.values(uniqueSenderMap);
-
-      const senderIds = deduplicatedMessages.map(m => m.sender_id);
-      const { data: profilesData } = await supabase
-        .from('profiles')
-        .select('User_id, username, avatar_url, status')
-        .in('User_id', senderIds);
-
-      const profileMap = (profilesData || []).reduce((acc, p) => {
-        acc[p.User_id] = p;
-        return acc;
-      }, {});
-
-      const transformedChats = deduplicatedMessages.map(m => {
-        const senderProfile = profileMap[m.sender_id];
-        return {
-          id: m.id,
-          sender_id: m.sender_id,
-          username: senderProfile?.username || 'Anonymous Friend',
-          avatar_url: senderProfile?.avatar_url || '',
-          last_message: m.message_text,
-          time_stamp: formatTimestampDistance(m.created_at),
-          is_unread: !m.is_read,
-          is_online: senderProfile?.status === 'online'
-        };
-      });
-
-      setRecentChats(transformedChats);
-    } catch (err) {
-      console.error('Failed to parse dynamic navbar dropdown threads:', err);
+    if (msgError) throw msgError;
+    if (!messagesData || messagesData.length === 0) {
+      setRecentChats([]);
+      return;
     }
-  };
+
+    const uniqueSenderMap = {};
+    messagesData.forEach(msg => {
+      if (!uniqueSenderMap[msg.sender_id]) {
+        uniqueSenderMap[msg.sender_id] = msg;
+      }
+    });
+    const deduplicatedMessages = Object.values(uniqueSenderMap);
+
+    const senderIds = deduplicatedMessages.map(m => m.sender_id);
+    const { data: profilesData } = await supabase
+      .from('profiles')
+      .select('User_id, username, avatar_url, status')
+      .in('User_id', senderIds);
+
+    const profileMap = (profilesData || []).reduce((acc, p) => {
+      acc[p.User_id] = p;
+      return acc;
+    }, {});
+
+    const transformedChats = deduplicatedMessages.map(m => {
+      const senderProfile = profileMap[m.sender_id];
+      return {
+        id: m.id,
+        sender_id: m.sender_id,
+        username: senderProfile?.username || 'Anonymous Friend',
+        avatar_url: senderProfile?.avatar_url || '',
+        last_message: m.content, /* ⭐ FIXED: References the updated content column string */
+        time_stamp: formatTimestampDistance(m.created_at),
+        is_unread: !m.is_read,
+        is_online: senderProfile?.status === 'online'
+      };
+    });
+
+    setRecentChats(transformedChats);
+  } catch (err) {
+    console.error('Failed to parse dynamic navbar dropdown threads:', err);
+  }
+};
+
 
   const formatTimestampDistance = (isoString) => {
     const diff = Date.now() - new Date(isoString).getTime();
