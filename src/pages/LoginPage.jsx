@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react'; // ⭐ FIXED: Included useEffect in the destructured import
 import { supabase } from '../supabaseClient';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
+
 
 if (typeof document !== 'undefined') {
   const styleEl = document.createElement('style');

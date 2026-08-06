@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+// 🟢 FIXED: Replaced the old import statement with this complete line
+import React, { useState, useEffect } from 'react'; 
 import { supabase } from '../supabaseClient';
 import { Link } from 'react-router-dom';
 
