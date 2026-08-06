@@ -5,7 +5,18 @@ import { useNavigate } from 'react-router-dom';
 if (typeof document !== 'undefined') {
   const styleEl = document.createElement('style');
   styleEl.innerHTML = `
-    .reset-wrapper { background-color: #000000; color: #ffffff; min-height: 100vh; display: flex; align-items: center; justify-content: center; font-family: 'Courier New', monospace; padding: 20px; box-sizing: border-box; }
+    /* 🎯 FIXED: Perfect Vertical and Horizontal Grid Centering */
+    .reset-wrapper { 
+      background-color: #000000 !important; 
+      color: #ffffff !important; 
+      min-height: calc(100vh - 46px) !important; /* Adjusts precisely for the navbar line footprint */
+      display: flex !important; 
+      align-items: center !important; 
+      justify-content: center !important; 
+      font-family: 'Courier New', monospace !important; 
+      padding: 20px !important; 
+      box-sizing: border-box !important; 
+    }
     .reset-card { background-color: #111112; border: 2px solid #FF6600; border-radius: 4px; padding: 30px; width: 100%; max-width: 400px; box-shadow: 5px 5px 0px #ffffff; box-sizing: border-box; }
     .reset-title { color: #FF6600; font-size: 24px; font-weight: bold; text-align: center; margin-bottom: 8px; letter-spacing: 1px; }
     .reset-subtitle { font-size: 12px; color: #b0b3b8; text-align: center; margin-bottom: 24px; }
@@ -25,6 +36,7 @@ if (typeof document !== 'undefined') {
   `;
   document.head.appendChild(styleEl);
 }
+
 
 export default function ResetPasswordPage() {
   const navigate = useNavigate();
