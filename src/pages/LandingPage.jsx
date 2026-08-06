@@ -2,7 +2,8 @@ import React, { useState } from 'react';
 import { supabase } from '../supabaseClient';
 import { useAuth } from '../hooks/useAuth';
 import { Link, useNavigate } from 'react-router-dom';
-import './LandingPage.css'; // Connects your dedicated retro theme stylesheet sheets
+import NavBar from '../components/NavBar'; // ⭐ Added your global navbar component import
+import './LandingPage.css';
 
 export default function LandingPage() {
   const navigate = useNavigate();
@@ -76,12 +77,8 @@ export default function LandingPage() {
   return (
     <div className="landing-wrapper">
       
-      {/* 🧭 NAVIGATION HEADER LOGO STRIP */}
-      <nav className="landing-navbar">
-        <div>
-          <Link to="/" className="landing-logo-text">bfrenz</Link>
-        </div>
-      </nav>
+      {/* 🧭 GLOBAL RETRO NAVIGATION BAR LAYER */}
+      <NavBar /> {/* ⭐ Swapped raw placeholder nav out for your actual platform NavBar */}
 
       {/* Main split features grid content framework frame */}
       <div className="landing-content-split">
