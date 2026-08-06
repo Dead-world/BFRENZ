@@ -63,8 +63,8 @@ export default function SignupPage() {
         birthday: birthday, // Correctly records verified date
         status: "offline",
         last_seen: new Date().toISOString(),
-        status_message: "Just joined ProfileDig!",
-        about_me: "Welcome to my profile space."
+        status_message: "Just joined bfrenz!",
+        about_me: "Welcome to my profile."
       });
 
       if (profileError) {
