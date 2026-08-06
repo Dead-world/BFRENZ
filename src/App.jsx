@@ -1,16 +1,11 @@
-import React from "react";
-// FIXED: Removed duplicate BrowserRouter wrapper to resolve nested Router exceptions
-import { Routes, Route } from "react-router-dom";
-import LandingPage from "./pages/LandingPage"; 
-import ProfilePage from "./pages/ProfilePage";
-import Dashboard from "./pages/Dashboard";
-import SignupPage from "./pages/SignupPage";
-import MessagesInbox from "./pages/MessagesInboxPage";
-import BrowsePage from "./pages/BrowsePage";
-import MusicPage from "./pages/MusicPage";
-import VideosPage from "./pages/VideosPage";
-import NotificationsPage from "./pages/NotificationsPage";
-import AlbumPage from "./pages/AlbumPage";
+import React from 'react';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { AuthProvider } from './hooks/useAuth';
+import LandingPage from './pages/LandingPage';
+import LoginPage from './pages/LoginPage';
+import RegisterPage from './pages/RegisterPage';
+import Dashboard from './pages/Dashboard';
+import ProfilePage from './pages/ProfilePage';
 import ForgotPasswordPage from './pages/ForgotPasswordPage';
 import ResetPasswordPage from './pages/ResetPasswordPage';
 

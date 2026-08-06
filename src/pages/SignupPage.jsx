@@ -1,6 +1,7 @@
-import { useState } from "react";
-import { supabase } from "../supabaseClient";
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import { supabase } from '../supabaseClient';
+import { Link, useNavigate } from 'react-router-dom';
+
 
 // Inject global font controls directly to ensure a boxy 2005 look
 if (typeof document !== 'undefined') {

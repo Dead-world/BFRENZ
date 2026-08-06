@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from 'react'; // 🟢 FIXED: Explicit hook binding
+import React, { useState, useEffect } from 'react';
 import { supabase } from '../supabaseClient';
 import { useNavigate } from 'react-router-dom';
+
 
 if (typeof document !== 'undefined') {
   const styleEl = document.createElement('style');
