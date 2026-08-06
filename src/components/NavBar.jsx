@@ -178,58 +178,58 @@ export default function NavBar() {
   const [recentChats, setRecentChats] = useState([]);
 
   const fetchRecentInboxMessages = async () => {
-  if (!user) return;
-  try {
-    const { data: messagesData, error: msgError } = await supabase
-      .from('user_messages')
-      .select('id, sender_id, content, created_at, is_read') /* ⭐ FIXED: Swapped out message_text for content */
-      .eq('receiver_id', user.id)
-      .order('created_at', { ascending: false });
+    if (!user) return;
+    try {
+      const { data: messagesData, error: msgError } = await supabase
+        .from('user_messages')
+        .select('id, sender_id, content, created_at, read') /* ⭐ FIXED: Changed is_read to read */
+        .eq('receiver_id', user.id)
+        .order('created_at', { ascending: false });
 
-    if (msgError) throw msgError;
-    if (!messagesData || messagesData.length === 0) {
-      setRecentChats([]);
-      return;
-    }
-
-    const uniqueSenderMap = {};
-    messagesData.forEach(msg => {
-      if (!uniqueSenderMap[msg.sender_id]) {
-        uniqueSenderMap[msg.sender_id] = msg;
+      if (msgError) throw msgError;
+      if (!messagesData || messagesData.length === 0) {
+        setRecentChats([]);
+        return;
       }
-    });
-    const deduplicatedMessages = Object.values(uniqueSenderMap);
 
-    const senderIds = deduplicatedMessages.map(m => m.sender_id);
-    const { data: profilesData } = await supabase
-      .from('profiles')
-      .select('User_id, username, avatar_url, status')
-      .in('User_id', senderIds);
+      const uniqueSenderMap = {};
+      messagesData.forEach(msg => {
+        if (!uniqueSenderMap[msg.sender_id]) {
+          uniqueSenderMap[msg.sender_id] = msg;
+        }
+      });
+      const deduplicatedMessages = Object.values(uniqueSenderMap);
 
-    const profileMap = (profilesData || []).reduce((acc, p) => {
-      acc[p.User_id] = p;
-      return acc;
-    }, {});
+      const senderIds = deduplicatedMessages.map(m => m.sender_id);
+      const { data: profilesData } = await supabase
+        .from('profiles')
+        .select('User_id, username, avatar_url, status')
+        .in('User_id', senderIds);
 
-    const transformedChats = deduplicatedMessages.map(m => {
-      const senderProfile = profileMap[m.sender_id];
-      return {
-        id: m.id,
-        sender_id: m.sender_id,
-        username: senderProfile?.username || 'Anonymous Friend',
-        avatar_url: senderProfile?.avatar_url || '',
-        last_message: m.content, /* ⭐ FIXED: References the updated content column string */
-        time_stamp: formatTimestampDistance(m.created_at),
-        is_unread: !m.is_read,
-        is_online: senderProfile?.status === 'online'
-      };
-    });
+      const profileMap = (profilesData || []).reduce((acc, p) => {
+        acc[p.User_id] = p;
+        return acc;
+      }, {});
 
-    setRecentChats(transformedChats);
-  } catch (err) {
-    console.error('Failed to parse dynamic navbar dropdown threads:', err);
-  }
-};
+      const transformedChats = deduplicatedMessages.map(m => {
+        const senderProfile = profileMap[m.sender_id];
+        return {
+          id: m.id,
+          sender_id: m.sender_id,
+          username: senderProfile?.username || 'Anonymous Friend',
+          avatar_url: senderProfile?.avatar_url || '',
+          last_message: m.content,
+          time_stamp: formatTimestampDistance(m.created_at),
+          is_unread: !m.read, /* ⭐ FIXED: Maps to the database "read" status variable boolean */
+          is_online: senderProfile?.status === 'online'
+        };
+      });
+
+      setRecentChats(transformedChats);
+    } catch (err) {
+      console.error('Failed to parse dynamic navbar dropdown threads:', err);
+    }
+  };
 
 
   const formatTimestampDistance = (isoString) => {
@@ -348,7 +348,9 @@ export default function NavBar() {
               <svg viewBox="0 0 24 24">
                 <path d="M12 2C6.477 2 2 6.145 2 11.26c0 2.915 1.455 5.518 3.733 7.21.194.143.315.367.323.607l.076 2.3c.013.38.384.664.75.545l2.585-.843c.2-.065.418-.046.604.053A10.22 10.22 0 0012 20.52c5.523 0 10-4.146 10-9.26C22 6.145 17.523 2 12 2zm1.03 12.33l-2.12-2.27-4.14 2.27 4.55-4.83 2.12 2.27 4.14-2.27-4.55 4.83z"/>
               </svg>
-              {recentChats.some(c => c.is_unread) && <span style={{ position: 'absolute', top: '-2px', right: '-2px', width: '8px', height: '8px', backgroundColor: '#FF6600', borderRadius: '50%' }}></span>}
+              /* ⭐ INSIDE THE NAVBAR REAL-TIME USEEFFECT BLOCK: */
+            { recentChats.some(c => c.is_unread) && <span style={{ position: 'absolute', top: '-2px', right: '-2px', width: '8px', height: '8px', backgroundColor: '#FF6600', borderRadius: '50%' }}></span> }
+
             </div>
 
             {/* 👤 My Profile Button */}
