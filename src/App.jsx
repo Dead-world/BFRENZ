@@ -37,22 +37,18 @@ export default function App() {
   );
 }
 
-/* 📥 PLACE INSIDE: src/App.jsx to keep active timestamps fresh */
-useEffect(() => {
-  if (!user) return;
-
-  const refreshActiveUserPresenceTimestamp = async () => {
-    await supabase
-      .from('profiles')
-      .update({ last_seen: new Date().toISOString() })
-      .eq('User_id', user.id);
-  };
-
-  // Updates row metrics automatically on initialization
-  refreshActiveUserPresenceTimestamp();
-
-  // Re-runs the presence tracking loop every 24 hours if the app tab stays open
-  const presenceIntervalLoop = setInterval(refreshActiveUserPresenceTimestamp, 86400000);
-  return () => clearInterval(presenceIntervalLoop);
+/* ⭐ FIXED: Explicitly call React.useEffect to align compilation scope boundaries safely */
+React.useEffect( () => {
+    if (!user) return;
+    
+    let refreshActiveUserPresenceTimestamp = async () => {
+        await supabase.from('profiles').update({
+            last_seen: new Date().toISOString()
+        }).eq('User_id', user.id);
+    };
+    
+    refreshActiveUserPresenceTimestamp();
+    
+    let presenceIntervalLoop = setInterval(refreshActiveUserPresenceTimestamp, 86400000);
+    return () => clearInterval(presenceIntervalLoop);
 }, [user]);
-
