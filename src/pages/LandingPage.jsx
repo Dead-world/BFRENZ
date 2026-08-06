@@ -86,6 +86,7 @@ export default function LandingPage() {
           />
         </Link>
       </div>
+     
 
       {/* Main split features grid layout */}
       <div className="landing-content-split">
@@ -180,6 +181,6 @@ export default function LandingPage() {
         </div>
 
       </div>
-    </div>
+    </nav>
   );
 }
