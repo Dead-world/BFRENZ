@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { supabase } from '../supabaseClient';
 import { useAuth } from '../hooks/useAuth';
 import { Link, useNavigate } from 'react-router-dom';
-import './LandingPage.css'; // ⭐ FIXED: Separate CSS stylesheet import cleans up browser text loading
+import './LandingPage.css'; // Connects your dedicated retro theme stylesheet sheets
 
 export default function LandingPage() {
   const navigate = useNavigate();
@@ -12,13 +12,15 @@ export default function LandingPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
 
+  /* 🔐 PIPELINE FORM HANDLER: LOG IN TRANSACTION */
   const executeLoginPipeline = async (e) => {
     if (e && e.preventDefault) e.preventDefault();
-    if (isSubmitting) return; 
+    if (isSubmitting) return; // Prevent double-submit collisions
     
     setErrorMessage('');
     setIsSubmitting(true);
 
+    // Dynamic self-unlock fallback safety hook timer
     const safetyTimeout = setTimeout(() => {
       if (isSubmitting) {
         setIsSubmitting(false);
@@ -35,6 +37,7 @@ export default function LandingPage() {
       if (error) throw error;
 
       if (data?.user) {
+        // Force state parameters to update presence column metrics to online
         await supabase
           .from('profiles')
           .update({ status: 'online', last_seen: new Date().toISOString() })
@@ -51,6 +54,7 @@ export default function LandingPage() {
     }
   };
 
+  /* 🚪 PIPELINE HANDLER: LOG OUT TRANSACTION DIRECT FROM PORTAL DRAWER */
   const executeLogoutPipeline = async () => {
     setIsSubmitting(true);
     try {
@@ -65,33 +69,24 @@ export default function LandingPage() {
     } finally {
       await supabase.auth.signOut();
       setIsSubmitting(false);
-      window.location.reload();
+      window.location.reload(); // Hard reset local storage tokens cache rows
     }
   };
 
   return (
-    <nav style={styles.nav}>
-      {/* 🧭 LEFT SIDE: RETRO COMPACT PACKAGED LOGO CONTAINER */}
-      <div>
-        <Link to="/" onClick={() => setIsOpen(false)} style={{ display: 'block', textDecoration: 'none' }}>
-          <img 
-            src="/bfrenzlogo.png" /* ⭐ Direct local public catalog route pointer mapping */
-            alt="bfrenz" 
-            style={styles.logoImage} 
-            onError={(e) => { 
-              /* 🛠️ Safe Fallback: If image fails to stream, auto-render retro orange fallback text */
-              e.target.style.display = 'none'; 
-              e.target.parentNode.innerHTML = '<span style="color:#FF6600; font-weight:bold; font-size:18px; letter-spacing:1px; font-family:\'Courier New\', monospace;">bfrenz</span>'; 
-            }} 
-          />
-        </Link>
-      </div>
-     
+    <div className="landing-wrapper">
+      
+      {/* 🧭 NAVIGATION HEADER LOGO STRIP */}
+      <nav className="landing-navbar">
+        <div>
+          <Link to="/" className="landing-logo-text">bfrenz</Link>
+        </div>
+      </nav>
 
-      {/* Main split features grid layout */}
+      {/* Main split features grid content framework frame */}
       <div className="landing-content-split">
         
-        {/* Left Hand: Typography details blocks */}
+        {/* Left Side Column: Typography descriptors details blocks */}
         <div className="landing-hero-text">
           <h1 className="landing-hero-title">
             Welcome to the <span>bfrenz</span> ecosystem network.
@@ -101,10 +96,10 @@ export default function LandingPage() {
           </p>
         </div>
 
-        {/* Right Hand: High-Contrast Boxy Panel */}
+        {/* Right Side Column: Dynamic High-Contrast Card Panel */}
         <div className="landing-login-card">
           {user ? (
-            /* 🔓 SESSION ACTIVE PORTAL CARD */
+            /* 🔓 PORTAL CONTAINER CASE A: ACTIVE SESSION VIEW (LOG OUT PANEL INTERFACE) */
             <div style={{ textAlign: 'center' }}>
               <h2 style={{ fontSize: '18px', color: '#ffffff', marginBottom: '12px', fontWeight: 'bold' }}>
                 SESSION ACTIVE
@@ -129,7 +124,7 @@ export default function LandingPage() {
               </Link>
             </div>
           ) : (
-            /* 🔒 LOG IN CREDENTIALS COLLECTION PANEL */
+            /* 🔒 PORTAL CONTAINER CASE B: VACANT SESSION VIEW (LOG IN CREDENTIALS COLLECTOR INTERFACE) */
             <>
               <form onSubmit={executeLoginPipeline}>
                 <div className="landing-form-group">
@@ -173,6 +168,7 @@ export default function LandingPage() {
 
               <hr className="landing-divider" />
 
+              {/* Account Registration Link Trigger Shortcut */}
               <Link to="/register" className="landing-signup-route-btn">
                 Create New Account
               </Link>
@@ -181,6 +177,6 @@ export default function LandingPage() {
         </div>
 
       </div>
-    </nav>
+    </div>
   );
 }

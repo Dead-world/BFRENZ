@@ -166,6 +166,49 @@ const styles = {
   burgerBtn: { backgroundColor: 'transparent', color: '#FF6600', border: '1px solid #FF6600', fontSize: '18px', padding: '4px 10px', cursor: 'pointer', fontWeight: 'bold' }
 };
 
+/* ⭐ FIXED: Re-inserted missing inline styles mapping variables object */
+const styles = {
+  nav: { 
+    backgroundColor: '#000000', 
+    padding: '10px 20px', 
+    display: 'flex', 
+    flexWrap: 'wrap', 
+    justifyContent: 'space-between', 
+    alignItems: 'center', 
+    borderBottom: '2px solid #FF6600', 
+    fontFamily: 'Verdana, Arial, sans-serif', 
+    position: 'relative' 
+  },
+  logoImage: { 
+    height: '46px', 
+    width: 'auto', 
+    display: 'block' 
+  },
+  burgerBtn: { 
+    backgroundColor: 'transparent', 
+    color: '#FF6600', 
+    border: '1px solid #FF6600', 
+    fontSize: '18px', 
+    padding: '4px 10px', 
+    cursor: 'pointer', 
+    fontWeight: 'bold' 
+  },
+  logoutBtn: { 
+    backgroundColor: '#FF6600', 
+    color: '#ffffff', 
+    border: '1px solid #ffffff', 
+    padding: '5px 12px', 
+    cursor: 'pointer', 
+    fontSize: '11px', 
+    fontWeight: 'bold', 
+    textAlign: 'center', 
+    textTransform: 'uppercase', 
+    fontFamily: 'Courier New, monospace', 
+    borderRadius: '3px', 
+    boxShadow: '2px 2px 0px #ffffff' 
+  }
+};
+
 export default function NavBar() {
   const { user } = useAuth();
   const dropdownRef = useRef(null);

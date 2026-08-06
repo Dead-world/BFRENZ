@@ -1,4 +1,4 @@
-/* 🕶️src/pages/LandingPage.css - RE-ENGINEERED RETRO ORANGE/BLACK THEME */
+/* src/pages/LandingPage.css - RETRO HIGH-CONTRAST ORANGE/BLACK THEME */
 
 .landing-wrapper {
   background-color: #000000 !important;
@@ -9,7 +9,7 @@
   font-family: 'Courier New', monospace !important;
 }
 
-/* 🧭 ECOSYSTEM NAVBAR UPPER BARS */
+/* 🧭 UPPER BAR NAV */
 .landing-navbar {
   background-color: #000000 !important;
   padding: 12px 20px !important;
@@ -28,7 +28,7 @@
   text-decoration: none !important;
 }
 
-/* Grid Canvas Constraints */
+/* Split Page Constraints */
 .landing-content-split {
   display: flex !important;
   max-width: 1000px !important;
@@ -64,7 +64,7 @@
   line-height: 1.6 !important;
 }
 
-/* 📦 RETRO 3D ORANGE LOGIN PANEL CARD */
+/* 📦 RETRO 3D LOGIN CARD CARD */
 .landing-login-card {
   background-color: #111112 !important;
   border: 2px solid #FF6600 !important;
@@ -80,7 +80,7 @@
   margin-bottom: 18px !important;
 }
 
-/* White Input Boxes fields */
+/* Input Fields textboxes */
 .landing-input {
   width: 100% !important;
   box-sizing: border-box !important;
@@ -104,7 +104,7 @@
   color: #666666 !important;
 }
 
-/* 🚀 SUBMIT BLOCK TRIGGERS OVERRIDES */
+/* 🚀 SUBMIT BLOCK PANEL ACTION BUTTONS */
 .landing-submit-btn {
   background-color: #FF6600 !important;
   color: #000000 !important;
@@ -148,7 +148,7 @@
   border: none !important;
 }
 
-/* Clean White Route Switch Button */
+/* Lower Route Switch Buttons Link shortcuts */
 .landing-signup-route-btn {
   background-color: #ffffff !important;
   color: #000000 !important;
