@@ -359,7 +359,7 @@ export default function Dashboard() {
     }
   };
 
-  /* 💀 HANDLER: PERMANENT DELETION SYSTEM SEQUENCE CLOSURE CASCADE */
+   /* 💀 HANDLER: PERMANENT ACCOUNT DELETION SYSTEM SEQUENCE CLOSURE CASCADE */
   const handlePermanentAccountDeletion = async (e) => {
     e.preventDefault();
     if (deleteConfirmationText !== 'DELETE') {
@@ -371,15 +371,14 @@ export default function Dashboard() {
 
     setIsDeletingAccount(true);
     try {
-      // 1. Drop the base user record out of public schema rows (cascades down tables via DB constraint nodes rules)
-      const { error: profileError } = await supabase
-        .from('profiles')
-        .delete()
-        .eq('User_id', user.id);
+      // ⭐ UPDATED FIXED FLOW: Direct deletion call hitting secure auth via RPC function map
+      const { data, error: deletionRpcError } = await supabase.rpc('delete_user_account_self');
 
-      if (profileError) throw profileError;
+      if (deletionRpcError) {
+        throw deletionRpcError;
+      }
 
-      // 2. Call auth user drop sequences invalidating local session tokens
+      // Clear structural authorization tokens local cookies values cache records cleanly
       await supabase.auth.signOut();
       alert('Your profile parameters have been cleanly closed out of the bfrenz network ecosystem.');
       window.location.href = '/register';
@@ -389,6 +388,7 @@ export default function Dashboard() {
       setIsDeletingAccount(false);
     }
   };
+
 
   if (loading) return <div className="loading-display">Reading environment profile properties...</div>;
 
