@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { supabase } from '../supabaseClient';
 import { useAuth } from '../hooks/useAuth';
 import { Link, useNavigate } from 'react-router-dom';
-import NavBar from '../components/NavBar'; // ⭐ Added your global navbar component import
+import NavBar from '../components/NavBar'; 
 import './LandingPage.css';
 
 export default function LandingPage() {
@@ -78,7 +78,7 @@ export default function LandingPage() {
     <div className="landing-wrapper">
       
       {/* 🧭 GLOBAL RETRO NAVIGATION BAR LAYER */}
-      <NavBar /> {/* ⭐ Swapped raw placeholder nav out for your actual platform NavBar */}
+      <NavBar /> 
 
       {/* Main split features grid content framework frame */}
       <div className="landing-content-split">
@@ -170,9 +170,12 @@ export default function LandingPage() {
                 Create New Account
               </Link>
 
-              <Link to="/forgot-password" style={{ color: '#FF6600', fontSize: '12px', textDecoration: 'none' }}>
-                Forgot your password?
-              </Link>
+              {/* ⭐ FIXED PLACEMENT: Centered, clean anchor link targeting the account recovery router path */}
+              <div style={{ textAlign: 'center', marginTop: '16px' }}>
+                <Link to="/forgot-password" style={{ color: '#FF6600', fontSize: '12px', textDecoration: 'none', fontFamily: 'monospace', fontWeight: 'bold' }}>
+                  Forgot your password?
+                </Link>
+              </div>
             </>
           )}
         </div>
