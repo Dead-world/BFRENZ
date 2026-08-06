@@ -169,6 +169,10 @@ export default function LandingPage() {
               <Link to="/register" className="landing-signup-route-btn">
                 Create New Account
               </Link>
+
+              <Link to="/forgot-password" style={{ color: '#FF6600', fontSize: '12px', textDecoration: 'none' }}>
+                Forgot your password?
+              </Link>
             </>
           )}
         </div>
@@ -177,6 +181,3 @@ export default function LandingPage() {
     </div>
   );
 }
-<Link to="/forgot-password" style={{ color: '#FF6600', fontSize: '12px', textDecoration: 'none' }}>
-  Forgot your password?
-</Link>
