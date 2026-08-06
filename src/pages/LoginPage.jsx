@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from 'react'; // ⭐ FIXED: Included useEffect in the destructured import
 import { supabase } from '../supabaseClient';
-import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../hooks/useAuth';
+import { Link, useNavigate } from 'react-router-dom';
+import NavBar from '../components/NavBar'; 
+import './LandingPage.css';
 
 
 if (typeof document !== 'undefined') {
