@@ -141,12 +141,12 @@ export default function LoginPage() {
           <Link to="/register" className="login-redirect-link">
             Sign Up for an Account Now »
           </Link>
+          <Link to="/forgot-password" style={{ color: '#FF6600', fontSize: '12px', textDecoration: 'none' }}>
+            Forgot your password?
+          </Link>
         </div>
 
       </div>
     </div>
   );
 }
-<Link to="/forgot-password" style={{ color: '#FF6600', fontSize: '12px', textDecoration: 'none' }}>
-  Forgot your password?
-</Link>
