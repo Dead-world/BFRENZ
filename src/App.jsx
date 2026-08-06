@@ -1,7 +1,8 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-// 🟢 FIXED: Removed curly braces to match a default context provider export
-import AuthProvider from "./hooks/useAuth"; 
+
+import { AuthProvider, useAuth } from "./hooks/useAuth"; 
+
 
 import LandingPage from './pages/LandingPage';
 import LoginPage from './pages/LoginPage';
