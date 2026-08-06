@@ -70,14 +70,22 @@ export default function LandingPage() {
   };
 
   return (
-    <div className="landing-wrapper">
-      
-      {/* 🧭 NAVIGATION HEADER BAR */}
-      <nav className="landing-navbar">
-        <div>
-          <Link to="/" className="landing-logo-text">bfrenz</Link>
-        </div>
-      </nav>
+    <nav style={styles.nav}>
+      {/* 🧭 LEFT SIDE: RETRO COMPACT PACKAGED LOGO CONTAINER */}
+      <div>
+        <Link to="/" onClick={() => setIsOpen(false)} style={{ display: 'block', textDecoration: 'none' }}>
+          <img 
+            src="/bfrenzlogo.png" /* ⭐ Direct local public catalog route pointer mapping */
+            alt="bfrenz" 
+            style={styles.logoImage} 
+            onError={(e) => { 
+              /* 🛠️ Safe Fallback: If image fails to stream, auto-render retro orange fallback text */
+              e.target.style.display = 'none'; 
+              e.target.parentNode.innerHTML = '<span style="color:#FF6600; font-weight:bold; font-size:18px; letter-spacing:1px; font-family:\'Courier New\', monospace;">bfrenz</span>'; 
+            }} 
+          />
+        </Link>
+      </div>
 
       {/* Main split features grid layout */}
       <div className="landing-content-split">
