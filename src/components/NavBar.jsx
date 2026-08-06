@@ -1,3 +1,4 @@
+// 🟢 FIXED: Replace your top import line with this exact line
 import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import { supabase } from '../supabaseClient';

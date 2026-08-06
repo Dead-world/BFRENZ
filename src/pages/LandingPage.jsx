@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from 'react';
+// 🟢 FIXED: Replace your top import line with this exact line
+import React, { useState, useEffect } from 'react'; 
 import { supabase } from '../supabaseClient';
 import { useAuth } from '../hooks/useAuth';
 import { Link, useNavigate } from 'react-router-dom';
-import NavBar from '../components/NavBar';
+import NavBar from '../components/NavBar'; 
 import './LandingPage.css';
 
 
