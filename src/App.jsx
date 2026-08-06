@@ -11,6 +11,8 @@ import MusicPage from "./pages/MusicPage";
 import VideosPage from "./pages/VideosPage";
 import NotificationsPage from "./pages/NotificationsPage";
 import AlbumPage from "./pages/AlbumPage";
+import ForgotPasswordPage from './pages/ForgotPasswordPage';
+import ResetPasswordPage from './pages/ResetPasswordPage';
 
 export default function App() {
   return (
@@ -22,6 +24,8 @@ export default function App() {
       <Route path="/music" element={<MusicPage />} />
       <Route path="/videos" element={<VideosPage />} />
       <Route path="/notifications" element={<NotificationsPage />} />
+      <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+      <Route path="/reset-password" element={<ResetPasswordPage />} />
       
       {/* Profile, Inbox and Settings Panels */}
       <Route path="/profile/:id" element={<ProfilePage />} />

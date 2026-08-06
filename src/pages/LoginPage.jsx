@@ -147,3 +147,6 @@ export default function LoginPage() {
     </div>
   );
 }
+<Link to="/forgot-password" style={{ color: '#FF6600', fontSize: '12px', textDecoration: 'none' }}>
+  Forgot your password?
+</Link>
