@@ -355,17 +355,51 @@ export default function ProfilePage() {
   }, [id]);
 
   const loadCommentsTree = async () => {
-    const { data } = await supabase
-      .from("comments")
-      .select(`
-        id, content, created_at, user_id, parent_id,
-        profiles:comments_user_id_fkey ( username, avatar_url )
-      `)
-      .eq("profile_id", id)
-      .order("created_at", { ascending: true });
+const submitNewRootCommentAction = async () => {
+  if (!currentUser) return;
+  if (!masterCommentText.trim()) return;
 
-    setComments(data || []);
-  };
+  const { error } = await supabase.from("comments").insert({
+    profile_id: id,
+    user_id: currentUser.id,
+    content: masterCommentText.trim(),
+    parent_id: null
+  });
+
+  if (!error) {
+    setMasterCommentText("");
+    loadCommentsTree();
+  }
+};
+
+const submitNestedReplyCommentAction = async (parentId) => {
+  if (!currentUser) return;
+  if (!replyInputText.trim()) return;
+
+  const { error } = await supabase.from("comments").insert({
+    profile_id: id,
+    user_id: currentUser.id,
+    content: replyInputText.trim(),
+    parent_id: parentId
+  });
+
+  if (!error) {
+    setReplyInputText("");
+    setActiveReplyId(null);
+    loadCommentsTree();
+  }
+};
+
+const executeDeleteCommentAction = async (commentId) => {
+  const { error } = await supabase
+    .from("comments")
+    .delete()
+    .eq("id", commentId);
+
+  if (!error) {
+    loadCommentsTree();
+  }
+};
 
     if (loading) return <div>Loading layout canvas...</div>;
   if (!profile) return <div>Profile frame missing.</div>;
