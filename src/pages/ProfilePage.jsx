@@ -6,18 +6,137 @@ import Navbar from "../components/NavBar";
 if (typeof document !== 'undefined') {
   const styleEl = document.createElement('style');
   styleEl.innerHTML = `
-    /* 💬 RETRO MESSAGE MODAL OVERLAY LAYOUT */
-    .msg-modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background-color: rgba(0,0,0,0.75); display: flex; align-items: center; justify-content: center; z-index: 9999; font-family: 'Courier New', monospace; }
-    .msg-modal-card { background-color: #111112; border: 2px solid #FF6600; padding: 20px; width: 100%; max-width: 450px; box-shadow: 5px 5px 0px #ffffff; border-radius: 4px; box-sizing: border-box; }
-    .msg-modal-header { font-size: 16px; font-weight: bold; color: #FF6600; margin-bottom: 12px; text-transform: uppercase; border-bottom: 1px solid #333; padding-bottom: 6px; }
-    .msg-modal-textarea { width: 100%; height: 120px; background-color: #ffffff; color: #000000; border: 2px solid #000000; padding: 10px; font-family: inherit; font-size: 13px; font-weight: bold; box-sizing: border-box; resize: none; outline: none; border-radius: 4px; }
+    /* 🎸 MODERNIZED RETRO MYSPACE THEME ENGINE */
+    body {
+      background-color: #0d0e12 !important;
+      background-image: linear-gradient(rgba(255, 102, 0, 0.03) 1px, transparent 1px), 
+                        linear-gradient(90deg, rgba(255, 102, 0, 0.03) 1px, transparent 1px) !important;
+      background-size: 20px 20px !important;
+      color: #e2e8f0 !important;
+    }
+
+    /* Layout Containers */
+    .ms-container {
+      max-width: 950px;
+      margin: 20px auto;
+      padding: 15px;
+      display: grid;
+      grid-template-columns: 320px 1fr;
+      gap: 25px;
+      font-family: 'Courier New', monospace;
+    }
+
+    /* Modernized MySpace Box Panels */
+    .myspace-card {
+      background: #15171e;
+      border: 2px solid #2d313f;
+      border-radius: 6px;
+      padding: 16px;
+      margin-bottom: 20px;
+      box-shadow: 4px 4px 0px rgba(0, 0, 0, 0.5);
+    }
+
+    .myspace-header {
+      background: #ff6600;
+      color: #000000;
+      font-weight: 900;
+      font-size: 14px;
+      text-transform: uppercase;
+      padding: 6px 10px;
+      margin: -16px -16px 14px -16px;
+      border-top-left-radius: 4px;
+      border-top-right-radius: 4px;
+      letter-spacing: 1px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    /* Sidebar Media Elements */
+    .ms-photo {
+      width: 100%;
+      max-width: 280px;
+      height: auto;
+      border: 3px solid #ff6600;
+      box-shadow: 4px 4px 0px #ffffff;
+      margin: 0 auto 15px auto;
+      display: block;
+      border-radius: 4px;
+    }
+
+    .ms-name {
+      font-size: 24px;
+      font-weight: bold;
+      color: #ffffff;
+      text-align: center;
+      margin: 10px 0;
+      text-shadow: 2px 2px 0px #ff6600;
+    }
+
+    .ms-info-text {
+      font-size: 13px;
+      margin: 6px 0;
+      color: #a0aec0;
+    }
+    .ms-info-text strong { color: #ff6600; }
+
+    /* Custom 3D Retropunk Actions Grid */
+    .ms-contact-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 15px;
+    }
+    .ms-btn {
+      background: #1c1e24;
+      color: #ffffff;
+      border: 1px solid #ff6600;
+      padding: 8px 4px;
+      font-size: 11px;
+      font-weight: bold;
+      text-transform: uppercase;
+      cursor: pointer;
+      border-radius: 4px;
+      transition: all 0.1s ease;
+      text-align: center;
+    }
+    .ms-btn:hover {
+      background: #ff6600;
+      color: #000000;
+      box-shadow: 2px 2px 0px #ffffff;
+    }
+    .ms-btn.active-action { background: #4BAC4E !important; color: #fff !important; border-color: #fff; pointer-events: none; }
+    .ms-btn.blocked-action { background: #E41E3F !important; color: #fff !important; border-color: #fff; }
+
+    /* Blinking Retro Player Layout */
+    .ms-player {
+      background: #000;
+      border: 1px solid #ff6600;
+      color: #00ff00;
+      padding: 10px;
+      font-size: 12px;
+      text-align: center;
+      border-radius: 4px;
+      margin-top: 15px;
+      box-shadow: inset 0 0 5px #00ff00;
+    }
+
+    /* Sub-nav block strip */
+    .ms-topnav { background-color: #000000; border-bottom: 1px solid #ff6600; padding: 8px 20px; display: flex; justify-content: space-between; font-size: 11px; color: #718096; font-family: monospace; }
+    .ms-topnav-left span { cursor: pointer; color: #ff6600; margin-right: 8px; }
+    .ms-topnav-left span:hover { text-decoration: underline; color: #fff; }
+
+    /* Message Overlay Layout */
+    .msg-modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background-color: rgba(0,0,0,0.85); display: flex; align-items: center; justify-content: center; z-index: 9999; }
+    .msg-modal-card { background-color: #15171e; border: 2px solid #ff6600; padding: 20px; width: 100%; max-width: 450px; box-shadow: 5px 5px 0px #ffffff; border-radius: 4px; }
+    .msg-modal-textarea { width: 100%; height: 120px; background-color: #ffffff; color: #000000; border: 2px solid #000000; padding: 10px; font-family: inherit; font-size: 13px; font-weight: bold; box-sizing: border-box; resize: none; border-radius: 4px; }
     .msg-modal-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 14px; }
-    .msg-btn-send { background-color: #FF6600; color: #000; font-weight: bold; border: 2px solid #000; padding: 6px 16px; cursor: pointer; border-radius: 4px; box-shadow: 2px 2px 0px #fff; text-transform: uppercase; }
-    .msg-btn-cancel { background-color: #555; color: #fff; font-weight: bold; border: 2px solid #000; padding: 6px 16px; cursor: pointer; border-radius: 4px; text-transform: uppercase; }
-    
-    /* State Tracking Classes */
-    .ms-btn.active-action { background-color: #4BAC4E !important; color: #fff !important; pointer-events: none; }
-    .ms-btn.blocked-action { background-color: #E41E3F !important; color: #fff !important; }
+    .msg-btn-send { background-color: #ff6600; color: #000; font-weight: bold; border: 2px solid #000; padding: 6px 16px; cursor: pointer; border-radius: 4px; }
+    .msg-btn-cancel { background-color: #555; color: #fff; border: 2px solid #000; padding: 6px 16px; cursor: pointer; border-radius: 4px; }
+
+    @media (max-width: 768px) {
+      .ms-container { grid-template-columns: 1fr; }
+    }
   `;
   document.head.appendChild(styleEl);
 }
@@ -33,8 +152,7 @@ export default function ProfilePage() {
   const [views, setViews] = useState(0);
   const [loading, setLoading] = useState(true);
 
-  /* ⚙️ RELATIONSHIP STATE MAPS */
-  const [friendStatus, setFriendStatus] = useState("none"); // none, pending, accepted
+  const [friendStatus, setFriendStatus] = useState("none"); 
   const [isBlocked, setIsBlocked] = useState(false);
   const [isMsgModalOpen, setIsMsgModalOpen] = useState(false);
   const [messageText, setMessageText] = useState("");
@@ -62,7 +180,6 @@ export default function ProfilePage() {
     loadProfile();
   }, [id]);
 
-  /* Sync Relationship States */
   useEffect(() => {
     if (!currentUser || currentUser.id === id) return;
 
@@ -154,7 +271,7 @@ export default function ProfilePage() {
       .insert({ sender_id: currentUser.id, receiver_id: id, status: "pending" });
 
     setActionLoading(false);
-    if (!error) { setFriendStatus("pending"); alert("Friend request broadcasted!"); } 
+    if (!error) { setFriendStatus("pending"); alert("Friend request sent!"); } 
     else { alert(error.message); }
   };
 
@@ -197,116 +314,122 @@ export default function ProfilePage() {
   if (loading) return <div className="ms-loading">Loading profile...</div>;
   if (!profile) return <div className="ms-not-found">Profile not found.</div>;
 
-    return (
+   return (
     <>
       <Navbar />
 
-      {/* TOP NAV BAR SUB-STRIP */}
       <div className="ms-topnav">
         <div className="ms-topnav-left">
-          Home | Browse | Search | Invite | Film | Mail | Blogs | Favorites |
-          Forum | Groups | Events | Music | Comedy
+          <span>Home</span> | <span>Browse</span> | <span>Search</span> | <span>Mail</span> | <span>Blogs</span> | <span>Groups</span> | <span>Music</span>
         </div>
-        <div className="ms-topnav-right">Logout</div>
+        <div className="ms-topnav-right" style={{cursor:'pointer'}} onClick={() => navigate('/login')}>Logout</div>
       </div>
 
-      {/* MAIN LAYOUT CANVAS CONTAINER */}
       <div className="ms-container">
         
-        {/* LEFT PROFILE MATRIX SIDEBAR */}
-        <div className="ms-left">
-          <img src={profile.avatar_url} alt="Avatar" className="ms-photo" />
-          <h2 className="ms-name">{profile.username}</h2>
-          <p>Location: {profile.hometown || "Unknown"}</p>
-          <p>Mood: {profile.status_message || "busy"}</p>
-          <p>Profile Views: {views}</p>
-          <p>Mode: {isOnline ? "Online" : "Offline"}</p>
+        {/* LEFT PROFILE PANEL */}
+        <div className="ms-profile-left">
+          <div className="myspace-card">
+            <h2 className="ms-name">{profile.username}</h2>
+            <img src={profile.avatar_url} alt="Avatar" className="ms-photo" />
+            
+            <div style={{ marginTop: '12px', padding: '0 6px' }}>
+              <p className="ms-info-text"><strong>Mood:</strong> {profile.status_message || "chillin"}</p>
+              <p className="ms-info-text"><strong>Location:</strong> {profile.hometown || "Planet Earth"}</p>
+              <p className="ms-info-text"><strong>Views:</strong> {views}</p>
+              <p className="ms-info-text"><strong>Status:</strong> {isOnline ? "🟢 Online" : "❌ Offline"}</p>
+            </div>
 
-          {/* DYNAMIC BACKEND OVERLAY CONTACT ACTION GRID */}
-          <div className="ms-contact">
-            {currentUser && currentUser.id !== id ? (
-              <>
-                <button className="ms-btn" onClick={() => setIsMsgModalOpen(true)}>Send Message</button>
+            {/* DYNAMIC RETRO INTERACTIVE SYSTEM CONTACT BOX KEYS */}
+            <div className="ms-contact-grid">
+              {currentUser && currentUser.id !== id ? (
+                <>
+                  <button className="ms-btn" onClick={() => setIsMsgModalOpen(true)}>Message</button>
 
-                {friendStatus === "none" && ( <button className="ms-btn" onClick={handleAddFriendAction} disabled={actionLoading}>Add to Friends</button> )}
-                {friendStatus === "pending" && ( <button className="ms-btn active-action">Request Pending</button> )}
-                {friendStatus === "accepted" && ( <button className="ms-btn active-action">✓ Friends</button> )}
+                  {friendStatus === "none" && ( <button className="ms-btn" onClick={handleAddFriendAction} disabled={actionLoading}>Add Friend</button> )}
+                  {friendStatus === "pending" && ( <button className="ms-btn active-action">Pending</button> )}
+                  {friendStatus === "accepted" && ( <button className="ms-btn active-action">✓ Friend</button> )}
 
-                <button className="ms-btn">Instant Message</button>
-                <button className="ms-btn">Add to Group</button>
-                <button className="ms-btn">Forward to Friend</button>
-                <button className="ms-btn">Add to Favorites</button>
+                  <button className="ms-btn">IM Chat</button>
+                  <button className="ms-btn">Favorite</button>
+                  <button className="ms-btn">Forward</button>
+                  
+                  <button className={`ms-btn ${isBlocked ? 'blocked-action' : ''}`} onClick={handleToggleBlockAction} disabled={actionLoading}>
+                    {isBlocked ? "Unblock" : "Block"}
+                  </button>
+                </>
+              ) : (
+                ["Message", "Add Friend", "IM Chat", "Favorite", "Forward", "Block"].map((btn) => (
+                  <button key={btn} className="ms-btn">{btn}</button>
+                ))
+              )}
+            </div>
 
-                <button className={`ms-btn ${isBlocked ? 'blocked-action' : ''}`} onClick={handleToggleBlockAction} disabled={actionLoading}>
-                  {isBlocked ? "Unblock User" : "Block User"}
-                </button>
-                
-                <button className="ms-btn">Rank User</button>
-              </>
-            ) : (
-              ["Send Message", "Add to Friends", "Instant Message", "Add to Group", "Forward to Friend", "Add to Favorites", "Block User", "Rank User"].map((btn) => (
-                <button key={btn} className="ms-btn">{btn}</button>
-              ))
-            )}
+            <div className="ms-player">
+              ⚡ TUNES: Electric Surfin Go Go — 01:10
+            </div>
           </div>
 
-          <div className="ms-player">🎵 Electric Surfin Go Go — 01:10</div>
-
-          <div className="ms-interests">
-            <h3>Interests</h3>
-            <p><strong>General:</strong> {profile.general_interests || "N/A"}</p>
-            <p><strong>Music:</strong> {profile.music_interests || "N/A"}</p>
+          {/* MYSPACE STYLE INTERESTS CONTAINER */}
+          <div className="myspace-card">
+            <div className="myspace-header">Interests</div>
+            <p className="ms-info-text" style={{padding:'0 4px'}}><strong>General:</strong> {profile.general_interests || "Surfing the net."}</p>
+            <p className="ms-info-text" style={{padding:'0 4px', marginTop:'10px'}}><strong>Music:</strong> {profile.music_interests || "Chiptunes & Synthwave."}</p>
           </div>
         </div>
 
-        {/* RIGHT MAIN BLOCKS FEED COLUMN */}
-        <div className="ms-right">
-          <div className="ms-status">
-            <h2>{profile.username} testing out the new status</h2>
-            <p>bfrenz updates! (view more)</p>
+         {/* RIGHT FEED PANEL */}
+        <div className="ms-profile-right">
+          <div className="myspace-card" style={{borderLeft:'5px solid #ff6600'}}>
+            <h3 style={{margin:'0 0 6px 0', color:'#ff6600', fontSize:'16px'}}>{profile.username} is testing out the new layout!</h3>
+            <p className="ms-info-text" style={{margin:0}}>Welcome to my custom space profile corner. Leave a comment below!</p>
           </div>
 
-          <div className="ms-section">
-            <h3 className="ms-section-title">About Me</h3>
-            <p>{profile.about_me || "No about me yet."}</p>
+          <div className="myspace-card">
+            <div className="myspace-header">About Me</div>
+            <p className="ms-info-text" style={{padding:'0 4px', color:'#e2e8f0', lineHeight:'1.5'}}>{profile.about_me || "No bio set yet."}</p>
           </div>
 
-          <div className="ms-section">
-            <h3 className="ms-section-title">Who I'd Like to Meet</h3>
-            <p>{profile.meet || "No meet info yet."}</p>
+          <div className="myspace-card">
+            <div className="myspace-header">Who I'd Like to Meet</div>
+            <p className="ms-info-text" style={{padding:'0 4px', color:'#e2e8f0', lineHeight:'1.5'}}>{profile.meet || "Cool developers and retro builders."}</p>
           </div>
 
-          <div className="ms-section">
-            <h3 className="ms-section-title">Bulletins</h3>
+          {/* MYSPACE BULLETINS ARCHIVE GRID */}
+          <div className="myspace-card">
+            <div className="myspace-header">Recent Bulletins</div>
             {bulletins.length === 0 ? (
-              <p>No bulletins yet.</p>
+              <p className="ms-info-text" style={{padding:'4px'}}>No bulletins broadcasted yet.</p>
             ) : (
               bulletins.map((b) => (
-                <div key={b.id} className="ms-bulletin">
-                  <strong>{b.title}</strong>
-                  <p>{b.body}</p>
-                  <small>{new Date(b.created_at).toLocaleString()}</small>
+                <div key={b.id} style={{borderBottom:'1px solid #2d313f', padding:'10px 4px', position:'relative'}}>
+                  <strong style={{color:'#ff6600', fontSize:'14px'}}>{b.title}</strong>
+                  <p className="ms-info-text" style={{color:'#e2e8f0', margin:'4px 0'}}>{b.body}</p>
+                  <small style={{color:'#4a5568', fontSize:'10px'}}>{new Date(b.created_at).toLocaleDateString()}</small>
                   {currentUser?.id === id && (
-                    <button className="ms-delete" onClick={() => deleteBulletin(b.id)}>Delete</button>
+                    <button style={{position:'absolute', right:4, bottom:10, background:'#E41E3F', border:'none', color:'#fff', padding:'2px 6px', fontSize:'10px', borderRadius:'3px', cursor:'pointer'}} onClick={() => deleteBulletin(b.id)}>Delete</button>
                   )}
                 </div>
               ))
             )}
           </div>
 
-          <div className="ms-section">
-            <h3 className="ms-section-title">Comments</h3>
+          {/* MYSPACE SIGNATURE COMMENTS WALL */}
+          <div className="myspace-card">
+            <div className="myspace-header">Friends Comments Wall</div>
             {comments.length === 0 ? (
-              <p>No comments yet.</p>
+              <p className="ms-info-text" style={{padding:'4px'}}>No comments yet. Be the first to write!</p>
             ) : (
               comments.map((c) => (
-                <div key={c.id} className="ms-comment">
-                  <div className="ms-comment-header">
-                    <img src={c.profiles?.avatar_url} alt="Avatar" className="ms-comment-avatar" />
-                    <span className="ms-comment-user">{c.profiles?.username}</span>
-                    <small>{new Date(c.created_at).toLocaleString()}</small>
+                <div key={c.id} style={{display:'flex', gap:12, borderBottom:'1px solid #2d313f', padding:'12px 4px'}}>
+                  <div style={{textAlign:'center', width:'70px'}}>
+                    <img src={c.profiles?.avatar_url || 'https://placeholder.com'} alt="Avatar" style={{width:'50px', height:'50px', border:'1px solid #ff6600', objectFit:'cover', borderRadius:'4px'}} />
+                    <span style={{display:'block', fontSize:'11px', color:'#ff6600', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap', marginTop:'4px'}}>{c.profiles?.username}</span>
                   </div>
-                  <p>{c.content}</p>
+                  <div style={{flex:1}}>
+                    <small style={{color:'#4a5568', fontSize:'10px', display:'block', marginBottom:'4px'}}>{new Date(c.created_at).toLocaleString()}</small>
+                    <p className="ms-info-text" style={{color:'#e2e8f0', margin:0, fontSize:'13px'}}>{c.content}</p>
+                  </div>
                 </div>
               ))
             )}
@@ -314,7 +437,7 @@ export default function ProfilePage() {
         </div>
       </div>
 
-      {/* FLOATING TEXT MESSENGER POPUP OVERLAY */}
+      {/* SEND MESSAGE FLOATING CARD POPUP */}
       {isMsgModalOpen && (
         <div className="msg-modal-overlay">
           <div className="msg-modal-card">
