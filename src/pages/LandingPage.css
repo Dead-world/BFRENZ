@@ -1,0 +1,227 @@
+/* ==========================================================================
+   SECTION 1: GLOBAL STRUCTURE & NAVIGATION ACCENTS
+   ========================================================================== */
+
+.landing-wrapper {
+  background-color: #000000 !important;
+  color: #ffffff !important;
+  min-height: 100vh !important;
+  display: flex !important;
+  flex-direction: column !important;
+  font-family: 'Courier New', monospace !important;
+}
+
+/* 🧭 UPPER BAR NAV */
+.landing-navbar {
+  background-color: #000000 !important;
+  padding: 12px 20px !important;
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  border-bottom: 2px solid #FF6600 !important;
+  height: 46px !important;
+}
+
+.landing-logo-text {
+  color: #FF6600 !important;
+  font-size: 26px !important;
+  font-weight: bold !important;
+  letter-spacing: 1px !important;
+  text-decoration: none !important;
+}
+
+/* ==========================================================================
+   SECTION 2: PERFECT VIEWPORT VERTICAL & HORIZONTAL CENTERING
+   ========================================================================== */
+
+.landing-content-split {
+  display: flex !important;
+  justify-content: center !important;  /* Centers elements horizontally */
+  align-items: center !important;      /* Centers elements vertically */
+  gap: 60px !important;                 /* Clean structural separation spacing */
+  max-width: 1200px !important;
+  width: 100% !important;
+  /* ⭐ Subtracts the exact 46px navbar height from full height to center perfectly on the open viewport space */
+  min-height: calc(100vh - 46px) !important; 
+  margin: 0 auto !important;
+  padding: 40px 20px !important;
+  box-sizing: border-box !important;
+}
+
+.landing-hero-text {
+  flex: 1 !important;
+  max-width: 500px !important;
+}
+
+.landing-hero-title {
+  font-size: 36px !important;
+  font-weight: 800 !important;
+  color: #ffffff !important;
+  margin-bottom: 18px !important;
+  line-height: 1.3 !important;
+}
+
+.landing-hero-title span {
+  color: #FF6600 !important;
+}
+
+.landing-hero-subtitle {
+  font-size: 15px !important;
+  color: #ffffff !important;
+  line-height: 1.6 !important;
+}
+
+/* ==========================================================================
+   SECTION 3: FORM DESIGN CARDS & BOX ACTION CONTROLS
+   ========================================================================== */
+
+/* 📦 RETRO 3D LOGIN CARD */
+.landing-login-card {
+  background-color: #111112 !important;
+  border: 2px solid #FF6600 !important;
+  border-radius: 4px !important;
+  padding: 26px !important;
+  width: 100% !important;
+  max-width: 396px !important;
+  box-shadow: 5px 5px 0px #ffffff !important;
+  box-sizing: border-box !important;
+}
+
+.landing-form-group {
+  margin-bottom: 18px !important;
+}
+
+/* Input Fields textboxes */
+.landing-input {
+  width: 100% !important;
+  box-sizing: border-box !important;
+  background-color: #ffffff !important;
+  color: #000000 !important;
+  border: 2px solid #000000 !important;
+  padding: 12px !important;
+  border-radius: 4px !important;
+  font-size: 14px !important;
+  font-weight: bold !important;
+  outline: none !important;
+  font-family: inherit !important;
+}
+
+.landing-input:focus {
+  border-color: #FF6600 !important;
+  box-shadow: 0 0 4px #FF6600 !important;
+}
+
+.landing-input::placeholder {
+  color: #666666 !important;
+}
+
+/* 🚀 SUBMIT BLOCK PANEL ACTION BUTTONS */
+.landing-submit-btn {
+  background-color: #FF6600 !important;
+  color: #000000 !important;
+  border: 2px solid #000000 !important;
+  padding: 12px !important;
+  width: 100% !important;
+  font-size: 16px !important;
+  font-weight: bold !important;
+  border-radius: 4px !important;
+  cursor: pointer !important;
+  transition: transform 0.05s ease, box-shadow 0.05s ease !important;
+  display: block !important;
+  text-align: center !important;
+  box-shadow: 3px 3px 0px #ffffff !important;
+  font-family: inherit !important;
+  text-transform: uppercase !important;
+}
+
+.landing-submit-btn:active {
+  transform: translate(1px, 1px) !important;
+  box-shadow: 1px 1px 0px #ffffff !important;
+}
+
+.landing-submit-btn:hover {
+  filter: brightness(1.1) !important;
+}
+
+.landing-submit-btn:disabled {
+  background-color: #555555 !important;
+  color: #888888 !important;
+  box-shadow: none !important;
+  cursor: not-allowed !important;
+  transform: none !important;
+  border-color: #333333 !important;
+}
+
+.landing-divider {
+  height: 2px !important;
+  background-color: #FF6600 !important;
+  margin: 22px 0 !important;
+  border: none !important;
+}
+
+/* Lower Route Switch Buttons Link shortcuts */
+.landing-signup-route-btn {
+  background-color: #ffffff !important;
+  color: #000000 !important;
+  border: 2px solid #000000 !important;
+  padding: 10px 20px !important;
+  font-size: 14px !important;
+  font-weight: bold !important;
+  border-radius: 4px !important;
+  cursor: pointer !important;
+  text-decoration: none !important;
+  display: block !important;
+  width: max-content !important;
+  margin: 0 auto !important;
+  box-shadow: 2px 2px 0px #FF6600 !important;
+  text-transform: uppercase !important;
+}
+
+.landing-signup-route-btn:active {
+  transform: translate(1px, 1px) !important;
+  box-shadow: 1px 1px 0px #FF6600 !important;
+}
+
+.landing-signup-route-btn:hover {
+  background-color: #eeeeee !important;
+}
+
+.landing-error-box {
+  text-align: center !important;
+  margin-top: 14px !important;
+  font-size: 12px !important;
+  font-weight: bold !important;
+  color: #ffffff !important;
+  background-color: #E41E3F !important;
+  padding: 10px !important;
+  border-radius: 4px !important;
+  border: 2px solid #000000 !important;
+  box-shadow: 2px 2px 0px #ffffff !important;
+}
+
+/* ==========================================================================
+   SECTION 4: MOBILE RESPONSIVE STACKING BLOCK
+   ========================================================================== */
+
+@media (max-width: 850px) {
+  .landing-content-split {
+    flex-direction: column !important;
+    justify-content: center !important;
+    text-align: center !important;
+    padding-top: 40px !important;
+    padding-bottom: 40px !important;
+    gap: 40px !important;
+    /* Allows proper page scrolling if mobile heights collapse */
+    min-height: calc(100vh - 46px) !important; 
+  }
+  .landing-hero-text {
+    max-width: 100% !important;
+  }
+  .landing-hero-title {
+    font-size: 28px !important;
+  }
+  .landing-login-card {
+    max-width: 100% !important;
+    margin: 0 auto !important;
+  }
+}
