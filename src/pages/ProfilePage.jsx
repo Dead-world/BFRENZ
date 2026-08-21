@@ -162,12 +162,13 @@ export default function ProfilePage() {
   useEffect(() => {
     async function loadProfile() {
       setLoading(true);
+      /* FIXED: Hydrated custom_html and custom_css column hooks from profiles schema row database logs */
       const { data, error } = await supabase
         .from("profiles")
         .select(`
           User_id, username, avatar_url, status_message, hometown,
           about_me, meet, general_interests, music_interests, last_online,
-          youtube_url, song_url, song_title, soundcloud_url
+          youtube_url, song_url, song_title, soundcloud_url, custom_html, custom_css
         `)
         .eq("User_id", id)
         .single();
@@ -378,11 +379,16 @@ export default function ProfilePage() {
     <>
       <Navbar />
 
+      {/* 🎨 DYNAMIC SKINNING INJECTOR ENGINE: Mounts user-configured overrides into document canvas */}
+      {profile.custom_css && (
+        <style dangerouslySetInnerHTML={{ __html: profile.custom_css }} />
+      )}
+
       <div className="ms-topnav">
         <div className="ms-topnav-left">
           <Link to="/browse" style={{color:'#ff6600', textDecoration:'none', marginRight:'8px'}}>Browse</Link> | <span>Search</span> | <span>Mail</span> | <span>Blogs</span>
         </div>
-        <div className="ms-topnav-right" style={{cursor:'pointer'}} onClick={() => navigate('/login')}>Logout</div>
+        <div className="ms-topnav-right" style={{cursor:'pointer'} } onClick={() => navigate('/login')}>Logout</div>
       </div>
 
       <div className="ms-container">
@@ -391,7 +397,7 @@ export default function ProfilePage() {
         <div className="ms-profile-left">
           <div className="myspace-card">
             <h2 className="ms-name">{profile.username}</h2>
-            <img src={profile.avatar_url} alt="Profile Avatar" className="ms-photo" />
+            <img src={profile.avatar_url || 'https://placeholder.com'} alt="Profile Avatar" className="ms-photo" />
             
             <div style={{ marginTop: '12px', padding: '0 6px' }}>
               <p className="ms-info-text"><strong>Mood:</strong> {profile.status_message || "chillin"}</p>
@@ -430,7 +436,6 @@ export default function ProfilePage() {
             <p className="ms-info-text" style={{marginTop:'10px'}}><strong>Music:</strong> {profile.music_interests || "Chiptunes & Synthwave."}</p>
           </div>
 
-          {/* 👥 REAL TIME AUTOMATED FALLBACK FRIENDS MATRIX */}
           <div className="myspace-card">
             <div className="myspace-header">{profile.username}'s Top 8 Grid</div>
             {top8Friends.length === 0 ? (
@@ -452,24 +457,30 @@ export default function ProfilePage() {
         <div className="ms-profile-right">
           
           {/* 🎵 UNIFIED FEATURED MEDIA PLAYER CARD BLOCK CONTAINER */}
-          <div className="myspace-card">
-            <div className="myspace-header">Featured Media</div>
+        <div className="myspace-card">
+        <div className="myspace-header">Featured Media</div>
 
-            {/* MP3 / Native HTML5 Audio Player */}
-            <div className="ms-player">
-              <div>⚡ TUNES: {profile.song_title || "No background song track set."}</div>
-              {profile.song_url && (
-                <audio src={profile.song_url} controls className="retro-audio-element" />
-              )}
-            </div>
+          {/* MP3 Player with Automatic Play Enabled */}
+        <div className="ms-player">
+        <div>⚡ TUNES: {profile.song_title || "No background song track set."}</div>
+           {profile.song_url && (
+        <audio 
+           src={profile.song_url} 
+           controls 
+           autoPlay 
+           className="retro-audio-element" 
+        />
+          )}
+        </div>
 
-            {/* 🎬 YouTube Embed Plugin Mount */}
+
+            {/* YouTube Embed */}
             {profile.youtube_url && (
               <div className="myspace-card" style={{ marginTop: "15px" }}>
                 <div className="myspace-header">{profile.username}'s Featured Video</div>
                 <div className="video-responsive-frame">
                   <iframe
-                    src={`https://www.youtube.com/embed/${helperExtractYoutubeToken(profile.youtube_url)}`}
+                    src={`https://youtube.com{helperExtractYoutubeToken(profile.youtube_url)}`}
                     title="Featured YouTube Video"
                     frameBorder="0"
                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
@@ -479,7 +490,7 @@ export default function ProfilePage() {
               </div>
             )}
 
-            {/* 🎧 SoundCloud Embed Widget Mount */}
+            {/* SoundCloud Embed */}
             {profile.soundcloud_url && (
               <div className="myspace-card" style={{ marginTop: "15px" }}>
                 <div className="myspace-header">{profile.username}'s SoundCloud Track</div>
@@ -489,11 +500,19 @@ export default function ProfilePage() {
                   scrolling="no"
                   frameBorder="no"
                   allow="autoplay"
-                  src={`https://w.soundcloud.com/player/?url=${encodeURIComponent(profile.soundcloud_url)}&color=%23ff6600&auto_play=false&hide_related=false&show_comments=true&show_user=true&show_reposts=false`}
+                  src={`https://soundcloud.com{encodeURIComponent(profile.soundcloud_url)}&color=%23ff6600&auto_play=false&hide_related=false&show_comments=true&show_user=true&show_reposts=false`}
                 ></iframe>
               </div>
             )}
           </div>
+
+          {/* 🎨 HTML SANDBOX BLOCK MOUNT: Safely parses structural customization objects onto right column feed */}
+          {profile.custom_html && (
+            <div className="myspace-card custom-html-sandbox-wrap" style={{ borderLeft: '5px solid #A2E35C' }}>
+              <div className="myspace-header">💾 User Custom Sandbox Code</div>
+              <div dangerouslySetInnerHTML={{ __html: profile.custom_html }} />
+            </div>
+          )}
 
           <div className="myspace-card" style={{borderLeft:'5px solid #ff6600'}}>
             <h3 style={{margin:'0 0 6px 0', color:'#ff6600', fontSize:'16px'}}>{profile.username} Space Blurb</h3>
@@ -527,7 +546,6 @@ export default function ProfilePage() {
             )}
           </div>
 
-          {/* 💬 MULTI-LEVEL DYNAMIC COMMENT THREADS FORUM WALL */}
           <div className="myspace-card">
             <div className="myspace-header">Friends Comments Wall Space</div>
             
@@ -582,7 +600,6 @@ export default function ProfilePage() {
                     </div>
                   )}
 
-                  {/* Render nested replies */}
                   {comments.filter(child => child.parent_id === rootComment.id).map((childComment) => (
                     <div key={childComment.id} className="comment-nested-reply-row">
                       <div style={{textAlign:'center', width:'55px'}}>
@@ -614,11 +631,16 @@ export default function ProfilePage() {
       {isMsgModalOpen && (
         <div className="msg-modal-overlay">
           <div className="msg-modal-card">
-            <div className="msg-modal-header">Message {profile.username}</div>
-            <textarea className="msg-modal-textarea" value={messageText} onChange={(e) => setMessageText(e.target.value)} placeholder="Type here..." />
-            <div className="msg-modal-actions">
-              <button className="msg-btn-cancel" onClick={() => setIsMsgModalOpen(false)}>Cancel</button>
-              <button className="msg-btn-send" onClick={handleSendMessageAction}>Send</button>
+            <div style={{fontWeight:'bold', color:'#ff6600', marginBottom:'10px'}}>Message {profile.username}</div>
+            <textarea 
+              style={{width:'100%', height:'80px', background:'#1c1e24', color:'#fff', border:'1px solid #2d313f', borderRadius:'4px', padding:'6px', boxSizing:'border-box', resize:'none'}}
+              value={messageText} 
+              onChange={(e) => setMessageText(e.target.value)} 
+              placeholder="Type here..." 
+            />
+            <div style={{display:'flex', justifyContent:'flex-end', gap:'10px', marginTop:'10px'}}>
+              <button className="ms-btn" style={{padding:'4px 12px'}} onClick={() => setIsMsgModalOpen(false)}>Cancel</button>
+              <button className="ms-btn" style={{padding:'4px 12px', background:'#ff6600', color:'#000'}} onClick={handleSendMessageAction}>Send</button>
             </div>
           </div>
         </div>

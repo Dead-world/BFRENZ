@@ -425,22 +425,7 @@ export default function Dashboard() {
             {bulletinStatus.text && ( <div className="status-msg" style={{ color: bulletinStatus.type === 'success' ? '#4BAC4E' : '#E41E3F' }}>{bulletinStatus.text}</div> )}
           </div>
 
-          {/* ✍️ CARD G: JOURNAL JOURNAL BLOG WRITER FORM */}
-          <div className="settings-card">
-            <h2 className="card-title">✍️ Write a Recent Journal Blog Entry</h2>
-            <div className="form-group">
-              <label className="form-label">Journal Article Entry Title</label>
-              <input type="text" className="form-input" value={blogTitle} onChange={(e) => setBlogTitle(e.target.value)} placeholder="e.g. Thoughts on HTML customization setups" />
-            </div>
-            <div className="form-group">
-              <label className="form-label">Blog Content Body</label>
-              <textarea className="form-textarea" style={{ minHeight: '120px' }} value={blogContent} onChange={(e) => setBlogContent(e.target.value)} placeholder="Write out your full journal entry narrative blocks here..." />
-            </div>
-            <button type="button" onClick={handlePostBlog} className="save-settings-btn" style={{ backgroundColor: '#2F80ED', marginTop: '4px' }}>Post Journal Entry</button>
-            {blogStatus.text && ( <div className="status-msg" style={{ color: blogStatus.type === 'success' ? '#4BAC4E' : '#E41E3F' }}>{blogStatus.text}</div> )}
-          </div>
-
-          {/* CARD D: FILE REPLICATION AUDIO & VIDEO MEDIA HUBS */}
+            {/* CARD D: FILE REPLICATION AUDIO & VIDEO MEDIA HUBS */}
           <div className="settings-card">
             <h2 className="card-title">🎵 Media Showcase Hub</h2>
 
