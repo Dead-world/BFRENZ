@@ -9,7 +9,7 @@ if (typeof document !== 'undefined') {
     .nav-links-container { display: flex !important; align-items: center !important; gap: 15px !important; }
     .burger-menu-btn { display: none !important; }
     
-    /* 🎨 UNIFIED RETRO 3D ORANGE BUTTONS (EXACT DASHBOARD STYLE MATCH) */
+    /* 🎨 UNIFIED RETRO 3D ORANGE BUTTONS (EXACT STYLE MATCH) */
     .retro-nav-btn {
       display: inline-flex !important;
       align-items: center !important;
@@ -35,7 +35,7 @@ if (typeof document !== 'undefined') {
       filter: brightness(1.1) !important;
     }
 
-    /* 🔔 STANDALONE ORANGE VECTOR Activity BELL */
+    /* 🔔 DYNAMIC ALERTS ACTIVITY BELL WRAPPER */
     .retro-bell-wrapper {
       display: inline-flex !important;
       align-items: center !important;
@@ -45,7 +45,7 @@ if (typeof document !== 'undefined') {
       cursor: pointer !important;
     }
 
-    /* 💬 RETRO CIRCULAR MESSENGER TRIGGER BADGE WITH WHITE SHADOW SEAM */
+    /* 💬 RETRO CIRCULAR MESSENGER TRIGGER BADGE */
     .retro-messenger-circle {
       display: inline-flex !important;
       align-items: center !important;
@@ -74,7 +74,6 @@ if (typeof document !== 'undefined') {
       fill: currentColor !important;
     }
 
-    /* 📊 RE-INJECTED: DYNAMIC ALERT UNREAD BADGES OVERRIDES */
     .bell-badge-indicator {
       position: absolute !important;
       top: -2px !important;
@@ -143,33 +142,11 @@ if (typeof document !== 'undefined') {
         gap: 12px !important; 
         align-items: center !important; 
       }
-      .nav-links-container.open { 
-        display: flex !important; 
-      }
-      .burger-menu-btn { 
-        display: block !important; 
-      }
-      .retro-nav-btn { 
-        width: 100% !important; 
-        box-sizing: border-box !important; 
-        justify-content: center !important; 
-      }
-      .retro-messenger-circle { 
-        width: 100% !important; 
-        max-width: 100% !important; 
-        height: auto !important;
-        padding: 12px 14px !important; 
-        border-radius: 4px !important; 
-        box-sizing: border-box !important; 
-        justify-content: center !important; 
-      }
-      .messenger-dropdown-panel { 
-        position: fixed !important; 
-        top: 64px !important; 
-        right: 10px !important; 
-        width: calc(100% - 20px) !important; 
-        max-width: 360px !important; 
-      }
+      .nav-links-container.open { display: flex !important; }
+      .burger-menu-btn { display: block !important; }
+      .retro-nav-btn { width: 100% !important; box-sizing: border-box !important; justify-content: center !important; }
+      .retro-messenger-circle { width: 100% !important; max-width: 100% !important; height: auto !important; padding: 12px 14px !important; border-radius: 4px !important; box-sizing: border-box !important; justify-content: center !important; }
+      .messenger-dropdown-panel { position: fixed !important; top: 64px !important; right: 10px !important; width: calc(100% - 20px) !important; max-width: 360px !important; }
     }
   `;
   document.head.appendChild(styleEl);
@@ -194,10 +171,8 @@ export default function NavBar() {
   useEffect(() => {
     if (!user) return;
 
-    // 📥 1. SYNC INITIAL CHAT ALERTS ON COMPONENT MOUNT
     fetchRecentInboxMessages();
 
-    // 🔌 2. ATTACH REAL-TIME CONTEXT LISTENER FOR OUTSTANDING ROWS
     const msgSubscription = supabase
       .channel(`public:user_messages:nav_receiver=${user.id}`)
       .on(
@@ -212,7 +187,6 @@ export default function NavBar() {
       )
       .subscribe();
 
-    // 📋 3. DETECT OUTSIDE WINDOW MOUSE CLICKS TO CLOSE DROPDOWN
     const handleOutsideClick = (e) => {
       if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
         setIsMsgDropdownOpen(false);
@@ -226,7 +200,6 @@ export default function NavBar() {
     };
   }, [user]);
 
-  /* ⚙️ ENGINE ACTION: CORE LOGS QUERY RUNNER */
   const fetchRecentInboxMessages = async () => {
     if (!user) return;
     try {
@@ -238,7 +211,6 @@ export default function NavBar() {
 
       if (msgError) throw msgError;
 
-      // Filter unread rows count
       const unreadRows = messagesData?.filter(m => !m.read) || [];
       setUnreadCount(unreadRows.length);
 
@@ -247,7 +219,6 @@ export default function NavBar() {
         return;
       }
 
-      // Deduplicate recent chats based on sender_id
       const uniqueSenderMap = {};
       messagesData.forEach(msg => {
         if (!uniqueSenderMap[msg.sender_id]) {
@@ -289,7 +260,6 @@ export default function NavBar() {
     }
   };
 
-  /* 🧼 TRANSACTION ACTIONS: MARK AS OPENED AND NAVIGATE OUT */
   const handleOpenChatAction = async (chatItem) => {
     try {
       await supabase
@@ -315,20 +285,25 @@ export default function NavBar() {
       </button>
 
       <div className={`nav-links-container ${isMenuOpen ? 'open' : ''}`}>
+        {/* 🟢 RESTORED ORIGINAL CORE FLOW ROUTES */}
         <Link to="/dashboard" className="retro-nav-btn">Dashboard</Link>
+        <Link to="/browse" className="retro-nav-btn">Browse People</Link>
         
         {user ? (
           <>
-            {/* 🔔 STANDALONE ORANGE NAVIGATION BELL ELEMENT */}
+            {/* 🟢 RESTORED USER INDIVIDUAL PROFILE ROUTE LINK */}
+            <Link to={`/profile/${user.id}`} className="retro-nav-btn">My Profile</Link>
+
+            {/* 🔔 ACTIVE MESSENGER INTEGRATED BELL OVERLAY NOTIFICATION */}
             <div className={`retro-bell-wrapper ${unreadCount > 0 ? 'bell-alert-active' : ''}`} ref={dropdownRef}>
               <div className="retro-messenger-circle" onClick={() => setIsMsgDropdownOpen(!isMsgDropdownOpen)}>
                 <svg viewBox="0 0 24 24">
-                  <path d="M12 2C6.48 2 2 6.48 2 12c0 2.22.73 4.27 1.96 5.93L3.05 21l3.22-.95C7.81 20.67 9.83 21 12 21c5.48 0 10-4.48 10-10S17.52 2 12 2zm1 14h-2v-2h2v2zm0-4h-2V7h2v5z"/>
+                  <path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.89 2 2 2zm6-6v-5c0-3.07-1.64-5.64-4.5-6.32V4c0-.83-.67-1-1.5-1s-1.5.17-1.5 1v.68C7.63 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/>
                 </svg>
                 {unreadCount > 0 && <span className="bell-badge-indicator">{unreadCount}</span>}
               </div>
 
-              {/* 📂 FLAT RETRO DROPDOWN CONTAINER WRAPPER POPUP */}
+              {/* FLOATING INBOX POPUP CONTAINER PANEL */}
               {isMsgDropdownOpen && (
                 <div className="messenger-dropdown-panel">
                   <div className="messenger-header-line">
