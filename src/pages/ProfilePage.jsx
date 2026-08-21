@@ -7,7 +7,6 @@ import Navbar from "../components/NavBar";
 if (typeof document !== "undefined") {
   const styleEl = document.createElement("style");
   styleEl.innerHTML = `
-    /* 🎸 MODERNIZED RETRO MYSPACE STYLE MANIFEST */
     body {
       background-color: #0d0e12 !important;
       background-image: linear-gradient(rgba(255, 102, 0, 0.03) 1px, transparent 1px),
@@ -15,7 +14,6 @@ if (typeof document !== "undefined") {
       background-size: 20px 20px !important;
       color: #e2e8f0 !important;
     }
-
     .ms-container {
       max-width: 1050px;
       margin: 20px auto;
@@ -25,7 +23,6 @@ if (typeof document !== "undefined") {
       gap: 25px;
       font-family: 'Courier New', monospace;
     }
-
     .myspace-card {
       background: #15171e;
       border: 2px solid #2d313f;
@@ -34,7 +31,6 @@ if (typeof document !== "undefined") {
       margin-bottom: 20px;
       box-shadow: 4px 4px 0px rgba(0, 0, 0, 0.5);
     }
-
     .myspace-header {
       background: #ff6600;
       color: #000000;
@@ -47,7 +43,6 @@ if (typeof document !== "undefined") {
       border-top-right-radius: 4px;
       letter-spacing: 1px;
     }
-
     .ms-photo {
       width: 100%;
       max-width: 280px;
@@ -58,7 +53,6 @@ if (typeof document !== "undefined") {
       display: block;
       border-radius: 4px;
     }
-
     .ms-name {
       font-size: 24px;
       font-weight: bold;
@@ -67,10 +61,8 @@ if (typeof document !== "undefined") {
       margin: 10px 0;
       text-shadow: 2px 2px 0px #ff6600;
     }
-
     .ms-info-text { font-size: 13px; margin: 6px 0; color: #a0aec0; }
     .ms-info-text strong { color: #ff6600; }
-
     .ms-contact-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px; }
     .ms-btn {
       background: #1c1e24; color: #ffffff; border: 1px solid #ff6600; padding: 8px 4px;
@@ -82,24 +74,15 @@ if (typeof document !== "undefined") {
     .ms-btn.active-action { background: #4BAC4E !important; color: #fff !important; border-color: #fff; pointer-events: none; }
     .ms-btn.blocked-action { background: #E41E3F !important; color: #fff !important; border-color: #fff; }
 
-    /* 🔊 AUDIO INTERFACES MAPPING */
-    .ms-player { background: #000; border: 1px solid #ff6600; color: #00ff00; padding: 12px; font-size: 12px; text-align: center; border-radius: 4px; margin-top: 15px; box-shadow: inset 0 0 5px #00ff00; }
-    .retro-audio-element { width: 100%; height: 30px; margin-top: 8px; filter: invert(1) hue-rotate(180deg); }
-
-    /* 📺 YOUTUBE RESPONSIVE VIEWPORTS */
     .video-responsive-frame { overflow: hidden; padding-bottom: 56.25%; position: relative; height: 0; border: 2px solid #2d313f; border-radius: 4px; }
     .video-responsive-frame iframe { left: 0; top: 0; height: 100%; width: 100%; position: absolute; }
 
-    .ms-topnav { background-color: #000000; border-bottom: 1px solid #ff6600; padding: 8px 20px; display: flex; justify-content: space-between; font-size: 11px; color: #718096; }
-
-    /* 👥 TOP 8 SECTIONS STYLE */
     .top8-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; text-align: center; margin-top: 10px; }
     .top8-friend-anchor { text-decoration: none; display: flex; flex-direction: column; align-items: center; }
     .top8-friend-name { font-size: 12px; color: #ff6600; font-weight: bold; margin-top: 4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; width: 100%; }
     .top8-friend-img { width: 65px; height: 65px; object-fit: cover; border: 2px solid #2d313f; border-radius: 4px; transition: border-color 0.1s; }
     .top8-friend-anchor:hover .top8-friend-img { border-color: #ff6600; }
 
-    /* 💬 WALL COMMENTS TREE STRUCT */
     .comment-input-area { display: flex; flex-direction: column; gap: 8px; margin-bottom: 20px; }
     .comment-box-field { width: 100%; height: 60px; background: #1c1e24; color: #fff; border: 1px solid #2d313f; padding: 8px; border-radius: 4px; font-family: inherit; font-size: 13px; box-sizing: border-box; resize: none; }
     .comment-box-field:focus { border-color: #ff6600; outline: none; }
@@ -122,14 +105,6 @@ if (typeof document !== "undefined") {
     .comment-inline-action-btn.delete-color:hover { color: #E41E3F; }
 
     .nested-input-wrapper { display: flex; gap: 8px; margin-top: 10px; width: 100%; }
-
-    .msg-modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background-color: rgba(0,0,0,0.85); display: flex; align-items: center; justify-content: center; z-index: 9999; }
-    .msg-modal-card { background-color: #15171e; border: 2px solid #ff6600; padding: 20px; width: 100%; max-width: 450px; box-shadow: 5px 5px 0px #ffffff; border-radius: 4px; }
-
-    @media (max-width: 768px) {
-      .ms-container { grid-template-columns: 1fr; }
-      .top8-grid { grid-template-columns: repeat(3, 1fr); }
-    }
   `;
   document.head.appendChild(styleEl);
 }
@@ -159,6 +134,9 @@ export default function ProfilePage() {
   const { id } = useParams();
   const navigate = useNavigate();
 
+  /* ============================
+     STATE
+  ============================ */
   const [profile, setProfile] = useState(null);
   const [currentUser, setCurrentUser] = useState(null);
   const [bulletins, setBulletins] = useState([]);
@@ -168,24 +146,28 @@ export default function ProfilePage() {
   const [loading, setLoading] = useState(true);
 
   const [friendStatus, setFriendStatus] = useState("none");
-  const [isBlocked, setIsBlocked] = useState(false);
   const [isFavorited, setIsFavorited] = useState(false);
+  const [isBlocked, setIsBlocked] = useState(false);
+
   const [isMsgModalOpen, setIsMsgModalOpen] = useState(false);
   const [messageText, setMessageText] = useState("");
-  const [actionLoading, setActionLoading] = useState(false);
 
   const [masterCommentText, setMasterCommentText] = useState("");
   const [activeReplyId, setActiveReplyId] = useState(null);
   const [replyInputText, setReplyInputText] = useState("");
 
-  /* Load Current User */
+  /* ============================
+     LOAD CURRENT USER
+  ============================ */
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
       setCurrentUser(data?.user || null);
     });
   }, []);
 
-  /* Load Profile */
+  /* ============================
+     LOAD PROFILE
+  ============================ */
   useEffect(() => {
     async function loadProfile() {
       setLoading(true);
@@ -209,13 +191,17 @@ export default function ProfilePage() {
     loadProfile();
   }, [id]);
 
-  /* Relationship Checks */
+  /* ============================
+     RELATIONSHIP CHECKS
+     friends / favorites / blocks
+  ============================ */
   useEffect(() => {
     if (!currentUser || currentUser.id === id) return;
 
     async function checkRelationships() {
+      // FRIENDS TABLE (correct)
       const { data: friendData } = await supabase
-        .from("friendships")
+        .from("friends")
         .select("status")
         .or(
           `and(sender_id.eq.${currentUser.id},receiver_id.eq.${id}),
@@ -229,15 +215,7 @@ export default function ProfilePage() {
         setFriendStatus("none");
       }
 
-      const { data: blockData } = await supabase
-        .from("blocks")
-        .select("id")
-        .eq("blocker_id", currentUser.id)
-        .eq("blocked_id", id)
-        .maybeSingle();
-
-      setIsBlocked(!!blockData);
-
+      // FAVORITES TABLE (you created this)
       const { data: favData } = await supabase
         .from("favorites")
         .select("id")
@@ -246,12 +224,25 @@ export default function ProfilePage() {
         .maybeSingle();
 
       setIsFavorited(!!favData);
+
+      // BLOCKS TABLE (you created this)
+      const { data: blockData } = await supabase
+        .from("blocks")
+        .select("id")
+        .eq("blocker_id", currentUser.id)
+        .eq("blocked_id", id)
+        .maybeSingle();
+
+      setIsBlocked(!!blockData);
     }
 
     checkRelationships();
   }, [currentUser, id]);
 
-  /* Top 8 Friends */
+  /* ============================
+     TOP 8 FRIENDS
+     (correct table: top_eight)
+  ============================ */
   useEffect(() => {
     async function fetchTop8Friends() {
       try {
@@ -300,7 +291,9 @@ export default function ProfilePage() {
     fetchTop8Friends();
   }, [id]);
 
-  /* Add View */
+  /* ============================
+     PROFILE VIEWS
+  ============================ */
   useEffect(() => {
     async function addView() {
       const { data: auth } = await supabase.auth.getUser();
@@ -315,7 +308,6 @@ export default function ProfilePage() {
     addView();
   }, [id]);
 
-  /* Load Views */
   useEffect(() => {
     async function loadViews() {
       const { data } = await supabase
@@ -329,7 +321,9 @@ export default function ProfilePage() {
     loadViews();
   }, [id]);
 
-  /* Load Bulletins */
+  /* ============================
+     BULLETINS (correct table: blogs)
+  ============================ */
   useEffect(() => {
     async function loadBulletins() {
       const { data } = await supabase
@@ -344,12 +338,14 @@ export default function ProfilePage() {
     loadBulletins();
   }, [id]);
 
-  async function deleteBulletin(bulletinId) {
-    await supabase.from("bulletins").delete().eq("id", bulletinId);
-    setBulletins((prev) => prev.filter((b) => b.id !== bulletinId));
+  async function deleteBulletin(blogId) {
+    await supabase.from("blogs").delete().eq("id", blogId);
+    setBulletins((prev) => prev.filter((b) => b.id !== blogId));
   }
 
-  /* Comments Tree Loader */
+  /* ============================
+     COMMENTS TREE LOADER
+  ============================ */
   useEffect(() => {
     loadCommentsTree();
   }, [id]);
@@ -367,19 +363,73 @@ export default function ProfilePage() {
     setComments(data || []);
   };
 
+  /* ============================
+     COMMENT ACTIONS
+  ============================ */
+  const submitNewRootCommentAction = async () => {
+    if (!currentUser) return;
+    if (!masterCommentText.trim()) return;
+
+    const { error } = await supabase.from("comments").insert({
+      profile_id: id,
+      user_id: currentUser.id,
+      content: masterCommentText.trim(),
+      parent_id: null
+    });
+
+    if (!error) {
+      setMasterCommentText("");
+      loadCommentsTree();
+    }
+  };
+
+  const submitNestedReplyCommentAction = async (parentId) => {
+    if (!currentUser) return;
+    if (!replyInputText.trim()) return;
+
+    const { error } = await supabase.from("comments").insert({
+      profile_id: id,
+      user_id: currentUser.id,
+      content: replyInputText.trim(),
+      parent_id: parentId
+    });
+
+    if (!error) {
+      setReplyInputText("");
+      setActiveReplyId(null);
+      loadCommentsTree();
+    }
+  };
+
+  const executeDeleteCommentAction = async (commentId) => {
+    const { error } = await supabase
+      .from("comments")
+      .delete()
+      .eq("id", commentId);
+
+    if (!error) {
+      loadCommentsTree();
+    }
+  };
+
+  /* ============================
+     ONLINE STATUS
+  ============================ */
   const isOnline =
     profile?.last_online &&
     Date.now() - new Date(profile.last_online).getTime() < 5 * 60 * 1000;
 
-
-
-    if (loading) return <div>Loading layout canvas...</div>;
+  /* ============================
+     RETURN GUARDS
+  ============================ */
+  if (loading) return <div>Loading layout canvas...</div>;
   if (!profile) return <div>Profile frame missing.</div>;
 
-  return (
+    return (
     <>
       <Navbar />
 
+      {/* TOP NAV */}
       <div className="ms-topnav">
         <div className="ms-topnav-left">
           <Link
@@ -401,7 +451,9 @@ export default function ProfilePage() {
       </div>
 
       <div className="ms-container">
-        {/* LEFT COLUMN */}
+        {/* ============================
+            LEFT COLUMN
+        ============================ */}
         <div className="ms-profile-left">
           <div className="myspace-card">
             <h2 className="ms-name">{profile.username}</h2>
@@ -431,6 +483,7 @@ export default function ProfilePage() {
             <div className="ms-contact-grid">
               {currentUser && currentUser.id !== id ? (
                 <>
+                  {/* MESSAGE */}
                   <button
                     className="ms-btn"
                     onClick={() => setIsMsgModalOpen(true)}
@@ -438,6 +491,7 @@ export default function ProfilePage() {
                     Message
                   </button>
 
+                  {/* FRIEND STATUS */}
                   {friendStatus === "none" && (
                     <button className="ms-btn" onClick={handleAddFriendAction}>
                       Add Friend
@@ -452,6 +506,7 @@ export default function ProfilePage() {
                     <button className="ms-btn active-action">✓ Friend</button>
                   )}
 
+                  {/* IM CHAT */}
                   <button
                     className="ms-btn"
                     onClick={() => setIsMsgModalOpen(true)}
@@ -459,10 +514,12 @@ export default function ProfilePage() {
                     IM Chat
                   </button>
 
+                  {/* FAVORITE */}
                   <button className="ms-btn" onClick={handleToggleFavoriteAction}>
                     {isFavorited ? "★ Unfavorite" : "☆ Favorite"}
                   </button>
 
+                  {/* FORWARD */}
                   <button
                     className="ms-btn"
                     onClick={() => navigator.clipboard.writeText(window.location.href)}
@@ -470,6 +527,7 @@ export default function ProfilePage() {
                     Forward
                   </button>
 
+                  {/* BLOCK */}
                   <button
                     className={`ms-btn ${isBlocked ? "blocked-action" : ""}`}
                     onClick={handleToggleBlockAction}
@@ -478,6 +536,7 @@ export default function ProfilePage() {
                   </button>
                 </>
               ) : (
+                /* DISABLED BUTTONS WHEN VIEWING OWN PROFILE */
                 ["Message", "Add Friend", "IM Chat", "Favorite", "Forward", "Block"].map(
                   (btn) => (
                     <button key={btn} className="ms-btn" disabled>
@@ -541,7 +600,7 @@ export default function ProfilePage() {
                     className="top8-friend-anchor"
                   >
                     <img
-                      src={friend.avatar_url || "https://placeholder.com"}
+                      src={friend.avatar_url || "https://placehold.co/65x65"}
                       alt="Node avatar"
                       className="top8-friend-img"
                     />
@@ -554,17 +613,21 @@ export default function ProfilePage() {
           </div>
         </div>
 
-        {/* RIGHT COLUMN */}
+        {/* ============================
+            RIGHT COLUMN
+        ============================ */}
         <div className="ms-profile-right">
 
-          {/* 📺 FEATURED YOUTUBE VIDEO */}
+          {/* FEATURED YOUTUBE VIDEO */}
           {profile.youtube_url && (
             <div className="myspace-card">
               <div className="myspace-header">{profile.username}'s Featured Video</div>
 
               <div className="video-responsive-frame">
                 <iframe
-                  src={`https://www.youtube.com/embed/${helperExtractYoutubeToken(profile.youtube_url)}`}
+                  src={`https://www.youtube.com/embed/${helperExtractYoutubeToken(
+                    profile.youtube_url
+                  )}`}
                   title="Featured video frame player"
                   frameBorder="0"
                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
@@ -600,7 +663,7 @@ export default function ProfilePage() {
             </p>
           </div>
 
-          {/* BULLETINS */}
+          {/* BULLETINS (blogs) */}
           <div className="myspace-card">
             <div className="myspace-header">Recent Bulletins</div>
 
@@ -648,7 +711,7 @@ export default function ProfilePage() {
             )}
           </div>
 
-          {/* 💬 COMMENTS WALL */}
+          {/* COMMENTS WALL */}
           <div className="myspace-card">
             <div className="myspace-header">Friends Comments Wall Space</div>
 
@@ -683,7 +746,7 @@ export default function ProfilePage() {
                     <div className="comment-main-row">
                       <div style={{ textAlign: "center", width: "65px" }}>
                         <img
-                          src={rootComment.profiles?.avatar_url || "https://placeholder.com"}
+                          src={rootComment.profiles?.avatar_url || "https://placehold.co/50"}
                           alt="Avatar"
                           className="comment-sidebar-avatar"
                         />
@@ -728,7 +791,7 @@ export default function ProfilePage() {
 
                     {/* REPLY INPUT */}
                     {activeReplyId === rootComment.id && (
-                      <div className="nested-input-wrapper" style={{ marginLeft: "50px" }}>
+                      <div className="nested-input-wrapper">
                         <input
                           type="text"
                           className="comment-box-field"
@@ -755,7 +818,7 @@ export default function ProfilePage() {
                         <div key={childComment.id} className="comment-nested-reply-row">
                           <div style={{ textAlign: "center", width: "55px" }}>
                             <img
-                              src={childComment.profiles?.avatar_url || "https://placeholder.com"}
+                              src={childComment.profiles?.avatar_url || "https://placehold.co/40"}
                               alt="Avatar"
                               className="comment-sidebar-avatar"
                               style={{ width: "40px", height: "40px" }}
