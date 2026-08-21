@@ -370,7 +370,18 @@ export default function ProfilePage() {
     return urlStr.split("/").pop();
   };
 
-  const isOnline = profile?.last_online && Date.now() - new Date(profile.last_online).getTime() < 5 * 60 * 1000;
+  // Replace your old isOnline declaration with this sturdier calculation:
+const isOnline = (() => {
+  if (!profile?.last_online) return false;
+  
+  const lastOnlineTime = new Date(profile.last_online).getTime();
+  const currentTime = new Date().getTime();
+  const differenceInMinutes = Math.abs(currentTime - lastOnlineTime) / (1000 * 60);
+  
+  // Considered online if active anywhere within the last 5 minutes
+  return differenceInMinutes <= 5;
+})();
+
 
   if (loading) return <div>Assembling retro layout canvas...</div>;
   if (!profile) return <div>Target profile layer missing.</div>;

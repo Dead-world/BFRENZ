@@ -87,11 +87,18 @@ export default function Dashboard() {
   const [deleteConfirmationText, setDeleteConfirmationText] = useState('');
   const [isDeletingAccount, setIsDeletingAccount] = useState(false);
 
+    /* 📥 LOAD PROFILE DATA MAP ON MOUNT & HEARTBEAT ENGINE */
   useEffect(() => {
     if (!user) return;
     
     const loadProfileAndFriendsData = async () => {
       try {
+        // 🟢 Heartbeat: Update user's last_online timestamp instantly on dashboard access
+        await supabase
+          .from('profiles')
+          .update({ last_online: new Date().toISOString() })
+          .eq('User_id', user.id);
+
         const { data, error } = await supabase
           .from('profiles')
           .select('about_me, meet, gender, hometown, birthday, general_interests, music_interests, custom_html, custom_css, song_url, song_title, youtube_url, soundcloud_url, profile_mp4_url, profile_privacy, show_hometown, allow_private_messages')
@@ -121,6 +128,7 @@ export default function Dashboard() {
           if (data.song_url) setMp3UploadState('Linked successfully');
           if (data.profile_mp4_url) setMp4UploadState('Linked successfully');
         }
+
 
         // Fetch accepted friendships nodes records cleanly to assemble options dropdown list arrays
         const { data: friendshipsData } = await supabase
