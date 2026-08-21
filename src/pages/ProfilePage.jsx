@@ -349,12 +349,26 @@ export default function ProfilePage() {
     setBulletins((prev) => prev.filter((b) => b.id !== bulletinId));
   }
 
-  /* Comments Tree Loader */
-  useEffect(() => {
-    loadCommentsTree();
-  }, [id]);
+/* Comments Tree Loader */
+useEffect(() => {
+  loadCommentsTree();
+}, [id]);
 
-  const loadCommentsTree = async () => {
+const loadCommentsTree = async () => {
+  const { data } = await supabase
+    .from("comments")
+    .select(`
+      id, content, created_at, user_id, parent_id,
+      profiles:comments_user_id_fkey ( username, avatar_url )
+    `)
+    .eq("profile_id", id)
+    .order("created_at", { ascending: true });
+
+  setComments(data || []);
+};
+
+/* ⭐ ADD THESE FUNCTIONS HERE — BEFORE THE RETURN ⭐ */
+
 const submitNewRootCommentAction = async () => {
   if (!currentUser) return;
   if (!masterCommentText.trim()) return;
@@ -401,15 +415,13 @@ const executeDeleteCommentAction = async (commentId) => {
   }
 };
 
-    if (loading) return <div>Loading layout canvas...</div>;
-  if (!profile) return <div>Profile frame missing.</div>;
+/* ⭐ ONLY AFTER ALL FUNCTIONS — PUT YOUR RETURN ⭐ */
 
-  const isOnline =
-    profile?.last_online &&
-    Date.now() - new Date(profile.last_online).getTime() < 5 * 60 * 1000;
+if (loading) return <div>Loading layout canvas...</div>;
+if (!profile) return <div>Profile frame missing.</div>;
 
-  return (
-    <>
+return (
+  <>
       <Navbar />
 
       <div className="ms-topnav">
