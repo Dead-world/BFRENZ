@@ -456,55 +456,74 @@ export default function ProfilePage() {
         {/* RIGHT CORE FEED COLUMN */}
         <div className="ms-profile-right">
           
-          {/* 🎵 UNIFIED FEATURED MEDIA PLAYER CARD BLOCK CONTAINER */}
-        <div className="myspace-card">
-        <div className="myspace-header">Featured Media</div>
+       {/* 🎵 MEDIA PLAYER SECTION */}
+<div className="myspace-card">
+  <div className="myspace-header">Featured Media</div>
 
-          {/* MP3 Player with Automatic Play Enabled */}
-        <div className="ms-player">
-        <div>⚡ TUNES: {profile.song_title || "No background song track set."}</div>
-           {profile.song_url && (
-        <audio 
-           src={profile.song_url} 
-           controls 
-           autoPlay 
-           className="retro-audio-element" 
-        />
-          )}
-        </div>
+  {/* MP3 / Audio Player */}
+<div className="ms-player">
+  <div>
+    ⚡ TUNES: {profile.song_title || "No background song track set."}
+  </div>
 
+  {profile.song_url && (
+    <audio
+      id="profileSongPlayer"
+      src={profile.song_url}
+      autoPlay
+      controls
+      muted
+      className="retro-audio-element"
+      onCanPlay={(e) => {
+        // Unmute after autoplay is allowed
+        e.target.muted = false;
+        e.target.play().catch(() => {
+          // If browser blocks autoplay, user interaction will trigger it
+          console.warn("Autoplay blocked until user interacts.");
+        });
+      }}
+    />
+  )}
+</div>
 
-            {/* YouTube Embed */}
-            {profile.youtube_url && (
-              <div className="myspace-card" style={{ marginTop: "15px" }}>
-                <div className="myspace-header">{profile.username}'s Featured Video</div>
-                <div className="video-responsive-frame">
-                  <iframe
-                    src={`https://youtube.com{helperExtractYoutubeToken(profile.youtube_url)}`}
-                    title="Featured YouTube Video"
-                    frameBorder="0"
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                    allowFullScreen
-                  ></iframe>
-                </div>
-              </div>
-            )}
+  {/* 🎬 YouTube Embed */}
+  {profile.youtube_url && (
+    <div className="myspace-card" style={{ marginTop: "15px" }}>
+      <div className="myspace-header">{profile.username}'s Featured Video</div>
 
-            {/* SoundCloud Embed */}
-            {profile.soundcloud_url && (
-              <div className="myspace-card" style={{ marginTop: "15px" }}>
-                <div className="myspace-header">{profile.username}'s SoundCloud Track</div>
-                <iframe
-                  width="100%"
-                  height="166"
-                  scrolling="no"
-                  frameBorder="no"
-                  allow="autoplay"
-                  src={`https://soundcloud.com{encodeURIComponent(profile.soundcloud_url)}&color=%23ff6600&auto_play=false&hide_related=false&show_comments=true&show_user=true&show_reposts=false`}
-                ></iframe>
-              </div>
-            )}
-          </div>
+      <div className="video-responsive-frame">
+        <iframe
+          src={`https://www.youtube.com/embed/${helperExtractYoutubeToken(
+            profile.youtube_url
+          )}`}
+          title="Featured YouTube Video"
+          frameBorder="0"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+          allowFullScreen
+        ></iframe>
+      </div>
+    </div>
+  )}
+
+  {/* 🎧 SoundCloud Embed */}
+  {profile.soundcloud_url && (
+    <div className="myspace-card" style={{ marginTop: "15px" }}>
+      <div className="myspace-header">{profile.username}'s SoundCloud Track</div>
+
+      <iframe
+        width="100%"
+        height="166"
+        scrolling="no"
+        frameBorder="no"
+        allow="autoplay"
+        src={`https://w.soundcloud.com/player/?url=${encodeURIComponent(
+          profile.soundcloud_url
+        )}&color=%23ff6600&auto_play=false&hide_related=false&show_comments=true&show_user=true&show_reposts=false`}
+      ></iframe>
+    </div>
+  )}
+</div>
+
 
           {/* 🎨 HTML SANDBOX BLOCK MOUNT: Safely parses structural customization objects onto right column feed */}
           {profile.custom_html && (
