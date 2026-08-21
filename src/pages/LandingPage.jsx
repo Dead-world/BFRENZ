@@ -88,7 +88,7 @@ export default function LandingPage() {
         {/* Left Side Column: Typography descriptors details blocks */}
         <div className="landing-hero-text">
           <h1 className="landing-hero-title">
-            Welcome to the <span>bfrenz</span> Our website is currently under construction, so some features may change or not work as expected. We apologize for any inconvenience. 
+            Welcome to <span>bfrenz</span> Our website is currently under construction, so some features may change or not work as expected. We apologize for any inconvenience. 
           </h1>
           <p className="landing-hero-subtitle">
             Customize your matrix footprint with structural custom HTML layout codes, upload your music portfolio tracks, and manage your network privacy control toggles cleanly.
