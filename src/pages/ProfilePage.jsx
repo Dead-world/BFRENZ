@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { supabase } from "../supabaseClient";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import Navbar from "../components/NavBar";
@@ -6,7 +6,7 @@ import Navbar from "../components/NavBar";
 if (typeof document !== 'undefined') {
   const styleEl = document.createElement('style');
   styleEl.innerHTML = `
-    /* 🎸 MODERNIZED RETRO MYSPACE THEME ENGINE WITH TOP 8 AND NESTED REPLIES */
+    /* 🎸 MODERNIZED RETRO MYSPACE STYLE MANIFEST */
     body {
       background-color: #0d0e12 !important;
       background-image: linear-gradient(rgba(255, 102, 0, 0.03) 1px, transparent 1px), 
@@ -81,17 +81,24 @@ if (typeof document !== 'undefined') {
     .ms-btn.active-action { background: #4BAC4E !important; color: #fff !important; border-color: #fff; pointer-events: none; }
     .ms-btn.blocked-action { background: #E41E3F !important; color: #fff !important; border-color: #fff; }
 
-    .ms-player { background: #000; border: 1px solid #ff6600; color: #00ff00; padding: 10px; font-size: 12px; text-align: center; border-radius: 4px; margin-top: 15px; box-shadow: inset 0 0 5px #00ff00; }
-    .ms-topnav { background-color: #000000; border-bottom: 1px solid #ff6600; padding: 8px 20px; display: flex; justify-content: space-between; font-size: 11px; color: #718096; }
+    /* 🔊 AUDIO INTERFACES MAPPING */
+    .ms-player { background: #000; border: 1px solid #ff6600; color: #00ff00; padding: 12px; font-size: 12px; text-align: center; border-radius: 4px; margin-top: 15px; box-shadow: inset 0 0 5px #00ff00; }
+    .retro-audio-element { width: 100%; height: 30px; margin-top: 8px; filter: invert(1) hue-rotate(180deg); }
 
-    /* 👥 TOP 8 DESIGN GRID SYSTEM */
+    /* 📺 YOUTUBE RESPONSIVE VIEWPORTS */
+    .video-responsive-frame { overflow: hidden; padding-bottom: 56.25%; position: relative; height: 0; border: 2px solid #2d313f; border-radius: 4px; }
+    .video-responsive-frame iframe { left: 0; top: 0; height: 100%; width: 100%; position: absolute; }
+
+    .ms-topnav { background-color: #000000; border-bottom: 1px solid #ff6600; padding: 8px 20px; display: flex; justify-content: space-between; font-size: 11px; color: #718096; }
+    
+    /* 👥 TOP 8 SECTIONS STYLE */
     .top8-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; text-align: center; margin-top: 10px; }
     .top8-friend-anchor { text-decoration: none; display: flex; flex-direction: column; align-items: center; }
     .top8-friend-name { font-size: 12px; color: #ff6600; font-weight: bold; margin-top: 4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; width: 100%; }
     .top8-friend-img { width: 65px; height: 65px; object-fit: cover; border: 2px solid #2d313f; border-radius: 4px; transition: border-color 0.1s; }
     .top8-friend-anchor:hover .top8-friend-img { border-color: #ff6600; }
 
-    /* 💬 MASTER COMMENTS WALL WITH COMPLEX TREE ACTION STRUCT */
+    /* 💬 WALL COMMENTS TREE STRUCT */
     .comment-input-area { display: flex; flex-direction: column; gap: 8px; margin-bottom: 20px; }
     .comment-box-field { width: 100%; height: 60px; background: #1c1e24; color: #fff; border: 1px solid #2d313f; padding: 8px; border-radius: 4px; font-family: inherit; font-size: 13px; box-sizing: border-box; resize: none; }
     .comment-box-field:focus { border-color: #ff6600; outline: none; }
@@ -114,7 +121,6 @@ if (typeof document !== 'undefined') {
     .comment-inline-action-btn.delete-color:hover { color: #E41E3F; }
 
     .nested-input-wrapper { display: flex; gap: 8px; margin-top: 10px; width: 100%; }
-
     .msg-modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background-color: rgba(0,0,0,0.85); display: flex; align-items: center; justify-content: center; z-index: 9999; }
     .msg-modal-card { background-color: #15171e; border: 2px solid #ff6600; padding: 20px; width: 100%; max-width: 450px; box-shadow: 5px 5px 0px #ffffff; border-radius: 4px; }
     
@@ -138,7 +144,6 @@ export default function ProfilePage() {
   const [views, setViews] = useState(0);
   const [loading, setLoading] = useState(true);
 
-  /* Relationship & Popup Interaction States */
   const [friendStatus, setFriendStatus] = useState("none"); 
   const [isBlocked, setIsBlocked] = useState(false);
   const [isFavorited, setIsFavorited] = useState(false);
@@ -146,7 +151,6 @@ export default function ProfilePage() {
   const [messageText, setMessageText] = useState("");
   const [actionLoading, setActionLoading] = useState(false);
 
-  /* Active Interactive Comments Processing Nodes */
   const [masterCommentText, setMasterCommentText] = useState("");
   const [activeReplyId, setActiveReplyId] = useState(null);
   const [replyInputText, setReplyInputText] = useState("");
@@ -162,7 +166,8 @@ export default function ProfilePage() {
         .from("profiles")
         .select(`
           User_id, username, avatar_url, status_message, hometown,
-          about_me, meet, general_interests, music_interests, last_online
+          about_me, meet, general_interests, music_interests, last_online,
+          youtube_url, song_url, song_title
         `)
         .eq("User_id", id)
         .single();
@@ -173,7 +178,6 @@ export default function ProfilePage() {
     loadProfile();
   }, [id]);
 
-  /* Relationship Assessment lifecycle hook */
   useEffect(() => {
     if (!currentUser || currentUser.id === id) return;
 
@@ -208,15 +212,12 @@ export default function ProfilePage() {
 
       setIsFavorited(!!favData);
     }
-
     checkRelationships();
   }, [currentUser, id]);
 
-  /* 👥 TOP 8 SELECTION RETRIEVAL RUNNER ENGINE */
   useEffect(() => {
     async function fetchTop8Friends() {
       try {
-        // Query explicit Top 8 overrides matrix config
         const { data: explicitTop8 } = await supabase
           .from("top_friends")
           .select("friend_id, slot_position")
@@ -225,11 +226,9 @@ export default function ProfilePage() {
           .limit(8);
 
         let finalFriendIds = [];
-
         if (explicitTop8 && explicitTop8.length > 0) {
           finalFriendIds = explicitTop8.map(f => f.friend_id);
         } else {
-          // Fallback: Populate grid with the user's first 8 accepted connections
           const { data: connections } = await supabase
             .from("friendships")
             .select("sender_id, receiver_id")
@@ -242,10 +241,7 @@ export default function ProfilePage() {
           }
         }
 
-        if (finalFriendIds.length === 0) {
-          setTop8Friends([]);
-          return;
-        }
+        if (finalFriendIds.length === 0) { setTop8Friends([]); return; }
 
         const { data: profiles } = await supabase
           .from("profiles")
@@ -253,14 +249,12 @@ export default function ProfilePage() {
           .in("User_id", finalFriendIds);
 
         setTop8Friends(profiles || []);
-      } catch (err) {
-        console.error("Top 8 retrieval malfunction:", err);
-      }
+      } catch (err) { console.error("Top 8 error:", err); }
     }
     fetchTop8Friends();
   }, [id]);
 
-  useEffect(() => {
+    useEffect(() => {
     async function addView() {
       const { data: auth } = await supabase.auth.getUser();
       if (!auth?.user || auth.user.id === id) return;
@@ -294,24 +288,23 @@ export default function ProfilePage() {
     setBulletins((prev) => prev.filter((b) => b.id !== bulletinId));
   }
 
-    const handleAddFriendAction = async () => {
-    if (!currentUser) { alert("Please log in to add friends!"); return; }
+  const handleAddFriendAction = async () => {
+    if (!currentUser) return alert("Please log in to add friends!");
     if (actionLoading || friendStatus !== "none") return;
     setActionLoading(true);
     const { error } = await supabase.from("friendships").insert({ sender_id: currentUser.id, receiver_id: id, status: "pending" });
     setActionLoading(false);
-    if (!error) { setFriendStatus("pending"); alert("Friend request broadcasted!"); } else { alert(error.message); }
+    if (!error) setFriendStatus("pending");
   };
 
   const handleToggleBlockAction = async () => {
-    if (!currentUser) { alert("Please log in to manage block rules."); return; }
-    if (actionLoading) return;
+    if (!currentUser) return;
     setActionLoading(true);
     if (isBlocked) {
       const { error } = await supabase.from("blocks").delete().eq("blocker_id", currentUser.id).eq("blocked_id", id);
       if (!error) setIsBlocked(false);
     } else {
-      if (window.confirm(`Are you sure you want to block ${profile.username}?`)) {
+      if (window.confirm(`Block ${profile.username}?`)) {
         await supabase.from("friendships").delete().or(`and(sender_id.eq.${currentUser.id},receiver_id.eq.${id}),and(sender_id.eq.${id},receiver_id.eq.${currentUser.id})`);
         const { error } = await supabase.from("blocks").insert({ blocker_id: currentUser.id, blocked_id: id });
         if (!error) { setIsBlocked(true); setFriendStatus("none"); }
@@ -321,22 +314,16 @@ export default function ProfilePage() {
   };
 
   const handleToggleFavoriteAction = async () => {
-    if (!currentUser) { alert("Please log in to manage favorites."); return; }
-    if (actionLoading) return;
+    if (!currentUser) return;
     setActionLoading(true);
     if (isFavorited) {
       const { error } = await supabase.from("favorites").delete().eq("user_id", currentUser.id).eq("profile_id", id);
       if (!error) setIsFavorited(false);
     } else {
       const { error } = await supabase.from("favorites").insert({ user_id: currentUser.id, profile_id: id });
-      if (!error) { setIsFavorited(true); alert("Added to your custom favorites index panel!"); }
+      if (!error) setIsFavorited(true);
     }
     setActionLoading(false);
-  };
-
-  const handleForwardToFriendAction = () => {
-    navigator.clipboard.writeText(window.location.href);
-    alert("Profile URL string matched and exported directly to your clipboard!");
   };
 
   const handleSendMessageAction = async () => {
@@ -344,105 +331,87 @@ export default function ProfilePage() {
     setActionLoading(true);
     const { error } = await supabase.from("user_messages").insert({ sender_id: currentUser.id, receiver_id: id, content: messageText.trim(), read: false });
     setActionLoading(false);
-    if (!error) { alert(`Message sent to ${profile.username}!`); setMessageText(""); setIsMsgModalOpen(false); } else { alert(error.message); }
+    if (!error) { setMessageText(""); setIsMsgModalOpen(false); alert("Message sent!"); }
   };
 
-    /* 💬 CORE ENGINE: DISPATCH COMMENTS DATA STREAM HYDRATIONS */
-  useEffect(() => {
-    loadCommentsTree();
-  }, [id]);
+  useEffect(() => { loadCommentsTree(); }, [id]);
 
   const loadCommentsTree = async () => {
-    const { data, error } = await supabase
+    const { data } = await supabase
       .from("comments")
-      .select(`
-        id, content, created_at, user_id, parent_id,
-        profiles:comments_user_id_fkey ( username, avatar_url )
-      `)
+      .select(`id, content, created_at, user_id, parent_id, profiles:comments_user_id_fkey ( username, avatar_url )`)
       .eq("profile_id", id)
       .order("created_at", { ascending: true });
-    
-    if (error) console.error("COMMENTS ERROR:", error);
     setComments(data || []);
   };
 
   const submitNewRootCommentAction = async () => {
-    if (!currentUser) { alert("Please login to post a comment!"); return; }
-    if (!masterCommentText.trim()) return;
-
-    const { error } = await supabase
-      .from("comments")
-      .insert({ profile_id: id, user_id: currentUser.id, content: masterCommentText.trim(), parent_id: null });
-
-    if (!error) { setMasterCommentText(""); loadCommentsTree(); } else { alert(error.message); }
+    if (!currentUser || !masterCommentText.trim()) return;
+    const { error } = await supabase.from("comments").insert({ profile_id: id, user_id: currentUser.id, content: masterCommentText.trim(), parent_id: null });
+    if (!error) { setMasterCommentText(""); loadCommentsTree(); }
   };
 
   const submitNestedReplyCommentAction = async (parentId) => {
-    if (!currentUser) { alert("Please login to reply!"); return; }
-    if (!replyInputText.trim()) return;
-
-    const { error } = await supabase
-      .from("comments")
-      .insert({ profile_id: id, user_id: currentUser.id, content: replyInputText.trim(), parent_id: parentId });
-
-    if (!error) { setReplyInputText(""); setActiveReplyId(null); loadCommentsTree(); } else { alert(error.message); }
+    if (!currentUser || !replyInputText.trim()) return;
+    const { error } = await supabase.from("comments").insert({ profile_id: id, user_id: currentUser.id, content: replyInputText.trim(), parent_id: parentId });
+    if (!error) { setReplyInputText(""); setActiveReplyId(null); loadCommentsTree(); }
   };
 
   const executeDeleteCommentAction = async (commentId) => {
-    if (!window.confirm("Are you sure you want to delete this text block comment node?")) return;
-    // Clearing a parent node cascades clear triggers natively across mapped table schemas
+    if (!window.confirm("Delete comment?")) return;
     const { error } = await supabase.from("comments").delete().eq("id", commentId);
-    if (!error) { loadCommentsTree(); } else { alert(error.message); }
+    if (!error) loadCommentsTree();
+  };
+
+  const helperExtractYoutubeToken = (urlStr) => {
+    if (!urlStr) return "";
+    if (urlStr.includes("v=")) return urlStr.split("v=")[1].split("&")[0];
+    return urlStr.split("/").pop();
   };
 
   const isOnline = profile?.last_online && Date.now() - new Date(profile.last_online).getTime() < 5 * 60 * 1000;
 
-  if (loading) return <div className="ms-loading">Loading profile...</div>;
-  if (!profile) return <div className="ms-not-found">Profile not found.</div>;
+  if (loading) return <div>Loading layout canvas...</div>;
+  if (!profile) return <div>Profile frame missing.</div>;
 
-   return (
+    return (
     <>
       <Navbar />
 
       <div className="ms-topnav">
         <div className="ms-topnav-left">
-          <Link to="/browse" style={{color:'#ff6600', textDecoration:'none', marginRight:'8px'}}>Browse</Link> | <span>Search</span> | <span>Mail</span> | <span>Blogs</span> | <span>Groups</span>
+          <Link to="/browse" style={{color:'#ff6600', textDecoration:'none', marginRight:'8px'}}>Browse</Link> | <span>Search</span> | <span>Mail</span> | <span>Blogs</span>
         </div>
         <div className="ms-topnav-right" style={{cursor:'pointer'}} onClick={() => navigate('/login')}>Logout</div>
       </div>
 
       <div className="ms-container">
         
-        {/* LEFT PROFILE SIDEBAR SECTION */}
+        {/* LEFT COLUMN: SIDEBAR HUB */}
         <div className="ms-profile-left">
           <div className="myspace-card">
             <h2 className="ms-name">{profile.username}</h2>
-            <img src={profile.avatar_url} alt="Avatar" className="ms-photo" />
+            <img src={profile.avatar_url} alt="Profile Avatar" className="ms-photo" />
             
             <div style={{ marginTop: '12px', padding: '0 6px' }}>
               <p className="ms-info-text"><strong>Mood:</strong> {profile.status_message || "chillin"}</p>
-              <p className="ms-info-text"><strong>Location:</strong> {profile.hometown || "Planet Earth"}</p>
+              <p className="ms-info-text"><strong>Location:</strong> {profile.hometown || "Earth"}</p>
               <p className="ms-info-text"><strong>Views:</strong> {views}</p>
               <p className="ms-info-text"><strong>Status:</strong> {isOnline ? "🟢 Online" : "❌ Offline"}</p>
             </div>
 
-            {/* FULLY OPERATIONAL RETRO 3D SYSTEM ACTION BOX INTERFACES */}
             <div className="ms-contact-grid">
               {currentUser && currentUser.id !== id ? (
                 <>
                   <button className="ms-btn" onClick={() => setIsMsgModalOpen(true)}>Message</button>
-
                   {friendStatus === "none" && ( <button className="ms-btn" onClick={handleAddFriendAction}>Add Friend</button> )}
                   {friendStatus === "pending" && ( <button className="ms-btn active-action">Pending</button> )}
                   {friendStatus === "accepted" && ( <button className="ms-btn active-action">✓ Friend</button> )}
-
                   <button className="ms-btn" onClick={() => setIsMsgModalOpen(true)}>IM Chat</button>
                   <button className="ms-btn" onClick={handleToggleFavoriteAction}>
                     {isFavorited ? "★ Unfavorite" : "☆ Favorite"}
                   </button>
-                  
-                  <button className="ms-btn" onClick={handleForwardToFriendAction}>Forward</button>
-                  
+                  <button className="ms-btn" onClick={() => navigator.clipboard.writeText(window.location.href)}>Forward</button>
                   <button className={`ms-btn ${isBlocked ? 'blocked-action' : ''}`} onClick={handleToggleBlockAction}>
                     {isBlocked ? "Unblock" : "Block"}
                   </button>
@@ -454,26 +423,31 @@ export default function ProfilePage() {
               )}
             </div>
 
-            <div className="ms-player">⚡ TUNES: Electric Surfin Go Go — 01:10</div>
+            {/* 🔊 WORKING LIVE MP3 AUDIO PLAYER ENGINE */}
+            <div className="ms-player">
+              <div>⚡ TUNES: {profile.song_title || "No background song track set."}</div>
+              {profile.song_url && (
+                <audio src={profile.song_url} controls className="retro-audio-element" />
+              )}
+            </div>
           </div>
 
-          {/* INTERESTS BOX CARDS PANEL */}
           <div className="myspace-card">
             <div className="myspace-header">Interests</div>
             <p className="ms-info-text"><strong>General:</strong> {profile.general_interests || "Surfing the net."}</p>
             <p className="ms-info-text" style={{marginTop:'10px'}}><strong>Music:</strong> {profile.music_interests || "Chiptunes & Synthwave."}</p>
           </div>
 
-          {/* 👥 THE TRADITIONAL TOP 8 FRIENDS CONTAINER */}
+          {/* 👥 AUTHENTIC TOP 8 FRIENDS CONTAINER DISPLAY GRID */}
           <div className="myspace-card">
             <div className="myspace-header">{profile.username}'s Space Top 8 Grid</div>
             {top8Friends.length === 0 ? (
-              <p className="ms-info-text" style={{textAlign:'center', padding:'10px 0'}}>No connections cataloged in space yet.</p>
+              <p className="ms-info-text" style={{textAlign:'center', padding:'10px 0'}}>No grid space mapped yet.</p>
             ) : (
               <div className="top8-grid">
                 {top8Friends.map((friend) => (
                   <Link key={friend.User_id} to={`/profile/${friend.User_id}`} className="top8-friend-anchor">
-                    <img src={friend.avatar_url || 'https://placeholder.com'} alt="Friend node avatar" className="top8-friend-img" />
+                    <img src={friend.avatar_url || 'https://placeholder.com'} alt="Node avatar" className="top8-friend-img" />
                     <span className="top8-friend-name">{friend.username}</span>
                   </Link>
                 ))}
@@ -482,16 +456,33 @@ export default function ProfilePage() {
           </div>
         </div>
 
-        {/* RIGHT CORE FEED COLUMN */}
+        {/* RIGHT COLUMN: CORE FEEDS */}
         <div className="ms-profile-right">
+          
+          {/* 📺 DYNAMIC RETRO EMBEDDED YOUTUBE MOUNT PLAYER PANEL */}
+          {profile.youtube_url && (
+            <div className="myspace-card">
+              <div className="myspace-header">{profile.username}'s Featured Video</div>
+              <div className="video-responsive-frame">
+                <iframe
+                  src={`https://youtube.com{helperExtractYoutubeToken(profile.youtube_url)}`}
+                  title="Featured video frame player"
+                  frameBorder="0"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                ></iframe>
+              </div>
+            </div>
+          )}
+
           <div className="myspace-card" style={{borderLeft:'5px solid #ff6600'}}>
-            <h3 style={{margin:'0 0 6px 0', color:'#ff6600', fontSize:'16px'}}>{profile.username} Space Station</h3>
-            <p className="ms-info-text" style={{margin:0}}>Welcome to my custom room. Drop a needle on the wall text log comments stream panel below!</p>
+            <h3 style={{margin:'0 0 6px 0', color:'#ff6600', fontSize:'16px'}}>{profile.username} Space Blurb</h3>
+            <p className="ms-info-text" style={{margin:0}}>Welcome to my custom room layer grid.</p>
           </div>
 
           <div className="myspace-card">
             <div className="myspace-header">About Me</div>
-            <p className="ms-info-text" style={{color:'#e2e8f0', lineHeight:'1.5'}}>{profile.about_me || "No bio set yet."}</p>
+            <p className="ms-info-text" style={{color:'#e2e8f0', lineHeight:'1.5'}}>{profile.about_me || "No bio text configured."}</p>
           </div>
 
           <div className="myspace-card">
@@ -499,11 +490,10 @@ export default function ProfilePage() {
             <p className="ms-info-text" style={{color:'#e2e8f0', lineHeight:'1.5'}}>{profile.meet || "Cool developers and retro builders."}</p>
           </div>
 
-          {/* BULLETINS ENGINE ARCHIVE BOX */}
           <div className="myspace-card">
-            <div className="myspace-header">Recent Space Bulletins</div>
+            <div className="myspace-header">Recent Bulletins</div>
             {bulletins.length === 0 ? (
-              <p className="ms-info-text">No bulletins broadcasted yet.</p>
+              <p className="ms-info-text">No bulletins broadcasted.</p>
             ) : (
               bulletins.map((b) => (
                 <div key={b.id} style={{borderBottom:'1px solid #2d313f', padding:'10px 0', position:'relative'}}>
@@ -517,11 +507,10 @@ export default function ProfilePage() {
             )}
           </div>
 
-          {/* 💬 COMPLETELY RE-ENGINEERED TWO-LEVEL NESTED COMMENT TRACKER PANEL */}
+          {/* 💬 MULTI-LEVEL DYNAMIC COMMENT THREADS FORUM WALL */}
           <div className="myspace-card">
             <div className="myspace-header">Friends Comments Wall Space</div>
             
-            {/* Master Comment Post Form */}
             <div className="comment-input-area">
               <textarea 
                 className="comment-box-field"
@@ -534,17 +523,15 @@ export default function ProfilePage() {
               </button>
             </div>
 
-            {/* Hierarchical Comments Rendering Thread Loop */}
             {comments.filter(c => !c.parent_id).length === 0 ? (
-              <p className="ms-info-text">No footprints left here yet. Be the first to post text to the stream!</p>
+              <p className="ms-info-text">No comments left on the profile yet.</p>
             ) : (
               comments.filter(c => !c.parent_id).map((rootComment) => (
                 <div key={rootComment.id} className="comment-node-container">
                   
-                  {/* Root Comment Container Item block */}
                   <div className="comment-main-row">
                     <div style={{textAlign:'center', width:'65px'}}>
-                      <img src={rootComment.profiles?.avatar_url || 'https://placeholder.com'} alt="User avatar" className="comment-sidebar-avatar" />
+                      <img src={rootComment.profiles?.avatar_url || 'https://placeholder.com'} alt="Avatar" className="comment-sidebar-avatar" />
                       <span className="comment-author-name">{rootComment.profiles?.username}</span>
                     </div>
                     <div className="comment-body-block">
@@ -552,21 +539,15 @@ export default function ProfilePage() {
                         <span className="comment-timestamp">{new Date(rootComment.created_at).toLocaleString()}</span>
                       </div>
                       <p className="comment-msg-content">{rootComment.content}</p>
-                      
                       <div className="comment-actions-bar">
-                        <button className="comment-inline-action-btn" onClick={() => setActiveReplyId(activeReplyId === rootComment.id ? null : rootComment.id)}>
-                          Reply
-                        </button>
+                        <button className="comment-inline-action-btn" onClick={() => setActiveReplyId(activeReplyId === rootComment.id ? null : rootComment.id)}>Reply</button>
                         {(currentUser?.id === id || currentUser?.id === rootComment.user_id) && (
-                          <button className="comment-inline-action-btn delete-color" onClick={() => executeDeleteCommentAction(rootComment.id)}>
-                            Delete
-                          </button>
+                          <button className="comment-inline-action-btn delete-color" onClick={() => executeDeleteCommentAction(rootComment.id)}>Delete</button>
                         )}
                       </div>
                     </div>
                   </div>
 
-                  {/* Inline Reply Input Block */}
                   {activeReplyId === rootComment.id && (
                     <div className="nested-input-wrapper" style={{marginLeft:'50px'}}>
                       <input 
@@ -577,17 +558,15 @@ export default function ProfilePage() {
                         value={replyInputText}
                         onChange={(e) => setReplyInputText(e.target.value)}
                       />
-                      <button className="ms-btn" style={{padding:'0 14px'}} onClick={() => submitNestedReplyCommentAction(rootComment.id)}>
-                        Reply
-                      </button>
+                      <button className="ms-btn" style={{padding:'0 14px'}} onClick={() => submitNestedReplyCommentAction(rootComment.id)}>Reply</button>
                     </div>
                   )}
 
-                  {/* Nested Child Node Elements Mapping Loop */}
+                  {/* Render nested replies */}
                   {comments.filter(child => child.parent_id === rootComment.id).map((childComment) => (
                     <div key={childComment.id} className="comment-nested-reply-row">
                       <div style={{textAlign:'center', width:'55px'}}>
-                        <img src={childComment.profiles?.avatar_url || 'https://placeholder.com'} alt="Child user avatar" className="comment-sidebar-avatar" style={{width:'40px', height:'40px'}} />
+                        <img src={childComment.profiles?.avatar_url || 'https://placeholder.com'} alt="Avatar" className="comment-sidebar-avatar" style={{width:'40px', height:'40px'}} />
                         <span className="comment-author-name" style={{fontSize:'10px'}}>{childComment.profiles?.username}</span>
                       </div>
                       <div className="comment-body-block">
@@ -597,9 +576,7 @@ export default function ProfilePage() {
                         <p className="comment-msg-content" style={{fontSize:'12px'}}>{childComment.content}</p>
                         <div className="comment-actions-bar">
                           {(currentUser?.id === id || currentUser?.id === childComment.user_id) && (
-                            <button className="comment-inline-action-btn delete-color" onClick={() => executeDeleteCommentAction(childComment.id)}>
-                              Delete
-                            </button>
+                            <button className="comment-inline-action-btn delete-color" onClick={() => executeDeleteCommentAction(childComment.id)}>Delete</button>
                           )}
                         </div>
                       </div>
@@ -613,20 +590,15 @@ export default function ProfilePage() {
         </div>
       </div>
 
-      {/* SEND DIRECT USER MESSAGES RETRO POPUP CARDS */}
+      {/* DIRECT INBOX OVERLAY MODAL */}
       {isMsgModalOpen && (
         <div className="msg-modal-overlay">
           <div className="msg-modal-card">
-            <div className="msg-modal-header">Send Message to {profile.username}</div>
-            <textarea 
-              className="msg-modal-textarea"
-              placeholder="Type your message text here..."
-              value={messageText}
-              onChange={(e) => setMessageText(e.target.value)}
-            />
+            <div className="msg-modal-header">Message {profile.username}</div>
+            <textarea className="msg-modal-textarea" value={messageText} onChange={(e) => setMessageText(e.target.value)} placeholder="Type here..." />
             <div className="msg-modal-actions">
-              <button className="msg-btn-cancel" onClick={() => { setIsMsgModalOpen(false); setMessageText(""); }}>Cancel</button>
-              <button className="msg-btn-send" onClick={handleSendMessageAction} disabled={!messageText.trim()}>Send</button>
+              <button className="msg-btn-cancel" onClick={() => setIsMsgModalOpen(false)}>Cancel</button>
+              <button className="msg-btn-send" onClick={handleSendMessageAction}>Send</button>
             </div>
           </div>
         </div>
