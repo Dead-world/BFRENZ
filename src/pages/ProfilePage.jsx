@@ -247,23 +247,24 @@ export default function ProfilePage() {
     async function fetchTop8Friends() {
       try {
         const { data: explicitTop8 } = await supabase
-          .from("top_eight")
-          .select("friend_id, slot_position")
-          .eq("user_id", id)
-          .order("slot_position", { ascending: true })
-          .limit(8);
+  .from("top_eight")
+  .select("friend_id, slot_position")
+  .eq("user_id", id)
+  .order("slot_position", { ascending: true })
+  .limit(8);
 
         let finalFriendIds = [];
 
         if (explicitTop8?.length > 0) {
           finalFriendIds = explicitTop8.map((f) => f.friend_id);
         } else {
-          const { data: connections } = await supabase
-            .from("friends")
-            .select("sender_id, receiver_id")
-            .eq("status", "accepted")
-            .or(`sender_id.eq.${id},receiver_id.eq.${id}`)
-            .limit(8);
+         const { data: connections } = await supabase
+  .from("friends")
+  .select("sender_id, receiver_id")
+  .eq("status", "accepted")
+  .or(`sender_id.eq.${id},receiver_id.eq.${id}`)
+  .limit(8);
+
 
           if (connections) {
             finalFriendIds = connections.map((c) =>
