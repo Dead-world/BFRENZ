@@ -6,7 +6,7 @@ import Navbar from "../components/NavBar";
 if (typeof document !== 'undefined') {
   const styleEl = document.createElement('style');
   styleEl.innerHTML = `
-    /* 🎸 MODERNIZED RETRO MYSPACE STYLE MANIFEST */
+    /* 🎸 MODERNIZED RETRO MYSPACE CODES GRID */
     body {
       background-color: #0d0e12 !important;
       background-image: linear-gradient(rgba(255, 102, 0, 0.03) 1px, transparent 1px), 
@@ -81,24 +81,24 @@ if (typeof document !== 'undefined') {
     .ms-btn.active-action { background: #4BAC4E !important; color: #fff !important; border-color: #fff; pointer-events: none; }
     .ms-btn.blocked-action { background: #E41E3F !important; color: #fff !important; border-color: #fff; }
 
-    /* 🔊 AUDIO INJECTORS INTERFACES */
-    .ms-player { background: #000; border: 1px solid #ff6600; color: #00ff00; padding: 12px; font-size: 12px; text-align: center; border-radius: 4px; margin-top: 15px; box-shadow: inset 0 0 5px #00ff00; }
+    /* 🔊 MEDIA ELEMENTS OVERRIDES */
+    .ms-player { background: #000; border: 1px solid #ff6600; color: #00ff00; padding: 12px; font-size: 12px; text-align: center; border-radius: 4px; box-shadow: inset 0 0 5px #00ff00; }
     .retro-audio-element { width: 100%; height: 30px; margin-top: 8px; filter: invert(1) hue-rotate(180deg); }
 
-    /* 📺 YOUTUBE VIDEO EMBED PLUGINS */
+    /* 📺 YOUTUBE RESPONSIVE WRAPPERS */
     .video-responsive-frame { overflow: hidden; padding-bottom: 56.25%; position: relative; height: 0; border: 2px solid #2d313f; border-radius: 4px; }
     .video-responsive-frame iframe { left: 0; top: 0; height: 100%; width: 100%; position: absolute; }
 
     .ms-topnav { background-color: #000000; border-bottom: 1px solid #ff6600; padding: 8px 20px; display: flex; justify-content: space-between; font-size: 11px; color: #718096; }
     
-    /* 👥 FRIEND MATRICES DISPLAY HOODS */
+    /* 👥 TOP 8 SECTIONS STYLE */
     .top8-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; text-align: center; margin-top: 10px; }
     .top8-friend-anchor { text-decoration: none; display: flex; flex-direction: column; align-items: center; }
     .top8-friend-name { font-size: 12px; color: #ff6600; font-weight: bold; margin-top: 4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; width: 100%; }
     .top8-friend-img { width: 65px; height: 65px; object-fit: cover; border: 2px solid #2d313f; border-radius: 4px; transition: border-color 0.1s; }
     .top8-friend-anchor:hover .top8-friend-img { border-color: #ff6600; }
 
-    /* 💬 RE-ENGINEERED TREE COMMENTS */
+    /* 💬 COMMENTS SYSTEM ELEMENT STRUCTS */
     .comment-input-area { display: flex; flex-direction: column; gap: 8px; margin-bottom: 20px; }
     .comment-box-field { width: 100%; height: 60px; background: #1c1e24; color: #fff; border: 1px solid #2d313f; padding: 8px; border-radius: 4px; font-family: inherit; font-size: 13px; box-sizing: border-box; resize: none; }
     .comment-box-field:focus { border-color: #ff6600; outline: none; }
@@ -167,7 +167,7 @@ export default function ProfilePage() {
         .select(`
           User_id, username, avatar_url, status_message, hometown,
           about_me, meet, general_interests, music_interests, last_online,
-          youtube_url, song_url, song_title
+          youtube_url, song_url, song_title, soundcloud_url
         `)
         .eq("User_id", id)
         .single();
@@ -249,7 +249,7 @@ export default function ProfilePage() {
           .in("User_id", finalFriendIds);
 
         setTop8Friends(profiles || []);
-      } catch (err) { console.error("Top 8 execution error:", err); }
+      } catch (err) { console.error("Top 8 layout issue:", err); }
     }
     fetchTop8Friends();
   }, [id]);
@@ -294,7 +294,7 @@ export default function ProfilePage() {
     setActionLoading(true);
     const { error } = await supabase.from("friendships").insert({ sender_id: currentUser.id, receiver_id: id, status: "pending" });
     setActionLoading(false);
-    if (!error) { setFriendStatus("pending"); alert("Friend request broadcasted!"); }
+    if (!error) { setFriendStatus("pending"); alert("Friend request sent!"); }
   };
 
   const handleToggleBlockAction = async () => {
@@ -358,7 +358,7 @@ export default function ProfilePage() {
   };
 
   const executeDeleteCommentAction = async (commentId) => {
-    if (!window.confirm("Delete this comment node?")) return;
+    if (!window.confirm("Delete comment?")) return;
     const { error } = await supabase.from("comments").delete().eq("id", commentId);
     if (!error) loadCommentsTree();
   };
@@ -371,8 +371,8 @@ export default function ProfilePage() {
 
   const isOnline = profile?.last_online && Date.now() - new Date(profile.last_online).getTime() < 5 * 60 * 1000;
 
-  if (loading) return <div>Assembling retro layout...</div>;
-  if (!profile) return <div>Target user profile missing.</div>;
+  if (loading) return <div>Assembling retro layout canvas...</div>;
+  if (!profile) return <div>Target profile layer missing.</div>;
 
     return (
     <>
@@ -400,7 +400,6 @@ export default function ProfilePage() {
               <p className="ms-info-text"><strong>Status:</strong> {isOnline ? "🟢 Online" : "❌ Offline"}</p>
             </div>
 
-            {/* RETRO LINK ACTION CONTROLS */}
             <div className="ms-contact-grid">
               {currentUser && currentUser.id !== id ? (
                 <>
@@ -423,14 +422,6 @@ export default function ProfilePage() {
                 ))
               )}
             </div>
-
-            {/* 🔊 INTEGRATED DYNAMIC AUDIO ENGINE */}
-            <div className="ms-player">
-              <div>⚡ TUNES: {profile.song_title || "No track loaded."}</div>
-              {profile.song_url && (
-                <audio src={profile.song_url} controls className="retro-audio-element" />
-              )}
-            </div>
           </div>
 
           <div className="myspace-card">
@@ -439,7 +430,7 @@ export default function ProfilePage() {
             <p className="ms-info-text" style={{marginTop:'10px'}}><strong>Music:</strong> {profile.music_interests || "Chiptunes & Synthwave."}</p>
           </div>
 
-          {/* 👥 REAL TIME TOP 8 FRIENDS DISPLAY BLOCK */}
+          {/* 👥 REAL TIME AUTOMATED FALLBACK FRIENDS MATRIX */}
           <div className="myspace-card">
             <div className="myspace-header">{profile.username}'s Top 8 Grid</div>
             {top8Friends.length === 0 ? (
@@ -448,7 +439,7 @@ export default function ProfilePage() {
               <div className="top8-grid">
                 {top8Friends.map((friend) => (
                   <Link key={friend.User_id} to={`/profile/${friend.User_id}`} className="top8-friend-anchor">
-                    <img src={friend.avatar_url || 'https://placeholder.com'} alt="Node avatar" className="top8-friend-img" />
+                    <img src={friend.avatar_url || 'https://placeholder.com'} alt="Avatar" className="top8-friend-img" />
                     <span className="top8-friend-name">{friend.username}</span>
                   </Link>
                 ))}
@@ -457,28 +448,56 @@ export default function ProfilePage() {
           </div>
         </div>
 
-        {/* RIGHT FEED PANEL COLUMN */}
+        {/* RIGHT CORE FEED COLUMN */}
         <div className="ms-profile-right">
           
-          {/* 📺 DYNAMIC PARSED YOUTUBE MOUNT */}
-          {profile.youtube_url && (
-            <div className="myspace-card">
-              <div className="myspace-header">{profile.username}'s Featured Video</div>
-              <div className="video-responsive-frame">
+          {/* 🎵 UNIFIED FEATURED MEDIA PLAYER CARD BLOCK CONTAINER */}
+          <div className="myspace-card">
+            <div className="myspace-header">Featured Media</div>
+
+            {/* MP3 / Native HTML5 Audio Player */}
+            <div className="ms-player">
+              <div>⚡ TUNES: {profile.song_title || "No background song track set."}</div>
+              {profile.song_url && (
+                <audio src={profile.song_url} controls className="retro-audio-element" />
+              )}
+            </div>
+
+            {/* 🎬 YouTube Embed Plugin Mount */}
+            {profile.youtube_url && (
+              <div className="myspace-card" style={{ marginTop: "15px" }}>
+                <div className="myspace-header">{profile.username}'s Featured Video</div>
+                <div className="video-responsive-frame">
+                  <iframe
+                    src={`https://www.youtube.com/embed/${helperExtractYoutubeToken(profile.youtube_url)}`}
+                    title="Featured YouTube Video"
+                    frameBorder="0"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen
+                  ></iframe>
+                </div>
+              </div>
+            )}
+
+            {/* 🎧 SoundCloud Embed Widget Mount */}
+            {profile.soundcloud_url && (
+              <div className="myspace-card" style={{ marginTop: "15px" }}>
+                <div className="myspace-header">{profile.username}'s SoundCloud Track</div>
                 <iframe
-                  src={`https://youtube.com{helperExtractYoutubeToken(profile.youtube_url)}`}
-                  title="Featured video frame player"
-                  frameBorder="0"
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                  allowFullScreen
+                  width="100%"
+                  height="166"
+                  scrolling="no"
+                  frameBorder="no"
+                  allow="autoplay"
+                  src={`https://w.soundcloud.com/player/?url=${encodeURIComponent(profile.soundcloud_url)}&color=%23ff6600&auto_play=false&hide_related=false&show_comments=true&show_user=true&show_reposts=false`}
                 ></iframe>
               </div>
-            </div>
-          )}
+            )}
+          </div>
 
           <div className="myspace-card" style={{borderLeft:'5px solid #ff6600'}}>
             <h3 style={{margin:'0 0 6px 0', color:'#ff6600', fontSize:'16px'}}>{profile.username} Space Blurb</h3>
-            <p className="ms-info-text" style={{margin:0}}>Welcome to my custom room layer grid.</p>
+            <p className="ms-info-text" style={{margin:0}}>Welcome to my custom room layer grid corner feed.</p>
           </div>
 
           <div className="myspace-card">
@@ -563,7 +582,7 @@ export default function ProfilePage() {
                     </div>
                   )}
 
-                  {/* Render nested child responses */}
+                  {/* Render nested replies */}
                   {comments.filter(child => child.parent_id === rootComment.id).map((childComment) => (
                     <div key={childComment.id} className="comment-nested-reply-row">
                       <div style={{textAlign:'center', width:'55px'}}>
@@ -591,7 +610,7 @@ export default function ProfilePage() {
         </div>
       </div>
 
-      {/* INBOX FLYOUT DIRECT CARDS MODAL CONTAINER */}
+      {/* FLYOUT OVERLAY MODAL */}
       {isMsgModalOpen && (
         <div className="msg-modal-overlay">
           <div className="msg-modal-card">

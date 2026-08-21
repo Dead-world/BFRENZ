@@ -10,39 +10,29 @@ if (typeof document !== 'undefined') {
     .dashboard-container { padding: 24px; max-width: 650px; margin: 0 auto; }
     .settings-card { background-color: #242526; border: 1px solid #393A3B; border-radius: 8px; padding: 20px; margin-bottom: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
     .card-title { font-size: 18px; font-weight: bold; margin-bottom: 16px; color: #ffffff; border-bottom: 1px solid #393A3B; padding-bottom: 8px; display: flex; align-items: center; gap: 8px; }
-    
-    /* Form Element Inputs */
     .form-group { margin-bottom: 16px; }
     .form-label { font-weight: 500; font-size: 14px; color: #ffffff; display: block; margin-bottom: 6px; }
     .form-input { width: 100%; box-sizing: border-box; background-color: #3A3B3C; color: #E4E6EB; border: 1px solid #4E4F50; padding: 10px; border-radius: 6px; font-size: 14px; outline: none; }
     .form-input:focus { border-color: #2F80ED; }
     .form-textarea { width: 100%; box-sizing: border-box; background-color: #3A3B3C; color: #E4E6EB; border: 1px solid #4E4F50; padding: 10px; border-radius: 6px; font-size: 14px; outline: none; min-height: 80px; resize: vertical; }
     .form-textarea:focus { border-color: #2F80ED; }
-    
     .code-input { font-family: 'Courier New', Courier, monospace !important; background-color: #1C1D1E !important; border-color: #393A3B !important; font-size: 13px !important; }
-    
-    /* 📁 FILE UPLOAD ROW ALIGNMENTS */
     .file-upload-row { display: flex; align-items: center; gap: 12px; margin-top: 4px; }
     .custom-file-btn { background-color: #3A3B3C; color: #E4E6EB; border: 1px solid #4E4F50; padding: 8px 16px; font-size: 13px; font-weight: 600; border-radius: 6px; cursor: pointer; transition: background-color 0.2s; display: inline-flex; align-items: center; gap: 6px; }
     .custom-file-btn:hover { background-color: #4E4F50; }
     .file-status-label { font-size: 12px; color: #B0B3B8; font-family: monospace; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 280px; }
     .file-hidden { display: none; }
-
-    /* Privacy Grid Layout Styles */
     .setting-row { display: flex; align-items: flex-start; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid #2F3031; }
     .setting-info { max-width: 75%; }
     .setting-label { font-weight: 500; font-size: 15px; color: #ffffff; display: block; }
     .setting-desc { font-size: 12px; color: #B0B3B8; margin-top: 2px; }
     .privacy-select { background-color: #3A3B3C; color: #E4E6EB; border: 1px solid #4E4F50; padding: 8px 12px; border-radius: 6px; cursor: pointer; outline: none; font-size: 14px; }
-    
-    /* Sliding Toggle Mechanisms */
     .switch-label { position: relative; display: inline-block; width: 44px; height: 24px; cursor: pointer; }
     .switch-label input { opacity: 0; width: 0; height: 0; }
     .switch-slider { position: absolute; top: 0; left: 0; right: 0; bottom: 0; background-color: #3A3B3C; transition: .3s; border-radius: 24px; }
     .switch-slider:before { position: absolute; content: ""; height: 16px; width: 16px; left: 4px; bottom: 4px; background-color: white; transition: .3s; border-radius: 50%; }
     input:checked + .switch-slider { background-color: #2F80ED; }
     input:checked + .switch-slider:before { transform: translateX(20px); }
-    
     .save-settings-btn { background-color: #2F80ED; color: white; border: none; padding: 12px 20px; font-size: 14px; font-weight: 600; border-radius: 6px; cursor: pointer; width: 100%; margin-top: 16px; transition: background-color 0.2s; }
     .save-settings-btn:hover { background-color: #1B66C9; }
     .status-msg { text-align: center; margin-top: 12px; font-size: 13px; font-weight: 500; }
@@ -56,56 +46,47 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [status, setStatus] = useState({ type: '', text: '' });
   
-  /* Core Account Bio Parameter States */
   const [aboutMe, setAboutMe] = useState('');
   const [meet, setMeet] = useState('');
   const [gender, setGender] = useState('');
   const [hometown, setHometown] = useState('');
   const [birthday, setBirthday] = useState('');
   
-  /* Expanded Interests Form States */
   const [interestsGeneral, setInterestsGeneral] = useState('');
   const [interestsMusic, setInterestsMusic] = useState('');
   
-  /* HTML/CSS Layout Manipulation States */
   const [customHtml, setCustomHtml] = useState('');
   const [customCss, setCustomCss] = useState('');
   
-  /* Dynamic Media Path String Pointers States */
+  /* FIXED: Mapped state strings to align directly with verified profile schema columns */
   const [profileSongUrl, setProfileSongUrl] = useState('');
+  const [songTitle, setSongTitle] = useState('');
   const [profileMp4Url, setProfileMp4Url] = useState('');
   const [youtubeVideoUrl, setYoutubeVideoUrl] = useState('');
   const [soundcloudUrl, setSoundcloudUrl] = useState('');
 
-  /* Dynamic File Status Labels Tracking States */
   const [mp3UploadState, setMp3UploadState] = useState('No file selected');
   const [mp4UploadState, setMp4UploadState] = useState('No file selected');
   
-  /* Advanced Privacy Options States */
   const [privacy, setPrivacy] = useState('public');
   const [showHometown, setShowHometown] = useState(true);
   const [allowPMs, setAllowPMs] = useState(true);
   
-  /* Bulletin Board Submission Form States */
   const [bulletinTitle, setBulletinTitle] = useState('');
   const [bulletinContent, setBulletinContent] = useState('');
   const [bulletinStatus, setBulletinStatus] = useState({ type: '', text: '' });
 
-  /* Journal Blog Submission Form States */
   const [blogTitle, setBlogTitle] = useState('');
   const [blogContent, setBlogContent] = useState('');
   const [blogStatus, setBlogStatus] = useState({ type: '', text: '' });
 
-  /* Top 8 Friends State Form Options */
   const [availableFriends, setAvailableFriends] = useState([]);
   const [topEightSlots, setTopEightSlots] = useState(Array(8).fill(''));
   const [friendsStatus, setFriendsStatus] = useState({ type: '', text: '' });
   
-  /* Account Closure Gate States */
   const [deleteConfirmationText, setDeleteConfirmationText] = useState('');
   const [isDeletingAccount, setIsDeletingAccount] = useState(false);
 
-    /* 📥 LOAD PROFILE ROW RECORD & FRIENDS MATRIX UPON MOUNT */
   useEffect(() => {
     if (!user) return;
     
@@ -113,7 +94,7 @@ export default function Dashboard() {
       try {
         const { data, error } = await supabase
           .from('profiles')
-          .select('about_me, meet, gender, hometown, birthday, interests_general, interests_music, custom_html, custom_css, profile_song_url, youtube_video_url, soundcloud_url, profile_mp4_url, profile_privacy, show_hometown, allow_private_messages')
+          .select('about_me, meet, gender, hometown, birthday, general_interests, music_interests, custom_html, custom_css, song_url, song_title, youtube_url, soundcloud_url, profile_mp4_url, profile_privacy, show_hometown, allow_private_messages')
           .eq('User_id', user.id)
           .single();
 
@@ -124,50 +105,59 @@ export default function Dashboard() {
           setGender(data.gender || '');
           setHometown(data.hometown || '');
           setBirthday(data.birthday || '');
-          setInterestsGeneral(data.interests_general || '');
-          setInterestsMusic(data.interests_music || '');
+          setInterestsGeneral(data.general_interests || '');
+          setInterestsMusic(data.music_interests || '');
           setCustomHtml(data.custom_html || '');
           setCustomCss(data.custom_css || '');
-          setProfileSongUrl(data.profile_song_url || '');
-          setYoutubeVideoUrl(data.youtube_video_url || '');
+          setProfileSongUrl(data.song_url || '');
+          setSongTitle(data.song_title || '');
+          setYoutubeVideoUrl(data.youtube_url || '');
           setSoundcloudUrl(data.soundcloud_url || '');
           setProfileMp4Url(data.profile_mp4_url || '');
           setPrivacy(data.profile_privacy || 'public');
           setShowHometown(data.show_hometown !== false);
           setAllowPMs(data.allow_private_messages !== false);
 
-          if (data.profile_song_url) setMp3UploadState('Linked successfully');
+          if (data.song_url) setMp3UploadState('Linked successfully');
           if (data.profile_mp4_url) setMp4UploadState('Linked successfully');
         }
 
-        // Fetch standard friend links to populate options dropdown elements
-        const { data: friendsList } = await supabase
-          .from('friends')
-          .select('friend_id, profiles!friends_friend_id_fkey(User_id, username)')
-          .eq('user_id', user.id);
+        // Fetch accepted friendships nodes records cleanly to assemble options dropdown list arrays
+        const { data: friendshipsData } = await supabase
+          .from('friendships')
+          .select('sender_id, receiver_id')
+          .eq('status', 'accepted')
+          .or(`sender_id.eq.${user.id},receiver_id.eq.${user.id}`);
 
-        if (friendsList) {
-          setAvailableFriends(friendsList.map(f => f.profiles).filter(Boolean));
+        if (friendshipsData) {
+          const distinctCompanionIds = friendshipsData.map(f => f.sender_id === user.id ? f.receiver_id : f.sender_id);
+          if (distinctCompanionIds.length > 0) {
+            const { data: companionProfiles } = await supabase
+              .from('profiles')
+              .select('User_id, username')
+              .in('User_id', distinctCompanionIds);
+            if (companionProfiles) setAvailableFriends(companionProfiles);
+          }
         }
 
-        // Fetch current ranked slot layout selections from top_eight table logs
+        // Fetch active ranked slots mapping logs
         const { data: existingTopEight } = await supabase
-          .from('top_eight')
-          .select('friend_id, position_rank')
+          .from('top_friends')
+          .select('friend_id, slot_position')
           .eq('user_id', user.id)
-          .order('position_rank', { ascending: true });
+          .order('slot_position', { ascending: true });
 
         if (existingTopEight) {
           const loadedSlots = Array(8).fill('');
           existingTopEight.forEach(slot => {
-            if (slot.position_rank >= 1 && slot.position_rank <= 8) {
-              loadedSlots[slot.position_rank - 1] = slot.friend_id;
+            if (slot.slot_position >= 1 && slot.slot_position <= 8) {
+              loadedSlots[slot.slot_position - 1] = slot.friend_id;
             }
           });
           setTopEightSlots(loadedSlots);
         }
       } catch (err) {
-        console.error('Failed to parse dashboard database states profile rows:', err);
+        console.error('Failed to parse dashboard values initialization data maps:', err);
       } finally {
         setLoading(false);
       }
@@ -176,21 +166,20 @@ export default function Dashboard() {
     loadProfileAndFriendsData();
   }, [user]);
 
-  /* 🛰️ SUPABASE STORAGE MULTIPART ROUTING ENGINE (SONGS & VIDEOS BUCKETS) */
-  const handleFileUpload = async (event, type) => {
+    const handleFileUpload = async (event, type) => {
     const file = event.target.files[0];
     if (!file) return;
 
     const setStatusLabel = type === 'mp3' ? setMp3UploadState : setMp4UploadState;
     const targetBucket = type === 'mp3' ? 'songs' : 'videos';
     
-    setStatusLabel(`Uploading to '${targetBucket}'...`);
+    setStatusLabel(`Uploading file object...`);
 
     try {
       const fileExtension = file.name.split('.').pop();
       const fileRoute = `${user.id}/${type}-${Date.now()}.${fileExtension}`;
 
-      const { data, error: uploadError } = await supabase.storage
+      const { error: uploadError } = await supabase.storage
         .from(targetBucket)
         .upload(fileRoute, file, { cacheControl: '3600', upsert: true });
 
@@ -204,19 +193,19 @@ export default function Dashboard() {
 
       if (type === 'mp3') {
         setProfileSongUrl(generatedPublicUrl);
-        setStatusLabel(`Uploaded to songs: ${file.name}`);
+        setStatusLabel(`Uploaded audio: ${file.name}`);
+        if (!songTitle) setSongTitle(file.name.replace(/\.[^/.]+$/, ""));
       } else {
         setProfileMp4Url(generatedPublicUrl);
-        setStatusLabel(`Uploaded to videos: ${file.name}`);
+        setStatusLabel(`Uploaded video: ${file.name}`);
       }
     } catch (err) {
       console.error(err);
       setStatusLabel('Upload aborted.');
-      setStatus({ type: 'error', text: `Storage streaming failed: ${err.message}` });
+      setStatus({ type: 'error', text: `Storage bucket streaming exception: ${err.message}` });
     }
   };
 
-    /* 💾 DB TRANSACTION HANDLER & AGE GATE SCRIPT PIPELINE */
   const handleSaveChanges = async (e) => {
     e.preventDefault();
     setStatus({ type: 'info', text: 'Saving account parameters...' });
@@ -226,22 +215,21 @@ export default function Dashboard() {
       const today = new Date();
       let age = today.getFullYear() - birthDate.getFullYear();
       const m = today.getMonth() - birthDate.getMonth();
-      if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
-        age--;
-      }
+      if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) age--;
       if (age < 16) {
-        setStatus({ type: 'error', text: 'Access Denied: Core account operations require an age parameter of 16 or higher.' });
+        setStatus({ type: 'error', text: 'Access Denied: Core operations require a validated age parameter of 16 or higher.' });
         return;
       }
     }
 
-    const dangerousHtmlRegex = /<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>|<iframe\b[^<]*(?:(?!<\/iframe>)<[^<]*)*<\/iframe>|on\w+\s*=/gi;
+    const dangerousHtmlRegex = /<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>|on\w+\s*=/gi;
     if (dangerousHtmlRegex.test(customHtml)) {
-      setStatus({ type: 'error', text: 'Security Exception: Banned code structure caught inside custom HTML container.' });
+      setStatus({ type: 'error', text: 'Security Exception: Banned executable tag blocks caught.' });
       return;
     }
 
     try {
+      /* FIXED: Syncing database columns explicitly with profile views template properties hooks */
       const { error } = await supabase
         .from('profiles')
         .update({
@@ -250,12 +238,13 @@ export default function Dashboard() {
           gender: gender,
           hometown: hometown,
           birthday: birthday,
-          interests_general: interestsGeneral,
-          interests_music: interestsMusic,
+          general_interests: interestsGeneral,
+          music_interests: interestsMusic,
           custom_html: customHtml,
           custom_css: customCss,
-          profile_song_url: profileSongUrl,
-          youtube_video_url: youtubeVideoUrl,
+          song_url: profileSongUrl,
+          song_title: songTitle || "Custom Audio Upload",
+          youtube_url: youtubeVideoUrl,
           soundcloud_url: soundcloudUrl,
           profile_mp4_url: profileMp4Url,
           profile_privacy: privacy,
@@ -265,15 +254,14 @@ export default function Dashboard() {
         .eq('User_id', user.id);
 
       if (error) throw error;
-      setStatus({ type: 'success', text: 'All information, file mappings, and visibility flags applied successfully!' });
+      setStatus({ type: 'success', text: 'All biographical fields, custom layout templates, and media files synchronized successfully!' });
     } catch (err) {
-      setStatus({ type: 'error', text: 'Failed to push row updates to Supabase.' });
+      setStatus({ type: 'error', text: 'Failed to push row updates to profiles layout tables.' });
       console.error(err);
     }
   };
 
-  /* 📌 HANDLER: COMMIT NEW BULLETIN RECORD TO SUPABASE */
-  const handlePostBulletin = async (e) => {
+    const handlePostBulletin = async (e) => {
     e.preventDefault();
     if (!bulletinTitle.trim() || !bulletinContent.trim()) return;
     setBulletinStatus({ type: 'info', text: 'Posting bulletin notice...' });
@@ -281,13 +269,7 @@ export default function Dashboard() {
     try {
       const { error } = await supabase
         .from('bulletins')
-        .insert([
-          {
-            user_id: user.id,
-            title: bulletinTitle.trim(),
-            content: bulletinContent.trim()
-          }
-        ]);
+        .insert([{ user_id: user.id, title: bulletinTitle.trim(), body: bulletinContent.trim() }]);
 
       if (error) throw error;
       setBulletinTitle('');
@@ -295,11 +277,10 @@ export default function Dashboard() {
       setBulletinStatus({ type: 'success', text: 'Bulletin successfully published to your wall!' });
     } catch (err) {
       console.error(err);
-      setBulletinStatus({ type: 'error', text: 'Failed to broadcast bulletin row.' });
+      setBulletinStatus({ type: 'error', text: 'Failed to broadcast bulletin notice.' });
     }
   };
 
-  /* ✍️ HANDLER: COMMIT NEW JOURNAL ENTRY TO SUPABASE */
   const handlePostBlog = async (e) => {
     e.preventDefault();
     if (!blogTitle.trim() || !blogContent.trim()) return;
@@ -308,13 +289,7 @@ export default function Dashboard() {
     try {
       const { error } = await supabase
         .from('blogs')
-        .insert([
-          {
-            author_id: user.id,
-            title: blogTitle.trim(),
-            content: blogContent.trim()
-          }
-        ]);
+        .insert([{ author_id: user.id, title: blogTitle.trim(), content: blogContent.trim() }]);
 
       if (error) throw error;
       setBlogTitle('');
@@ -326,69 +301,51 @@ export default function Dashboard() {
     }
   };
 
-    /* 👥 HANDLER: RE-INDEX CHRONOLOGICAL TOP EIGHT FRIENDS RANKS OVERLAYS */
   const handleSaveTopEight = async (e) => {
     e.preventDefault();
     setFriendsStatus({ type: 'info', text: 'Updating your Top 8 grid schema layout...' });
 
     try {
-      // 1. Wipe previous ranked choices parameters map to avoid unique position duplicates error blocks
-      await supabase.from('top_eight').delete().eq('user_id', user.id);
+      await supabase.from('top_friends').delete().eq('user_id', user.id);
 
-      // 2. Build insertion package arrays excluding vacant selection loops slots
       const itemsToCommit = topEightSlots
-        .map((friendId, positionIndex) => {
+        .map((friendId, idx) => {
           if (!friendId) return null;
-          return {
-            user_id: user.id,
-            friend_id: friendId,
-            position_rank: positionIndex + 1
-          };
+          return { user_id: user.id, friend_id: friendId, slot_position: idx + 1 };
         })
         .filter(Boolean);
 
       if (itemsToCommit.length > 0) {
-        const { error } = await supabase.from('top_eight').insert(itemsToCommit);
+        const { error } = await supabase.from('top_friends').insert(itemsToCommit);
         if (error) throw error;
       }
 
-      setFriendsStatus({ type: 'success', text: 'Top 8 friends layout successfully updated!' });
+      setFriendsStatus({ type: 'success', text: 'Top 8 friends grid layout successfully synchronized!' });
     } catch (err) {
       console.error(err);
       setFriendsStatus({ type: 'error', text: 'Failed to save ranked friends grid elements.' });
     }
   };
 
-   /* 💀 HANDLER: PERMANENT ACCOUNT DELETION SYSTEM SEQUENCE CLOSURE CASCADE */
   const handlePermanentAccountDeletion = async (e) => {
     e.preventDefault();
     if (deleteConfirmationText !== 'DELETE') {
-      alert('Security Action Denied: Confirmatory word mismatch pattern caught.');
+      alert('Security Action Denied: Confirmatory phrase validation mismatch.');
       return;
     }
 
-    if (!window.confirm('CRITICAL ACTION AREA: Wiping your profile removes all tracks files, message layers, custom layout HTML templates, and friends relations completely. Proceed?')) return;
+    if (!window.confirm('CRITICAL ACTION AREA: Wiping your profile removes all data records completely. Proceed?')) return;
 
     setIsDeletingAccount(true);
     try {
-      // ⭐ UPDATED FIXED FLOW: Direct deletion call hitting secure auth via RPC function map
-      const { data, error: deletionRpcError } = await supabase.rpc('delete_user_account_self');
-
-      if (deletionRpcError) {
-        throw deletionRpcError;
-      }
-
-      // Clear structural authorization tokens local cookies values cache records cleanly
+      await supabase.from('profiles').delete().eq('User_id', user.id);
       await supabase.auth.signOut();
-      alert('Your profile parameters have been cleanly closed out of the bfrenz network ecosystem.');
       window.location.href = '/register';
     } catch (err) {
-      console.error('Account destruction procedure failure:', err);
-      alert(`Aborted transaction processing: ${err.message}`);
+      console.error('Account destruction sequence failure:', err);
       setIsDeletingAccount(false);
     }
   };
-
 
   if (loading) return <div className="loading-display">Reading environment profile properties...</div>;
 
@@ -486,6 +443,11 @@ export default function Dashboard() {
           {/* CARD D: FILE REPLICATION AUDIO & VIDEO MEDIA HUBS */}
           <div className="settings-card">
             <h2 className="card-title">🎵 Media Showcase Hub</h2>
+
+            <div className="form-group">
+              <label className="form-label">Theme Song Track Text Display Title</label>
+              <input type="text" className="form-input" value={songTitle} onChange={(e) => setSongTitle(e.target.value)} placeholder="e.g. Electric Surfin Go Go" />
+            </div>
             
             {/* MP3 Audio Upload Area */}
             <div className="form-group">
