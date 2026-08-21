@@ -9,7 +9,7 @@ if (typeof document !== 'undefined') {
     .nav-links-container { display: flex !important; align-items: center !important; gap: 15px !important; }
     .burger-menu-btn { display: none !important; }
     
-    /* 🎨 UNIFIED RETRO 3D ORANGE BUTTONS (EXACT STYLE MATCH) */
+    /* 🎨 RETRO 3D ORANGE BUTTONS (EXACT BRAND ECOSYSTEM MATCH) */
     .retro-nav-btn {
       display: inline-flex !important;
       align-items: center !important;
@@ -35,7 +35,7 @@ if (typeof document !== 'undefined') {
       filter: brightness(1.1) !important;
     }
 
-    /* 🔔 DYNAMIC ALERTS ACTIVITY BELL WRAPPER */
+    /* 🔔 NOTIFICATION BELL WRAPPER COMPONENTS */
     .retro-bell-wrapper {
       display: inline-flex !important;
       align-items: center !important;
@@ -45,7 +45,7 @@ if (typeof document !== 'undefined') {
       cursor: pointer !important;
     }
 
-    /* 💬 RETRO CIRCULAR MESSENGER TRIGGER BADGE */
+    /* 💬 RETRO CIRCULAR TRIGGER MESSENGER TRUNK BADGE */
     .retro-messenger-circle {
       display: inline-flex !important;
       align-items: center !important;
@@ -92,7 +92,7 @@ if (typeof document !== 'undefined') {
       font-family: 'Courier New', monospace !important;
     }
 
-    /* 📂 FLAT MODERN MESSENGER DROPDOWN POPUP PANEL */
+    /* 📂 MODERN CHATS FLAT OVERLAY POPUP PANEL */
     .messenger-dropdown-panel {
       position: absolute !important;
       top: 52px !important;
@@ -173,6 +173,7 @@ export default function NavBar() {
 
     fetchRecentInboxMessages();
 
+    // 🔌 REAL-TIME REALMS CHANNELS CONNECTION TRACKER LISTENER
     const msgSubscription = supabase
       .channel(`public:user_messages:nav_receiver=${user.id}`)
       .on(
@@ -285,16 +286,19 @@ export default function NavBar() {
       </button>
 
       <div className={`nav-links-container ${isMenuOpen ? 'open' : ''}`}>
-        {/* 🟢 RESTORED ORIGINAL CORE FLOW ROUTES */}
-        <Link to="/dashboard" className="retro-nav-btn">Dashboard</Link>
+        {/* 🧭 STATIC GUEST & USER SHARED NAVIGATION NODES */}
         <Link to="/browse" className="retro-nav-btn">Browse People</Link>
+        <Link to="/dashboard" className="retro-nav-btn">Dashboard</Link>
         
         {user ? (
           <>
-            {/* 🟢 RESTORED USER INDIVIDUAL PROFILE ROUTE LINK */}
+            {/* 👥 1. MY PROFILE DIRECT ACCESS BUTTON */}
             <Link to={`/profile/${user.id}`} className="retro-nav-btn">My Profile</Link>
 
-            {/* 🔔 ACTIVE MESSENGER INTEGRATED BELL OVERLAY NOTIFICATION */}
+            {/* ✉️ 2. INBOX REDIRECT HULL BUTTON (LINK TO MASTER MESSAGES PAGE) */}
+            <Link to="/inbox" className="retro-nav-btn">Inbox</Link>
+
+            {/* 🔔 3. REAL-TIME ACTIVITY BELL DROPDOWN TRIGGERS PORTAL */}
             <div className={`retro-bell-wrapper ${unreadCount > 0 ? 'bell-alert-active' : ''}`} ref={dropdownRef}>
               <div className="retro-messenger-circle" onClick={() => setIsMsgDropdownOpen(!isMsgDropdownOpen)}>
                 <svg viewBox="0 0 24 24">
@@ -303,7 +307,7 @@ export default function NavBar() {
                 {unreadCount > 0 && <span className="bell-badge-indicator">{unreadCount}</span>}
               </div>
 
-              {/* FLOATING INBOX POPUP CONTAINER PANEL */}
+              {/* DROPDOWN INCOMING LOGS BOX TRUNK */}
               {isMsgDropdownOpen && (
                 <div className="messenger-dropdown-panel">
                   <div className="messenger-header-line">
@@ -335,8 +339,8 @@ export default function NavBar() {
                       </div>
                     ))
                   )}
-                  <Link to="/dashboard" className="messenger-see-all-btn" onClick={() => setIsMsgDropdownOpen(false)}>
-                    See all in Dashboard
+                  <Link to="/inbox" className="messenger-see-all-btn" onClick={() => setIsMsgDropdownOpen(false)}>
+                    See all in Inbox
                   </Link>
                 </div>
               )}

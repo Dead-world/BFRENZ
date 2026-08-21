@@ -14,9 +14,8 @@ if (typeof document !== 'undefined') {
     .msg-modal-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 14px; }
     .msg-btn-send { background-color: #FF6600; color: #000; font-weight: bold; border: 2px solid #000; padding: 6px 16px; cursor: pointer; border-radius: 4px; box-shadow: 2px 2px 0px #fff; text-transform: uppercase; }
     .msg-btn-cancel { background-color: #555; color: #fff; font-weight: bold; border: 2px solid #000; padding: 6px 16px; cursor: pointer; border-radius: 4px; text-transform: uppercase; }
-    .msg-btn-send:active, .msg-btn-cancel:active { transform: translate(1px, 1px); box-shadow: none; }
     
-    /* Active Button Overrides for State tracking elements */
+    /* State Tracking Classes */
     .ms-btn.active-action { background-color: #4BAC4E !important; color: #fff !important; pointer-events: none; }
     .ms-btn.blocked-action { background-color: #E41E3F !important; color: #fff !important; }
   `;
@@ -51,16 +50,8 @@ export default function ProfilePage() {
       const { data, error } = await supabase
         .from("profiles")
         .select(`
-          User_id,
-          username,
-          avatar_url,
-          status_message,
-          hometown,
-          about_me,
-          meet,
-          general_interests,
-          music_interests,
-          last_online
+          User_id, username, avatar_url, status_message, hometown,
+          about_me, meet, general_interests, music_interests, last_online
         `)
         .eq("User_id", id)
         .single();
@@ -71,12 +62,11 @@ export default function ProfilePage() {
     loadProfile();
   }, [id]);
 
-  /* 🔍 MOUNT CHECK: LOAD ACTIVE FRIENDSHIP AND BLOCK CONFIGURATIONS */
+  /* Sync Relationship States */
   useEffect(() => {
     if (!currentUser || currentUser.id === id) return;
 
     async function checkRelationships() {
-      // 1. Look up existing friendship linkages
       const { data: friendData } = await supabase
         .from("friendships")
         .select("status, sender_id")
@@ -90,7 +80,6 @@ export default function ProfilePage() {
         setFriendStatus("none");
       }
 
-      // 2. Look up block logs matrix
       const { data: blockData } = await supabase
         .from("blocks")
         .select("id")
@@ -108,20 +97,14 @@ export default function ProfilePage() {
     async function addView() {
       const { data: auth } = await supabase.auth.getUser();
       if (!auth?.user || auth.user.id === id) return; 
-      await supabase.from("profile_views").insert({
-        viewer_id: auth.user.id,
-        profile_id: id,
-      });
+      await supabase.from("profile_views").insert({ viewer_id: auth.user.id, profile_id: id });
     }
     addView();
   }, [id]);
 
   useEffect(() => {
     async function loadViews() {
-      const { data } = await supabase
-        .from("profile_views")
-        .select("id")
-        .eq("profile_id", id);
+      const { data } = await supabase.from("profile_views").select("id").eq("profile_id", id);
       setViews(data?.length || 0);
     }
     loadViews();
@@ -150,14 +133,8 @@ export default function ProfilePage() {
       const { data, error } = await supabase
         .from("comments")
         .select(`
-          id,
-          content,
-          created_at,
-          user_id,
-          profiles:comments_user_id_fkey (
-            username,
-            avatar_url
-          )
+          id, content, created_at, user_id,
+          profiles:comments_user_id_fkey ( username, avatar_url )
         `)
         .eq("profile_id", id)
         .order("created_at", { ascending: true });
@@ -167,8 +144,7 @@ export default function ProfilePage() {
     loadComments();
   }, [id]);
 
-    /* ➕ CORE HANDLER: EXECUTE FRIEND REQUEST */
-  const handleAddFriendAction = async () => {
+    const handleAddFriendAction = async () => {
     if (!currentUser) { alert("Please log in to add friends!"); return; }
     if (actionLoading || friendStatus !== "none") return;
 
@@ -178,15 +154,10 @@ export default function ProfilePage() {
       .insert({ sender_id: currentUser.id, receiver_id: id, status: "pending" });
 
     setActionLoading(false);
-    if (!error) {
-      setFriendStatus("pending");
-      alert("Friend request broadcasted successfully!");
-    } else {
-      alert(error.message);
-    }
+    if (!error) { setFriendStatus("pending"); alert("Friend request broadcasted!"); } 
+    else { alert(error.message); }
   };
 
-  /* 🚫 CORE HANDLER: TOGGLE BLOCK/UNBLOCK RELATIONSHIP MAPPING */
   const handleToggleBlockAction = async () => {
     if (!currentUser) { alert("Please log in to manage block rules."); return; }
     if (actionLoading) return;
@@ -196,45 +167,32 @@ export default function ProfilePage() {
       const { error } = await supabase.from("blocks").delete().eq("blocker_id", currentUser.id).eq("blocked_id", id);
       if (!error) setIsBlocked(false);
     } else {
-      if (window.confirm(`Are you sure you want to block ${profile.username}? You will no longer receive their messages.`)) {
+      if (window.confirm(`Are you sure you want to block ${profile.username}?`)) {
         await supabase.from("friendships").delete().or(`and(sender_id.eq.${currentUser.id},receiver_id.eq.${id}),and(sender_id.eq.${id},receiver_id.eq.${currentUser.id})`);
         const { error } = await supabase.from("blocks").insert({ blocker_id: currentUser.id, blocked_id: id });
-        if (!error) {
-          setIsBlocked(true);
-          setFriendStatus("none");
-        }
+        if (!error) { setIsBlocked(true); setFriendStatus("none"); }
       }
     }
     setActionLoading(false);
   };
 
-  /* ✉️ CORE HANDLER: DISPATCH DIRECT USER MESSAGE ROW */
   const handleSendMessageAction = async () => {
     if (!messageText.trim()) return;
     setActionLoading(true);
 
     const { error } = await supabase
       .from("user_messages")
-      .insert({
-        sender_id: currentUser.id,
-        receiver_id: id,
-        content: messageText.trim(),
-        read: false
-      });
+      .insert({ sender_id: currentUser.id, receiver_id: id, content: messageText.trim(), read: false });
 
     setActionLoading(false);
     if (!error) {
-      alert(`Message successfully dispatched to ${profile.username}!`);
+      alert(`Message sent to ${profile.username}!`);
       setMessageText("");
       setIsMsgModalOpen(false);
-    } else {
-      alert(error.message);
-    }
+    } else { alert(error.message); }
   };
 
-  const isOnline =
-    profile?.last_online &&
-    Date.now() - new Date(profile.last_online).getTime() < 5 * 60 * 1000;
+  const isOnline = profile?.last_online && Date.now() - new Date(profile.last_online).getTime() < 5 * 60 * 1000;
 
   if (loading) return <div className="ms-loading">Loading profile...</div>;
   if (!profile) return <div className="ms-not-found">Profile not found.</div>;
@@ -243,18 +201,19 @@ export default function ProfilePage() {
     <>
       <Navbar />
 
-      {/* TOP NAV */}
+      {/* TOP NAV BAR SUB-STRIP */}
       <div className="ms-topnav">
         <div className="ms-topnav-left">
           Home | Browse | Search | Invite | Film | Mail | Blogs | Favorites |
           Forum | Groups | Events | Music | Comedy
         </div>
-        <div className="ms-topnav-right" style={{ cursor: 'pointer' }} onClick={async () => { await supabase.auth.signOut(); navigate('/login'); }}>Logout</div>
+        <div className="ms-topnav-right">Logout</div>
       </div>
 
-      {/* MAIN CONTAINER */}
+      {/* MAIN LAYOUT CANVAS CONTAINER */}
       <div className="ms-container">
-        {/* LEFT COLUMN */}
+        
+        {/* LEFT PROFILE MATRIX SIDEBAR */}
         <div className="ms-left">
           <img src={profile.avatar_url} alt="Avatar" className="ms-photo" />
           <h2 className="ms-name">{profile.username}</h2>
@@ -263,16 +222,12 @@ export default function ProfilePage() {
           <p>Profile Views: {views}</p>
           <p>Mode: {isOnline ? "Online" : "Offline"}</p>
 
-          {/* 🔘 RECONFIGURED ACTIVE SYSTEM INTERFACE CONTROLS BUTTONS */}
+          {/* DYNAMIC BACKEND OVERLAY CONTACT ACTION GRID */}
           <div className="ms-contact">
             {currentUser && currentUser.id !== id ? (
               <>
-                {/* 1. MESSAGE DISPATCH TRIGGER BUTTON */}
-                <button className="ms-btn" onClick={() => setIsMsgModalOpen(true)}>
-                  Send Message
-                </button>
+                <button className="ms-btn" onClick={() => setIsMsgModalOpen(true)}>Send Message</button>
 
-                {/* 2. FRIEND MATRIX LINK STATE TRACKING BUTTON */}
                 {friendStatus === "none" && ( <button className="ms-btn" onClick={handleAddFriendAction} disabled={actionLoading}>Add to Friends</button> )}
                 {friendStatus === "pending" && ( <button className="ms-btn active-action">Request Pending</button> )}
                 {friendStatus === "accepted" && ( <button className="ms-btn active-action">✓ Friends</button> )}
@@ -282,7 +237,6 @@ export default function ProfilePage() {
                 <button className="ms-btn">Forward to Friend</button>
                 <button className="ms-btn">Add to Favorites</button>
 
-                {/* 3. SECURITY ACCESS PROFILE BLOCK TOGGLE BUTTON */}
                 <button className={`ms-btn ${isBlocked ? 'blocked-action' : ''}`} onClick={handleToggleBlockAction} disabled={actionLoading}>
                   {isBlocked ? "Unblock User" : "Block User"}
                 </button>
@@ -290,7 +244,7 @@ export default function ProfilePage() {
                 <button className="ms-btn">Rank User</button>
               </>
             ) : (
-              ["Instant Message", "Add to Group", "Add to Favorites", "Rank User"].map((btn) => (
+              ["Send Message", "Add to Friends", "Instant Message", "Add to Group", "Forward to Friend", "Add to Favorites", "Block User", "Rank User"].map((btn) => (
                 <button key={btn} className="ms-btn">{btn}</button>
               ))
             )}
@@ -300,16 +254,12 @@ export default function ProfilePage() {
 
           <div className="ms-interests">
             <h3>Interests</h3>
-            <p>
-              <strong>General:</strong> {profile.general_interests || "N/A"}
-            </p>
-            <p>
-              <strong>Music:</strong> {profile.music_interests || "N/A"}
-            </p>
+            <p><strong>General:</strong> {profile.general_interests || "N/A"}</p>
+            <p><strong>Music:</strong> {profile.music_interests || "N/A"}</p>
           </div>
         </div>
 
-        {/* RIGHT COLUMN */}
+        {/* RIGHT MAIN BLOCKS FEED COLUMN */}
         <div className="ms-right">
           <div className="ms-status">
             <h2>{profile.username} testing out the new status</h2>
@@ -337,12 +287,7 @@ export default function ProfilePage() {
                   <p>{b.body}</p>
                   <small>{new Date(b.created_at).toLocaleString()}</small>
                   {currentUser?.id === id && (
-                    <button
-                      className="ms-delete"
-                      onClick={() => deleteBulletin(b.id)}
-                    >
-                      Delete
-                    </button>
+                    <button className="ms-delete" onClick={() => deleteBulletin(b.id)}>Delete</button>
                   )}
                 </div>
               ))
@@ -357,17 +302,9 @@ export default function ProfilePage() {
               comments.map((c) => (
                 <div key={c.id} className="ms-comment">
                   <div className="ms-comment-header">
-                    <img
-                      src={c.profiles?.avatar_url}
-                      alt="Avatar"
-                      className="ms-comment-avatar"
-                    />
-                    <span className="ms-comment-user">
-                      {c.profiles?.username}
-                    </span>
-                    <small>
-                      {new Date(c.created_at).toLocaleString()}
-                    </small>
+                    <img src={c.profiles?.avatar_url} alt="Avatar" className="ms-comment-avatar" />
+                    <span className="ms-comment-user">{c.profiles?.username}</span>
+                    <small>{new Date(c.created_at).toLocaleString()}</small>
                   </div>
                   <p>{c.content}</p>
                 </div>
@@ -377,7 +314,7 @@ export default function ProfilePage() {
         </div>
       </div>
 
-      {/* 📥 INJECTED OVERLAY MODAL: DYNAMIC DIRECT MESSENGER CONTEXT CARD */}
+      {/* FLOATING TEXT MESSENGER POPUP OVERLAY */}
       {isMsgModalOpen && (
         <div className="msg-modal-overlay">
           <div className="msg-modal-card">
